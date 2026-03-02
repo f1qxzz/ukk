@@ -36,116 +36,132 @@ $page_sub   = 'Kelola informasi akun';
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Profil — Admin Perpustakaan</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Profil — Admin Perpustakaan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
+
 <body>
-<div class="app-wrap">
-  <?php include 'includes/nav.php'; ?>
-  <div class="main-area">
-    <?php include 'includes/header.php'; ?>
-    <main class="content">
+    <div class="app-wrap">
+        <?php include 'includes/nav.php'; ?>
+        <div class="main-area">
+            <?php include 'includes/header.php'; ?>
+            <main class="content">
 
-      <?php if ($msg): ?>
-        <div class="alert alert-<?= $msgType ?>"><?= $msg ?></div>
-      <?php endif; ?>
+                <?php if ($msg): ?>
+                <div class="alert alert-<?= $msgType ?>"><?= $msg ?></div>
+                <?php endif; ?>
 
-      <div style="display:grid;grid-template-columns:1fr 1.8fr;gap:20px;align-items:start">
+                <div style="display:grid;grid-template-columns:1fr 1.8fr;gap:20px;align-items:start">
 
-        <!-- Profile Card -->
-        <div class="profile-card">
-          <div class="profile-banner"></div>
-          <div class="profile-avatar-wrap">
-            <div class="profile-avatar" style="background:linear-gradient(135deg,var(--rust),var(--rust2))">
-              <?= strtoupper(substr($user['nama_pengguna'],0,1)) ?>
-            </div>
-            <div class="profile-info">
-              <div class="profile-name"><?= htmlspecialchars($user['nama_pengguna']) ?></div>
-              <div class="profile-role">Administrator</div>
-            </div>
-          </div>
-          <div class="profile-body">
-            <div class="profile-fields">
-              <div class="profile-field">
-                <label>Email</label>
-                <span><?= htmlspecialchars($user['email'] ?? '—') ?></span>
-              </div>
-              <div class="profile-field">
-                <label>Username</label>
-                <span><?= htmlspecialchars($user['username']) ?></span>
-              </div>
-              <div class="profile-field">
-                <label>Level</label>
-                <span><span class="badge badge-rust">Admin</span></span>
-              </div>
-            </div>
-          </div>
-        </div>
+                    <!-- Profile Card -->
+                    <div class="profile-header">
 
-        <!-- Edit Forms -->
-        <div style="display:flex;flex-direction:column;gap:20px">
+                        <div class="profile-card">
+                            <div class="profile-banner"></div>
 
-          <!-- Update Info -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">Edit Informasi</div>
-            </div>
-            <form method="POST">
-              <div class="card-body">
-                <div class="form-grid">
-                  <div class="form-group form-full">
-                    <label class="form-label">Nama Lengkap</label>
-                    <input name="nama_pengguna" class="form-control" value="<?= htmlspecialchars($user['nama_pengguna']) ?>">
-                  </div>
-                  <div class="form-group form-full">
-                    <label class="form-label">Email</label>
-                    <input name="email" type="email" class="form-control" value="<?= htmlspecialchars($user['email'] ?? '') ?>">
-                  </div>
+                            <div class="profile-avatar">
+                                <?= strtoupper(substr($user['nama_pengguna'],0,1)) ?>
+                            </div>
+
+                            <div class="profile-name">
+                                <?= htmlspecialchars($user['nama_pengguna']) ?>
+                            </div>
+
+                            <div class="profile-role">Administrator</div>
+                        </div>
+
+                        <div class="profile-meta">
+                            <div class="meta-box">
+                                <label>Email</label>
+                                <span><?= htmlspecialchars($user['email']) ?></span>
+                            </div>
+
+                            <div class="meta-box">
+                                <label>Username</label>
+                                <span><?= htmlspecialchars($user['username']) ?></span>
+                            </div>
+
+                            <div class="meta-box">
+                                <label>Level</label>
+                                <span class="badge">Petugas</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Edit Forms -->
+                    <div style="display:flex;flex-direction:column;gap:20px">
+
+                        <!-- Update Info -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Edit Informasi</div>
+                            </div>
+                            <form method="POST">
+                                <div class="card-body">
+                                    <div class="form-grid">
+                                        <div class="form-group form-full">
+                                            <label class="form-label">Nama Lengkap</label>
+                                            <input name="nama_pengguna" class="form-control"
+                                                value="<?= htmlspecialchars($user['nama_pengguna']) ?>">
+                                        </div>
+                                        <div class="form-group form-full">
+                                            <label class="form-label">Email</label>
+                                            <input name="email" type="email" class="form-control"
+                                                value="<?= htmlspecialchars($user['email'] ?? '') ?>">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div
+                                    style="padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
+                                    <button name="update" class="btn btn-navy">Simpan Perubahan</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Change Password -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Ubah Password</div>
+                            </div>
+                            <form method="POST">
+                                <div class="card-body">
+                                    <div class="form-grid">
+                                        <div class="form-group form-full">
+                                            <label class="form-label">Password Lama</label>
+                                            <input name="old_password" type="password" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Password Baru</label>
+                                            <input name="new_password" type="password" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Konfirmasi Password</label>
+                                            <input name="confirm_password" type="password" class="form-control"
+                                                required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div
+                                    style="padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
+                                    <button name="change_pass" class="btn btn-navy">Ubah Password</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                 </div>
-              </div>
-              <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
-                <button name="update" class="btn btn-navy">Simpan Perubahan</button>
-              </div>
-            </form>
-          </div>
-
-          <!-- Change Password -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">Ubah Password</div>
-            </div>
-            <form method="POST">
-              <div class="card-body">
-                <div class="form-grid">
-                  <div class="form-group form-full">
-                    <label class="form-label">Password Lama</label>
-                    <input name="old_password" type="password" class="form-control" required>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Password Baru</label>
-                    <input name="new_password" type="password" class="form-control" required>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Konfirmasi Password</label>
-                    <input name="confirm_password" type="password" class="form-control" required>
-                  </div>
-                </div>
-              </div>
-              <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
-                <button name="change_pass" class="btn btn-navy">Ubah Password</button>
-              </div>
-            </form>
-          </div>
+            </main>
         </div>
-
-      </div>
-    </main>
-  </div>
-</div>
+    </div>
 </body>
+
 </html>
