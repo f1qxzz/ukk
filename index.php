@@ -84,7 +84,7 @@ $quote=$quotes[date('z')%count($quotes)];
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="description"
         content="LibraSpace — Perpustakaan digital modern. Temukan, pinjam, dan nikmati ribuan koleksi buku pilihan secara online.">
-    <title>LibraSpace — Perpustakaan Digital Modern</title>
+    <title> Perpustakaan Digital Modern</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=JetBrains+Mono:wght@400;500&display=swap"
@@ -3406,6 +3406,8 @@ $quote=$quotes[date('z')%count($quotes)];
         </div>
 
         <div class="hero-left">
+            <div class="hero-tag"><span class="hero-dot"></span>Perpustakaan Digital Modern</div>
+            <br>
             <!-- Quote pill -->
             <div class="hero-quote-pill">
                 <div class="hero-quote-ico">💬</div>
@@ -3415,7 +3417,6 @@ $quote=$quotes[date('z')%count($quotes)];
                 </div>
             </div>
 
-            <div class="hero-tag"><span class="hero-dot"></span>Perpustakaan Digital Modern</div>
 
             <h1 class="hero-h1">
                 Temukan Buku<br>

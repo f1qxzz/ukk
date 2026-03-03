@@ -9,8 +9,8 @@ START TRANSACTION;
 SET time_zone = "+00:00";
 SET NAMES utf8mb4;
 
-CREATE DATABASE IF NOT EXISTS `perpus_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `perpus_db`;
+CREATE DATABASE IF NOT EXISTS `perpus_30` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `perpus_30`;
 
 -- -------------------------------------------------------
 -- Tabel: pengguna (Admin & Petugas)

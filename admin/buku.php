@@ -113,9 +113,12 @@ if (isset($_POST['edit'])) {
             "UPDATE buku SET judul_buku=?,id_kategori=?,pengarang=?,penerbit=?,
              tahun_terbit=?,isbn=?,deskripsi=?,stok=?,status=?,cover=? WHERE id_buku=?"
         );
-        $s->bind_param("sississisi",
-            $judul, $id_kat, $peng, $nerbit, $tahun, $isbn, $desk, $stok, $status, $newCover, $id
-        );
+$s->bind_param(
+    "sissississi",
+    $judul, $id_kat, $peng, $nerbit,
+    $tahun, $isbn, $desk, $stok,
+    $status, $newCover, $id
+);
         if ($s->execute()) {
             $s->close();
             header('Location: buku.php?notif=edit_ok');
@@ -419,21 +422,34 @@ if (isset($_GET['edit'])) {
                         <div class="form-group">
                             <label class="form-label">Cover Buku</label>
                             <div class="cover-upload-area">
-                              <div class="cover-preview-wrap" onclick="document.getElementById('addCoverInput').click()">
-                                <img id="addCoverPreview" src="../<?= DEFAULT_COVER ?>" alt="Preview">
-                                <div class="overlay-hint">
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                  Pilih Cover
+                                <div class="cover-preview-wrap"
+                                    onclick="document.getElementById('addCoverInput').click()">
+                                    <img id="addCoverPreview" src="../<?= DEFAULT_COVER ?>" alt="Preview">
+                                    <div class="overlay-hint">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                            <polyline points="17 8 12 3 7 8" />
+                                            <line x1="12" y1="3" x2="12" y2="15" />
+                                        </svg>
+                                        Pilih Cover
+                                    </div>
                                 </div>
-                              </div>
-                              <div class="cover-upload-meta">
-                                <button type="button" class="cover-upload-btn" onclick="document.getElementById('addCoverInput').click()">
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                  Pilih File
-                                </button>
-                                <div class="cover-filename" id="addCoverFilename"></div>
-                                <div class="cover-upload-hint">Format: JPG atau PNG<br>Maks. 2 MB · Opsional<br>Klik gambar untuk memilih</div>
-                              </div>
+                                <div class="cover-upload-meta">
+                                    <button type="button" class="cover-upload-btn"
+                                        onclick="document.getElementById('addCoverInput').click()">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2.5">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                            <polyline points="17 8 12 3 7 8" />
+                                            <line x1="12" y1="3" x2="12" y2="15" />
+                                        </svg>
+                                        Pilih File
+                                    </button>
+                                    <div class="cover-filename" id="addCoverFilename"></div>
+                                    <div class="cover-upload-hint">Format: JPG atau PNG<br>Maks. 2 MB · Opsional<br>Klik
+                                        gambar untuk memilih</div>
+                                </div>
                             </div>
                             <input type="file" id="addCoverInput" name="cover" accept=".jpg,.jpeg,.png"
                                 style="display:none" onchange="previewCover(this,'addCoverPreview','addCoverFilename')">
@@ -521,24 +537,38 @@ if (isset($_GET['edit'])) {
                                         : '../' . DEFAULT_COVER;
                         ?>
                             <div class="cover-upload-area">
-                              <div class="cover-preview-wrap" onclick="document.getElementById('editCoverInput').click()">
-                                <img id="editCoverPreview" src="<?= $editCoverSrc ?>" alt="Cover Saat Ini">
-                                <div class="overlay-hint">
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                  Ganti Cover
+                                <div class="cover-preview-wrap"
+                                    onclick="document.getElementById('editCoverInput').click()">
+                                    <img id="editCoverPreview" src="<?= $editCoverSrc ?>" alt="Cover Saat Ini">
+                                    <div class="overlay-hint">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                            <polyline points="17 8 12 3 7 8" />
+                                            <line x1="12" y1="3" x2="12" y2="15" />
+                                        </svg>
+                                        Ganti Cover
+                                    </div>
                                 </div>
-                              </div>
-                              <div class="cover-upload-meta">
-                                <button type="button" class="cover-upload-btn" onclick="document.getElementById('editCoverInput').click()">
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                  Ganti Cover
-                                </button>
-                                <div class="cover-filename" id="editCoverFilename"></div>
-                                <div class="cover-upload-hint">Format: JPG atau PNG<br>Maks. 2 MB<br>Kosongkan jika tidak ingin mengubah</div>
-                              </div>
+                                <div class="cover-upload-meta">
+                                    <button type="button" class="cover-upload-btn"
+                                        onclick="document.getElementById('editCoverInput').click()">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2.5">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                            <polyline points="17 8 12 3 7 8" />
+                                            <line x1="12" y1="3" x2="12" y2="15" />
+                                        </svg>
+                                        Ganti Cover
+                                    </button>
+                                    <div class="cover-filename" id="editCoverFilename"></div>
+                                    <div class="cover-upload-hint">Format: JPG atau PNG<br>Maks. 2 MB<br>Kosongkan jika
+                                        tidak ingin mengubah</div>
+                                </div>
                             </div>
                             <input type="file" id="editCoverInput" name="cover" accept=".jpg,.jpeg,.png"
-                                style="display:none" onchange="previewCover(this,'editCoverPreview','editCoverFilename')">
+                                style="display:none"
+                                onchange="previewCover(this,'editCoverPreview','editCoverFilename')">
                         </div>
                         <div class="form-group form-full">
                             <label class="form-label">Deskripsi</label>
@@ -581,7 +611,10 @@ if (isset($_GET['edit'])) {
             preview.src = e.target.result;
         };
         reader.readAsDataURL(file);
-        if (fnLabel) { fnLabel.textContent = file.name; fnLabel.style.display = 'block'; }
+        if (fnLabel) {
+            fnLabel.textContent = file.name;
+            fnLabel.style.display = 'block';
+        }
     }
     </script>
 </body>
