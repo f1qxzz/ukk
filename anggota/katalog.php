@@ -39,56 +39,6 @@ $page_sub   = 'Jelajahi koleksi perpustakaan';
         href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
-    <style>
-    /* ── Cover image fix: tampil penuh tanpa terpotong ── */
-    .book-cover {
-        aspect-ratio: 2 / 3;
-        width: 100%;
-        overflow: hidden;
-        position: relative;
-        background: #1c1509;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .book-cover-img {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        /* fill the slot – no letterboxing */
-        object-position: center top;
-        /* anchor to top so cover title shows */
-        display: block;
-        transition: transform 0.3s;
-    }
-
-    /* Fallback emoji centered */
-    .book-cover-inner {
-        font-size: 3.5rem;
-        line-height: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        top: 0;
-        left: 0;
-        transition: transform 0.3s;
-    }
-
-    .book-card:hover .book-cover-img {
-        transform: scale(1.05);
-    }
-
-    .book-card:hover .book-cover-inner {
-        transform: scale(1.08) rotate(-3deg);
-    }
-    </style>
 </head>
 
 <body>

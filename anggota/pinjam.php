@@ -31,6 +31,7 @@ if (isset($_POST['pinjam'])) {
 }
 
 $search=isset($_GET['search'])?$_GET['search']:'';
+$search = $conn->real_escape_string($search);
 $filter_kat=isset($_GET['kat'])?(int)$_GET['kat']:0;
 $q="SELECT b.*,k.nama_kategori FROM buku b LEFT JOIN kategori k ON b.id_kategori=k.id_kategori WHERE 1=1";
 if($search) $q.=" AND (b.judul_buku LIKE '%$search%' OR b.pengarang LIKE '%$search%')";

@@ -51,9 +51,9 @@ if (isset($_POST['reset_pw'])) {
     $msg=$s->execute()?'Password direset!':'Gagal!'; $msgType='success'; $s->close();
 }
 
-$search=isset($_GET['search'])?$_GET['search']:'';
+$search=isset($_GET["search"])?trim($_GET["search"]):"";
 $q="SELECT * FROM anggota";
-if($search) $q.=" WHERE nama_anggota LIKE '%$search%' OR nis LIKE '%$search%' OR kelas LIKE '%$search%'";
+if($search){$es=$conn->real_escape_string($search);$q.=" WHERE nama_anggota LIKE '%$es%' OR nis LIKE '%$es%' OR kelas LIKE '%$es%'";}
 $q.=" ORDER BY id_anggota DESC";
 $members=$conn->query($q);
 

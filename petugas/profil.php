@@ -5,7 +5,7 @@ requirePetugas();
 $conn = getConnection();
 $msg = ''; $msgType = '';
 
-$id = getAnggotaId();
+$id = getPenggunaId();
 $user = $conn->query("SELECT * FROM pengguna WHERE id_pengguna=".getPenggunaId())->fetch_assoc();
 
 if (isset($_POST['update'])) {

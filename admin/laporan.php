@@ -27,17 +27,6 @@ $page_sub   = 'Ringkasan data sistem perpustakaan';
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/style.css">
-<style>
-@media print {
-  .sidebar, .topbar, .no-print { display:none!important }
-  .main-area { margin-left:0!important }
-  .content { padding:16px!important }
-  .card { break-inside:avoid; box-shadow:none!important; border:1px solid #ddd!important; }
-  body { background:#fff!important; }
-}
-.print-header { display:none; }
-@media print { .print-header { display:block; text-align:center; margin-bottom:20px; } }
-</style>
 </head>
 <body>
 <div class="app-wrap">

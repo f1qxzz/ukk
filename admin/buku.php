@@ -113,7 +113,7 @@ if (isset($_POST['edit'])) {
             "UPDATE buku SET judul_buku=?,id_kategori=?,pengarang=?,penerbit=?,
              tahun_terbit=?,isbn=?,deskripsi=?,stok=?,status=?,cover=? WHERE id_buku=?"
         );
-        $s->bind_param("sissississi",
+        $s->bind_param("sississisi",
             $judul, $id_kat, $peng, $nerbit, $tahun, $isbn, $desk, $stok, $status, $newCover, $id
         );
         if ($s->execute()) {
@@ -212,6 +212,7 @@ if (empty($msg) && isset($_GET['notif'])) {
 // ── Query data ────────────────────────────────────────────────
 $cats       = $conn->query("SELECT * FROM kategori ORDER BY nama_kategori");
 $search     = isset($_GET['search']) ? $_GET['search'] : '';
+$search = $conn->real_escape_string($search);
 $filter_kat = isset($_GET['kat']) ? (int)$_GET['kat'] : 0;
 
 $q = "SELECT b.*, k.nama_kategori FROM buku b
@@ -242,42 +243,6 @@ if (isset($_GET['edit'])) {
         href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
-    <style>
-    .cover-thumb {
-        width: 40px;
-        height: 54px;
-        object-fit: cover;
-        border-radius: 4px;
-        border: 1px solid #e2d9cb;
-        display: block;
-    }
-
-    .cover-preview-wrap {
-        width: 90px;
-        height: 120px;
-        border: 2px dashed #ccc;
-        border-radius: 8px;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f8f5f0;
-        cursor: pointer;
-        position: relative;
-    }
-
-    .cover-preview-wrap img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .cover-upload-hint {
-        font-size: .72rem;
-        color: #888;
-        margin-top: 4px;
-    }
-    </style>
 </head>
 
 <body>
@@ -349,7 +314,7 @@ if (isset($_GET['edit'])) {
                                 <?php while($b=$books->fetch_assoc()): ?>
                                 <tr>
                                     <td class="text-muted text-sm"><?= $no++ ?></td>
-                                    <td>
+                                    <td class="book-cover-cell">
                                         <?php if (!empty($b['cover']) && file_exists('../' . $b['cover'])): ?>
                                         <img src="../<?= htmlspecialchars($b['cover']) ?>" class="cover-thumb"
                                             alt="cover">
@@ -358,8 +323,8 @@ if (isset($_GET['edit'])) {
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <div class="fw-600"><?= htmlspecialchars($b['judul_buku']) ?></div>
-                                        <div class="text-xs text-muted"><?= htmlspecialchars($b['isbn'] ?: '—') ?></div>
+                                        <div class="book-info-main"><?= htmlspecialchars($b['judul_buku']) ?></div>
+                                        <div class="book-info-sub"><?= htmlspecialchars($b['isbn'] ?: '—') ?></div>
                                     </td>
                                     <td><?= htmlspecialchars($b['pengarang']) ?></td>
                                     <td><span
@@ -409,7 +374,7 @@ if (isset($_GET['edit'])) {
     <!-- ══ MODAL TAMBAH ══ -->
     <div id="addModal" class="modal-overlay" style="display:none"
         onclick="if(event.target===this)this.style.display='none'">
-        <div class="modal">
+        <div class="modal modal-lg">
             <div class="modal-header">
                 <div class="modal-title">Tambah Buku Baru</div>
                 <button class="modal-close"
@@ -453,13 +418,25 @@ if (isset($_GET['edit'])) {
                         </div>
                         <div class="form-group">
                             <label class="form-label">Cover Buku</label>
-                            <div class="cover-preview-wrap" onclick="document.getElementById('addCoverInput').click()">
+                            <div class="cover-upload-area">
+                              <div class="cover-preview-wrap" onclick="document.getElementById('addCoverInput').click()">
                                 <img id="addCoverPreview" src="../<?= DEFAULT_COVER ?>" alt="Preview">
+                                <div class="overlay-hint">
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                  Pilih Cover
+                                </div>
+                              </div>
+                              <div class="cover-upload-meta">
+                                <button type="button" class="cover-upload-btn" onclick="document.getElementById('addCoverInput').click()">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                  Pilih File
+                                </button>
+                                <div class="cover-filename" id="addCoverFilename"></div>
+                                <div class="cover-upload-hint">Format: JPG atau PNG<br>Maks. 2 MB · Opsional<br>Klik gambar untuk memilih</div>
+                              </div>
                             </div>
                             <input type="file" id="addCoverInput" name="cover" accept=".jpg,.jpeg,.png"
-                                style="display:none" onchange="previewCover(this,'addCoverPreview')">
-                            <div class="cover-upload-hint">Klik gambar untuk pilih file.<br>JPG/PNG · Maks 2 MB
-                                (opsional)</div>
+                                style="display:none" onchange="previewCover(this,'addCoverPreview','addCoverFilename')">
                         </div>
                         <div class="form-group form-full">
                             <label class="form-label">Deskripsi</label>
@@ -479,7 +456,7 @@ if (isset($_GET['edit'])) {
     <?php if ($editBook): ?>
     <!-- ══ MODAL EDIT ══ -->
     <div id="editModal" class="modal-overlay" onclick="if(event.target===this)location.href='buku.php'">
-        <div class="modal">
+        <div class="modal modal-lg">
             <div class="modal-header">
                 <div class="modal-title">Edit Buku</div>
                 <a href="buku.php" class="modal-close">✕</a>
@@ -539,18 +516,29 @@ if (isset($_GET['edit'])) {
                         <div class="form-group">
                             <label class="form-label">Cover Buku</label>
                             <?php
-                        // Tampilkan cover saat ini sebagai preview awal
                         $editCoverSrc = (!empty($editBook['cover']) && file_exists('../' . $editBook['cover']))
                                         ? '../' . htmlspecialchars($editBook['cover'])
                                         : '../' . DEFAULT_COVER;
                         ?>
-                            <div class="cover-preview-wrap" onclick="document.getElementById('editCoverInput').click()">
+                            <div class="cover-upload-area">
+                              <div class="cover-preview-wrap" onclick="document.getElementById('editCoverInput').click()">
                                 <img id="editCoverPreview" src="<?= $editCoverSrc ?>" alt="Cover Saat Ini">
+                                <div class="overlay-hint">
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                  Ganti Cover
+                                </div>
+                              </div>
+                              <div class="cover-upload-meta">
+                                <button type="button" class="cover-upload-btn" onclick="document.getElementById('editCoverInput').click()">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                  Ganti Cover
+                                </button>
+                                <div class="cover-filename" id="editCoverFilename"></div>
+                                <div class="cover-upload-hint">Format: JPG atau PNG<br>Maks. 2 MB<br>Kosongkan jika tidak ingin mengubah</div>
+                              </div>
                             </div>
                             <input type="file" id="editCoverInput" name="cover" accept=".jpg,.jpeg,.png"
-                                style="display:none" onchange="previewCover(this,'editCoverPreview')">
-                            <div class="cover-upload-hint">Klik untuk ganti cover.<br>Kosongkan jika tidak ingin
-                                mengubah.</div>
+                                style="display:none" onchange="previewCover(this,'editCoverPreview','editCoverFilename')">
                         </div>
                         <div class="form-group form-full">
                             <label class="form-label">Deskripsi</label>
@@ -572,8 +560,9 @@ if (isset($_GET['edit'])) {
     <?php endif; ?>
 
     <script>
-    function previewCover(input, previewId) {
+    function previewCover(input, previewId, filenameId) {
         const preview = document.getElementById(previewId);
+        const fnLabel = filenameId ? document.getElementById(filenameId) : null;
         if (!input.files || !input.files[0]) return;
         const file = input.files[0];
         const allowedTypes = ['image/jpeg', 'image/png'];
@@ -592,6 +581,7 @@ if (isset($_GET['edit'])) {
             preview.src = e.target.result;
         };
         reader.readAsDataURL(file);
+        if (fnLabel) { fnLabel.textContent = file.name; fnLabel.style.display = 'block'; }
     }
     </script>
 </body>

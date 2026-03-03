@@ -62,7 +62,7 @@ if (isset($_POST['reset_pw'])) {
 
 $search=isset($_GET['search'])?$_GET['search']:'';
 $q="SELECT * FROM anggota";
-if($search) $q.=" WHERE nama_anggota LIKE '%$search%' OR nis LIKE '%$search%' OR kelas LIKE '%$search%'";
+if($search){$es=$conn->real_escape_string($search);$q.=" WHERE nama_anggota LIKE '%$es%' OR nis LIKE '%$es%' OR kelas LIKE '%$es%'";}
 $q.=" ORDER BY id_anggota DESC";
 $members=$conn->query($q);
 
