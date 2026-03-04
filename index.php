@@ -4358,6 +4358,7 @@ $quote=$quotes[date('z')%count($quotes)];
     });
     document.querySelectorAll('.ch-card,.rat-card').forEach(el => bro.observe(el));
     </script>
+<script src="assets/js/script.js"></script>
 </body>
 
 </html>

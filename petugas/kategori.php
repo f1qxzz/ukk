@@ -63,7 +63,7 @@ $page_sub   = 'Kelola kategori buku perpustakaan';
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kategori — Petugas Perpustakaan</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
@@ -195,5 +195,6 @@ $page_sub   = 'Kelola kategori buku perpustakaan';
 </div>
 <script>document.getElementById('editModal').style.display='flex';</script>
 <?php endif; ?>
+<script src="../assets/js/script.js"></script>
 </body>
 </html>

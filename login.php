@@ -78,761 +78,134 @@ $data = $query->fetch_assoc();
 ?>
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masuk — Perpustakaan Digital</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Outfit:wght@300;400;500;600&display=swap"
-        rel="stylesheet">
-    <style>
-    :root {
-        --bg: #f4ede0;
-        --bg2: #ede4d2;
-        --paper: #faf6ef;
-        --ink: #1c1509;
-        --ink2: #3b2f1e;
-        --muted: #7c6b52;
-        --border: rgba(80, 55, 25, .11);
-        --rust: #b84a2c;
-        --rust2: #d05a38;
-        --gold: #c48a20;
-        --sage: #496640;
-        --sh1: 0 1px 12px rgba(28, 21, 9, .07);
-        --sh2: 0 6px 32px rgba(28, 21, 9, .13);
-        --sh3: 0 20px 64px rgba(28, 21, 9, .2);
-    }
-
-    *,
-    *::before,
-    *::after {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box
-    }
-
-    html {
-        height: 100%
-    }
-
-    body {
-        min-height: 100vh;
-        font-family: 'Outfit', sans-serif;
-        background: var(--bg);
-        color: var(--ink);
-        overflow-x: hidden;
-        display: grid;
-        grid-template-columns: 1fr 520px;
-    }
-
-    /* ── LEFT PANEL ── */
-    .left {
-        position: relative;
-        overflow: hidden;
-        background: linear-gradient(160deg, var(--bg2) 0%, #e2d5bc 100%);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        padding: 60px 8%;
-    }
-
-    .left-deco {
-        position: absolute;
-        top: -100px;
-        right: -100px;
-        width: 450px;
-        height: 450px;
-        border-radius: 50%;
-        background: radial-gradient(rgba(196, 138, 32, .1), transparent 70%);
-        pointer-events: none;
-    }
-
-    .left-deco2 {
-        position: absolute;
-        bottom: -80px;
-        left: -60px;
-        width: 320px;
-        height: 320px;
-        border-radius: 50%;
-        background: radial-gradient(rgba(184, 74, 44, .07), transparent 70%);
-        pointer-events: none;
-    }
-
-    /* bookshelf rows decorative */
-    .mini-shelf {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-bottom: 48px;
-        width: fit-content
-    }
-
-    .mini-row {
-        display: flex;
-        align-items: flex-end;
-        gap: 2px;
-        background: linear-gradient(to bottom, #b89a72, #9a8060);
-        border-radius: 2px 2px 0 0;
-        padding: 6px 16px 0;
-        position: relative;
-    }
-
-    .mini-row::after {
-        content: '';
-        position: absolute;
-        bottom: -7px;
-        left: -2px;
-        right: -2px;
-        height: 9px;
-        background: #806840;
-        border-radius: 0 0 4px 4px;
-        box-shadow: 0 3px 8px rgba(0, 0, 0, .18);
-    }
-
-    .mb {
-        border-radius: 2px 2px 0 0;
-        flex-shrink: 0;
-        transition: transform .3s
-    }
-
-    .mb:hover {
-        transform: translateY(-6px)
-    }
-
-    .lr {
-        background: linear-gradient(to right, #a63820, #c44830)
-    }
-
-    .lb {
-        background: linear-gradient(to right, #284878, #3460a0)
-    }
-
-    .lg {
-        background: linear-gradient(to right, #3a5830, #4e7040)
-    }
-
-    .lo {
-        background: linear-gradient(to right, #a87020, #c88e30)
-    }
-
-    .lp {
-        background: linear-gradient(to right, #5a3475, #7448a0)
-    }
-
-    .lt {
-        background: linear-gradient(to right, #1e5852, #28706a)
-    }
-
-    .ln {
-        background: linear-gradient(to right, #182840, #243858)
-    }
-
-    .left-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 14px;
-        border-radius: 40px;
-        width: fit-content;
-        background: rgba(255, 255, 255, .7);
-        border: 1px solid var(--border);
-        font-size: .68rem;
-        letter-spacing: .13em;
-        text-transform: uppercase;
-        color: var(--muted);
-        margin-bottom: 22px;
-        box-shadow: var(--sh1);
-    }
-
-    .ldot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--sage)
-    }
-
-    .left-h1 {
-        font-family: 'Fraunces', serif;
-        font-size: clamp(2.2rem, 3.8vw, 3.2rem);
-        font-weight: 700;
-        line-height: 1.1;
-        color: var(--ink);
-        margin-bottom: 16px;
-    }
-
-    .left-h1 em {
-        font-style: italic;
-        color: var(--rust)
-    }
-
-    .left-p {
-        font-size: .95rem;
-        line-height: 1.78;
-        color: var(--muted);
-        font-weight: 300;
-        max-width: 400px;
-        margin-bottom: 36px;
-    }
-
-    .left-nums {
-        display: flex;
-        gap: 32px;
-        padding-top: 28px;
-        border-top: 1px solid var(--border)
-    }
-
-    .lnum-n {
-        font-family: 'Fraunces', serif;
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: var(--rust);
-        line-height: 1
-    }
-
-    .lnum-l {
-        font-size: .68rem;
-        text-transform: uppercase;
-        letter-spacing: .1em;
-        color: var(--muted);
-        margin-top: 3px
-    }
-
-    .back-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: .8rem;
-        color: var(--muted);
-        margin-top: 28px;
-        transition: color .2s;
-    }
-
-    .back-link:hover {
-        color: var(--rust)
-    }
-
-    /* ── RIGHT FORM PANEL ── */
-    .right {
-        background: var(--paper);
-        border-left: 1px solid var(--border);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        padding: 52px 50px;
-        position: relative;
-        overflow: hidden;
-        min-height: 100vh;
-    }
-
-    .right::before {
-        content: '';
-        position: absolute;
-        top: -60px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 260px;
-        height: 140px;
-        background: radial-gradient(rgba(184, 74, 44, .1), transparent 70%);
-        pointer-events: none;
-    }
-
-    /* logo */
-    .logo {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 38px;
-        opacity: 0;
-        animation: up .6s .05s ease forwards
-    }
-
-    .logo-ico {
-        width: 44px;
-        height: 44px;
-        border-radius: 10px;
-        flex-shrink: 0;
-        background: linear-gradient(135deg, var(--rust), var(--rust2));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-        box-shadow: 0 3px 14px rgba(184, 74, 44, .28);
-    }
-
-    .logo-nm {
-        font-family: 'Fraunces', serif;
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--ink);
-        line-height: 1.2
-    }
-
-    .logo-sb {
-        font-size: .66rem;
-        color: var(--muted);
-        font-weight: 400
-    }
-
-    /* alerts */
-    .alert {
-        padding: 12px 16px;
-        border-radius: 10px;
-        font-size: .84rem;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        animation: alertIn .3s ease;
-    }
-
-    @keyframes alertIn {
-        from {
-            opacity: 0;
-            transform: translateY(-6px)
-        }
-
-        to {
-            opacity: 1;
-            transform: none
-        }
-    }
-
-    .alert-err {
-        background: rgba(184, 74, 44, .09);
-        border: 1px solid rgba(184, 74, 44, .2);
-        color: #9a2a10
-    }
-
-    .alert-ok {
-        background: rgba(73, 102, 64, .08);
-        border: 1px solid rgba(73, 102, 64, .18);
-        color: #2a5020
-    }
-
-    /* form heading */
-    .form-hd {
-        opacity: 0;
-        animation: up .6s .12s ease forwards;
-        margin-bottom: 28px;
-    }
-
-    .form-h {
-        font-family: 'Fraunces', serif;
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: var(--ink);
-        margin-bottom: 5px
-    }
-
-    .form-sub {
-        font-size: .82rem;
-        color: var(--muted);
-        font-weight: 300
-    }
-
-    /* fields */
-    .fields {
-        opacity: 0;
-        animation: up .6s .2s ease forwards
-    }
-
-    .field {
-        margin-bottom: 17px
-    }
-
-    .field label {
-        display: block;
-        font-size: .7rem;
-        letter-spacing: .1em;
-        text-transform: uppercase;
-        color: var(--muted);
-        margin-bottom: 8px;
-        font-weight: 500;
-    }
-
-    .fi {
-        position: relative
-    }
-
-    .fi-ico {
-        position: absolute;
-        left: 13px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: .88rem;
-        opacity: .35;
-        pointer-events: none;
-        z-index: 1;
-    }
-
-    .fi input,
-    .fi select {
-        width: 100%;
-        padding: 12px 14px 12px 40px;
-        background: rgba(255, 255, 255, .8);
-        border: 1.5px solid var(--border);
-        border-radius: 10px;
-        font-family: 'Outfit', sans-serif;
-        font-size: .92rem;
-        color: var(--ink);
-        transition: all .22s;
-        -webkit-appearance: none;
-        appearance: none;
-    }
-
-    .fi input::placeholder {
-        color: var(--muted);
-        opacity: .4
-    }
-
-    .fi input:focus,
-    .fi select:focus {
-        outline: none;
-        border-color: rgba(184, 74, 44, .5);
-        background: #fff;
-        box-shadow: 0 0 0 3px rgba(184, 74, 44, .08);
-    }
-
-    .fi select option {
-        background: #fff;
-        color: var(--ink)
-    }
-
-    /* select caret */
-    .fi-sel::after {
-        content: '▾';
-        position: absolute;
-        right: 13px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--muted);
-        opacity: .4;
-        pointer-events: none;
-        font-size: .78rem;
-    }
-
-    /* eye toggle */
-    .eye-btn {
-        position: absolute;
-        right: 13px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: var(--muted);
-        opacity: .35;
-        font-size: .88rem;
-        transition: opacity .2s;
-    }
-
-    .eye-btn:hover {
-        opacity: .7
-    }
-
-    /* submit */
-    .btn-submit {
-        width: 100%;
-        padding: 14px;
-        border-radius: 10px;
-        margin-top: 6px;
-        border: none;
-        cursor: pointer;
-        font-family: 'Outfit', sans-serif;
-        font-size: .97rem;
-        font-weight: 600;
-        letter-spacing: .025em;
-        background: linear-gradient(135deg, var(--rust), var(--rust2));
-        color: #fff;
-        box-shadow: 0 4px 20px rgba(184, 74, 44, .3);
-        position: relative;
-        overflow: hidden;
-        transition: all .26s;
-    }
-
-    .btn-submit::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -110%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .2), transparent);
-        transition: left .4s ease;
-    }
-
-    .btn-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(184, 74, 44, .4)
-    }
-
-    .btn-submit:hover::after {
-        left: 110%
-    }
-
-    .btn-submit:active {
-        transform: none
-    }
-
-    /* divider */
-    .dvd {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin: 22px 0
-    }
-
-    .dvd::before,
-    .dvd::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: var(--border)
-    }
-
-    .dvd span {
-        font-size: .7rem;
-        color: var(--muted);
-        opacity: .5;
-        white-space: nowrap;
-        letter-spacing: .07em;
-        text-transform: uppercase
-    }
-
-    /* register link */
-    .reg-row {
-        text-align: center
-    }
-
-    .reg-row span {
-        font-size: .84rem;
-        color: var(--muted);
-        font-weight: 300
-    }
-
-    .reg-link {
-        font-size: .84rem;
-        font-weight: 600;
-        color: var(--rust);
-        text-decoration: underline;
-        text-underline-offset: 3px;
-        transition: color .2s;
-    }
-
-    .reg-link:hover {
-        color: var(--rust2)
-    }
-
-    .foot-note {
-        margin-top: 28px;
-        text-align: center;
-        font-size: .7rem;
-        color: var(--muted);
-        opacity: .38;
-        font-weight: 300;
-    }
-
-    @keyframes up {
-        from {
-            opacity: 0;
-            transform: translateY(20px)
-        }
-
-        to {
-            opacity: 1;
-            transform: none
-        }
-    }
-
-    ::-webkit-scrollbar {
-        width: 4px
-    }
-
-    ::-webkit-scrollbar-track {
-        background: var(--bg)
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: #c4b090;
-        border-radius: 4px
-    }
-
-    @media(max-width:860px) {
-        body {
-            grid-template-columns: 1fr
-        }
-
-        .left {
-            display: none
-        }
-
-        .right {
-            min-height: 100vh;
-            padding: 44px 28px;
-            border-left: none
-        }
-
-        .right::before {
-            display: none
-        }
-    }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Masuk — Perpustakaan Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+.login-left-extra { display:flex; flex-direction:column; gap:12px; margin-top:28px; }
+.login-stat { display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,.08); border-radius:12px; border:1px solid rgba(255,255,255,.1); }
+.login-stat-val { font-family:"Playfair Display",serif; font-size:1.4rem; font-weight:700; color:#fff; }
+.login-stat-lbl { font-size:.73rem; color:rgba(255,255,255,.55); margin-top:1px; }
+.login-divider { display:flex; align-items:center; gap:12px; margin:20px 0; }
+.login-divider::before,.login-divider::after { content:''; flex:1; height:1px; background:var(--gray-200); }
+.login-divider span { font-size:.72rem; color:var(--gray-400); text-transform:uppercase; letter-spacing:.07em; white-space:nowrap; }
+.login-tabs-wrap { margin-bottom:24px; }
+.btn-login { width:100%; padding:12px; border-radius:8px; background:var(--accent); color:#fff; font-size:.95rem; font-weight:600; cursor:pointer; border:none; font-family:inherit; transition:all .2s; box-shadow:0 4px 16px rgba(59,130,246,.3); display:flex; align-items:center; justify-content:center; gap:8px; }
+.btn-login:hover { background:var(--accent-2); transform:translateY(-1px); box-shadow:0 6px 20px rgba(59,130,246,.4); }
+.input-icon-wrap { position:relative; }
+.input-icon-wrap svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; stroke:var(--gray-400); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+.input-icon-wrap .form-control { padding-left:38px; }
+.eye-btn { position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--gray-400); background:none; border:none; display:flex; align-items:center; justify-content:center; }
+.eye-btn svg { width:17px; height:17px; }
+.reg-row { text-align:center; margin-top:16px; font-size:.85rem; color:var(--gray-500); }
+.reg-link { color:var(--accent); font-weight:600; }
+.reg-link:hover { color:var(--accent-2); }
+.foot { text-align:center; margin-top:28px; font-size:.7rem; color:var(--gray-300); }
+</style>
 </head>
-
 <body>
+<div class="login-page">
+  <!-- LEFT -->
+  <aside class="login-left">
+    <div class="login-hero-icon">📖</div>
+    <h1 class="login-hero-title">Perpustakaan Digital</h1>
+    <p class="login-hero-sub">Platform manajemen perpustakaan modern untuk mengelola koleksi, anggota, dan transaksi peminjaman buku.</p>
 
-    <!-- ── LEFT ─────────────────────────── -->
-    <aside class="left">
-        <div class="left-deco"></div>
-        <div class="left-deco2"></div>
+    <div class="login-left-extra">
+      <div class="login-stat">
+        <svg style="width:24px;height:24px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <div><div class="login-stat-val"><?= $data['total'] ?></div><div class="login-stat-lbl">Koleksi Buku Tersedia</div></div>
+      </div>
+      <div class="login-stat">
+        <svg style="width:24px;height:24px;stroke:var(--success);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4"/><polyline points="3 3 3 7 7 7"/></svg>
+        <div><div class="login-stat-val">7 Hari</div><div class="login-stat-lbl">Masa Peminjaman</div></div>
+      </div>
+      <div class="login-stat">
+        <svg style="width:24px;height:24px;stroke:#f59e0b;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <div><div class="login-stat-val">3 Level</div><div class="login-stat-lbl">Admin · Petugas · Anggota</div></div>
+      </div>
+    </div>
 
-        <!-- mini bookshelf deco -->
-        <div class="mini-shelf">
-            <div class="mini-row">
-                <div class="mb lr" style="width:22px;height:90px"></div>
-                <div class="mb ln" style="width:16px;height:68px"></div>
-                <div class="mb lg" style="width:26px;height:100px"></div>
-                <div class="mb lo" style="width:18px;height:78px"></div>
-                <div class="mb lb" style="width:28px;height:110px"></div>
-                <div class="mb lp" style="width:20px;height:84px"></div>
-                <div class="mb lt" style="width:22px;height:90px"></div>
-            </div>
-            <div class="mini-row">
-                <div class="mb lb" style="width:18px;height:78px"></div>
-                <div class="mb lr" style="width:24px;height:94px"></div>
-                <div class="mb lo" style="width:20px;height:82px"></div>
-                <div class="mb lg" style="width:28px;height:106px"></div>
-                <div class="mb ln" style="width:22px;height:90px"></div>
-                <div class="mb lp" style="width:16px;height:68px"></div>
-                <div class="mb lt" style="width:26px;height:100px"></div>
-                <div class="mb lr" style="width:18px;height:72px"></div>
-            </div>
+    <a href="index.php" style="margin-top:32px;font-size:.8rem;color:rgba(255,255,255,.5);display:inline-flex;align-items:center;gap:6px;">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M15 18l-6-6 6-6"/></svg>
+      Kembali ke Beranda
+    </a>
+  </aside>
+
+  <!-- RIGHT -->
+  <main class="login-right">
+    <div class="login-box">
+      <div class="login-logo">
+        <div class="login-logo-icon">📖</div>
+        <div>
+          <div class="login-title">Masuk ke Akun</div>
+          <div class="login-subtitle">Gunakan username dan password terdaftar</div>
+        </div>
+      </div>
+
+      <?php if ($error): ?>
+      <div class="alert alert-danger">⚠ <?= htmlspecialchars($error) ?></div>
+      <?php endif; ?>
+      <?php if ($reg_success): ?>
+      <div class="alert alert-success">✓ <?= htmlspecialchars($reg_success) ?></div>
+      <?php endif; ?>
+
+      <form method="POST" novalidate>
+        <div class="form-group">
+          <label class="form-label">Masuk Sebagai</label>
+          <select name="user_type" class="form-control">
+            <option value="anggota">👨‍🎓 Anggota / Siswa</option>
+            <option value="petugas">👮 Petugas Perpustakaan</option>
+            <option value="admin">🛡️ Administrator</option>
+          </select>
         </div>
 
-        <div class="left-tag">
-            <span class="ldot"></span>
-            Perpustakaan Digital
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <div class="input-icon-wrap">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input type="text" name="username" class="form-control" placeholder="Masukkan username" required autocomplete="username" value="<?= htmlspecialchars($_POST['username'] ?? '') ?>">
+          </div>
         </div>
 
-        <h1 class="left-h1">
-            Selamat Datang<br>
-            <em>Kembali</em>
-        </h1>
-        <p class="left-p">
-            Masuk ke akun Anda dan lanjutkan menjelajahi ribuan koleksi buku perpustakaan digital sekolah.
-        </p>
-
-        <div class="left-nums">
-            <div>
-                <div class="lnum-n"><?= $data['total']; ?></div>
-                <div class="lnum-l">Koleksi Buku</div>
-            </div>
-            <div>
-                <div class="lnum-n">7 Hari</div>
-                <div class="lnum-l">Masa Pinjam</div>
-            </div>
-            <div>
-                <div class="lnum-n">3</div>
-                <div class="lnum-l">Level Akses</div>
-            </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-icon-wrap">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" name="password" id="pw" class="form-control" placeholder="Masukkan password" required autocomplete="current-password">
+            <button type="button" class="eye-btn" onclick="togglePw()">
+              <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
         </div>
 
-        <a href="index.php" class="back-link">← Kembali ke Beranda</a>
-    </aside>
+        <button type="submit" name="login" class="btn-login">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Masuk ke Sistem
+        </button>
+      </form>
 
-    <!-- ── RIGHT ─────────────────────────── -->
-    <main class="right">
+      <div class="login-divider"><span>belum punya akun?</span></div>
+      <div class="reg-row">
+        <span>Daftar sebagai anggota </span>
+        <a href="register.php" class="reg-link">Daftar Gratis →</a>
+      </div>
 
-        <!-- logo -->
-        <div class="logo">
-            <div class="logo-ico">📖</div>
-            <div>
-                <div class="logo-nm">Perpustakaan Digital</div>
-                <div class="logo-sb">Sistem Peminjaman Buku</div>
-            </div>
-        </div>
+      <p class="foot">© <?= date('Y') ?> Perpustakaan Digital · Sistem Peminjaman Buku</p>
+    </div>
+  </main>
+</div>
 
-        <!-- alerts -->
-        <?php if ($error): ?>
-        <div class="alert alert-err">⚠ <?= htmlspecialchars($error) ?></div>
-        <?php endif; ?>
-        <?php if ($reg_success): ?>
-        <div class="alert alert-ok">✓ <?= htmlspecialchars($reg_success) ?></div>
-        <?php endif; ?>
-
-        <!-- heading -->
-        <div class="form-hd">
-            <h2 class="form-h">Masuk ke Akun</h2>
-            <p class="form-sub">Gunakan username dan password yang terdaftar</p>
-        </div>
-
-        <!-- form -->
-        <form method="POST" novalidate class="fields">
-            <!-- role -->
-            <div class="field">
-                <label>Masuk Sebagai</label>
-                <div class="fi fi-sel">
-                    <span class="fi-ico">👥</span>
-                    <select name="user_type" required>
-                        <option value="anggota">Anggota / Siswa</option>
-                        <option value="petugas">Petugas Perpustakaan</option>
-                        <option value="admin">Administrator</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- username -->
-            <div class="field">
-                <label>Username</label>
-                <div class="fi">
-                    <span class="fi-ico">👤</span>
-                    <input type="text" name="username" placeholder="Masukkan username Anda" required
-                        autocomplete="username" value="<?= htmlspecialchars($_POST['username'] ?? '') ?>">
-                </div>
-            </div>
-
-            <!-- password -->
-            <div class="field">
-                <label>Password</label>
-                <div class="fi" style="position:relative">
-                    <span class="fi-ico">🔑</span>
-                    <input type="password" name="password" id="pw" placeholder="Masukkan password" required
-                        autocomplete="current-password">
-                    <button type="button" class="eye-btn" onclick="togglePw()">👁</button>
-                </div>
-            </div>
-
-            <button type="submit" name="login" class="btn-submit">Masuk ke Perpustakaan →</button>
-        </form>
-
-        <div class="dvd"><span>belum punya akun?</span></div>
-
-        <div class="reg-row">
-            <span>Daftarkan diri Anda sebagai anggota&nbsp;</span>
-            <a href="register.php" class="reg-link">Daftar Gratis</a>
-        </div>
-
-        <p class="foot-note">© <?= date('Y') ?> Perpustakaan Digital · Sistem Peminjaman Buku Sekolah</p>
-    </main>
-
-    <script>
-    function togglePw() {
-        const pw = document.getElementById('pw');
-        const btn = pw.nextElementSibling;
-        const isText = pw.type === 'text';
-        pw.type = isText ? 'password' : 'text';
-        btn.style.opacity = isText ? '.35' : '.7';
-    }
-    // lift effect on focus
-    document.querySelectorAll('.fi input, .fi select').forEach(el => {
-        el.addEventListener('focus', () => el.closest('.fi').style.cssText +=
-            'transform:translateY(-1px);transition:transform .18s');
-        el.addEventListener('blur', () => el.closest('.fi').style.transform = '');
-    });
-    </script>
+<script>
+function togglePw() {
+  const pw = document.getElementById('pw');
+  pw.type = pw.type === 'password' ? 'text' : 'password';
+}
+</script>
+<script src="assets/js/script.js"></script>
 </body>
-
 </html>

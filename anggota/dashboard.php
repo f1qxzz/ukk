@@ -16,7 +16,7 @@ $page_title='Dashboard'; $page_sub='Portal Anggota · Perpustakaan Digital';
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard Anggota — Perpustakaan Digital</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
@@ -39,11 +39,11 @@ $page_title='Dashboard'; $page_sub='Portal Anggota · Perpustakaan Digital';
 </div>
 
 <div class="srow">
-  <div class="sc" style="--a:var(--rust);--ab:rgba(184,74,44,.08)">
+  <div class="sc" style="--a:#ef4444;--ab:rgba(239,68,68,.08)">
     <div><div class="sc-l">Sedang Dipinjam</div><div class="sc-v"><?=$ak?></div><div class="sc-s">buku aktif</div></div>
     <div class="sc-i"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
   </div>
-  <div class="sc" style="--a:var(--navy);--ab:rgba(44,79,124,.08)">
+  <div class="sc" style="--a:var(--accent);--ab:rgba(44,79,124,.08)">
     <div><div class="sc-l">Total Pinjaman</div><div class="sc-v"><?=$tt?></div><div class="sc-s">sepanjang masa</div></div>
     <div class="sc-i"><svg viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4"/><polyline points="3 3 3 7 7 7"/></svg></div>
   </div>
@@ -51,7 +51,7 @@ $page_title='Dashboard'; $page_sub='Portal Anggota · Perpustakaan Digital';
     <div><div class="sc-l">Denda Belum Bayar</div><div class="sc-v" style="font-size:<?=$dn>99999?'1.15rem':'1.9rem'?>">Rp <?=number_format($dn,0,',','.')?></div><div class="sc-s <?=$dn>0?'bad':'ok'?>"><?=$dn>0?'Segera bayar ke petugas':'Tidak ada denda 🎉'?></div></div>
     <div class="sc-i"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
   </div>
-  <div class="sc" style="--a:var(--gold);--ab:rgba(196,138,32,.08)">
+  <div class="sc" style="--a:#f59e0b;--ab:rgba(245,158,11,.08)">
     <div><div class="sc-l">Ulasan Ditulis</div><div class="sc-v"><?=$ul?></div><div class="sc-s">ulasan buku</div></div>
     <div class="sc-i"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
   </div>
@@ -104,4 +104,5 @@ $page_title='Dashboard'; $page_sub='Portal Anggota · Perpustakaan Digital';
 </div>
 
 </main></div></div>
+<script src="../assets/js/script.js"></script>
 </body></html>

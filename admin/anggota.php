@@ -77,7 +77,7 @@ $page_sub   = 'Kelola data anggota perpustakaan';
     <title>Anggota — Admin Perpustakaan</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@300;400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
@@ -295,6 +295,7 @@ $page_sub   = 'Kelola data anggota perpustakaan';
         document.getElementById('resetModal').style.display = 'flex';
     }
     </script>
+<script src="../assets/js/script.js"></script>
 </body>
 
 </html>

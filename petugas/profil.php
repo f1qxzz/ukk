@@ -3,32 +3,69 @@ require_once '../config/database.php';
 require_once '../includes/session.php';
 requirePetugas();
 $conn = getConnection();
-$msg = ''; $msgType = '';
+
+$msg = '';
+$msgType = '';
 
 $id = getPenggunaId();
-$user = $conn->query("SELECT * FROM pengguna WHERE id_pengguna=".getPenggunaId())->fetch_assoc();
 
+$stmt = $conn->prepare("SELECT * FROM pengguna WHERE id_pengguna=?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$user = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+/* ================= UPDATE PROFIL ================= */
 if (isset($_POST['update'])) {
-    $nama = $_POST['nama_pengguna'];
-    $email = $_POST['email'];
+
+    $nama  = trim($_POST['nama_pengguna']);
+    $email = trim($_POST['email']);
+
     $s = $conn->prepare("UPDATE pengguna SET nama_pengguna=?, email=? WHERE id_pengguna=?");
-    $s->bind_param("ssi", $nama, $email, $user['id_pengguna']);
-    $msg = $s->execute() ? 'Profil berhasil diperbarui!' : 'Gagal memperbarui!';
-    $msgType = $s->execute() ? 'success' : 'danger';
+    $s->bind_param("ssi", $nama, $email, $id);
+
+    $ok = $s->execute();
     $s->close();
-    $user = $conn->query("SELECT * FROM pengguna WHERE id_pengguna=".$user['id_pengguna'])->fetch_assoc();
+
+    $msg = $ok ? 'Profil berhasil diperbarui!' : 'Gagal memperbarui profil!';
+    $msgType = $ok ? 'success' : 'danger';
+
+    if ($ok) {
+        $stmt = $conn->prepare("SELECT * FROM pengguna WHERE id_pengguna=?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    }
 }
 
+/* ================= UBAH PASSWORD ================= */
 if (isset($_POST['change_pass'])) {
-    $old = $_POST['old_password'];
-    $new = $_POST['new_password'];
-    if (password_verify($old, $user['password'])) {
+
+    $old     = $_POST['old_password'];
+    $new     = $_POST['new_password'];
+    $confirm = $_POST['confirm_password'];
+
+    if ($new !== $confirm) {
+        $msg = 'Konfirmasi password tidak cocok!';
+        $msgType = 'danger';
+    } 
+    elseif (!password_verify($old, $user['password'])) {
+        $msg = 'Password lama salah!';
+        $msgType = 'danger';
+    } 
+    else {
         $hash = password_hash($new, PASSWORD_DEFAULT);
+
         $s = $conn->prepare("UPDATE pengguna SET password=? WHERE id_pengguna=?");
-        $s->bind_param("si", $hash, $user['id_pengguna']);
-        $msg = $s->execute() ? 'Password berhasil diubah!' : 'Gagal!';
-        $msgType = 'success'; $s->close();
-    } else { $msg = 'Password lama salah!'; $msgType = 'danger'; }
+        $s->bind_param("si", $hash, $id);
+
+        $ok = $s->execute();
+        $s->close();
+
+        $msg = $ok ? 'Password berhasil diubah!' : 'Gagal mengubah password!';
+        $msgType = $ok ? 'success' : 'danger';
+    }
 }
 
 $page_title = 'Profil Saya';
@@ -40,11 +77,7 @@ $page_sub   = 'Kelola informasi akun';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Profil — Admin Perpustakaan</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@300;400;500;600&display=swap"
-        rel="stylesheet">
+    <title>Profil — Petugas</title>
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
@@ -53,15 +86,18 @@ $page_sub   = 'Kelola informasi akun';
         <?php include 'includes/nav.php'; ?>
         <div class="main-area">
             <?php include 'includes/header.php'; ?>
+
             <main class="content">
 
                 <?php if ($msg): ?>
-                <div class="alert alert-<?= $msgType ?>"><?= $msg ?></div>
+                <div class="alert alert-<?= $msgType ?>">
+                    <?= htmlspecialchars($msg) ?>
+                </div>
                 <?php endif; ?>
 
-                <div style="display:grid;grid-template-columns:1fr 1.8fr;gap:20px;align-items:start">
+                <div class="profile-layout">
 
-                    <!-- Profile Card -->
+                    <!-- PROFILE CARD -->
                     <div class="profile-header">
 
                         <div class="profile-card">
@@ -75,7 +111,7 @@ $page_sub   = 'Kelola informasi akun';
                                 <?= htmlspecialchars($user['nama_pengguna']) ?>
                             </div>
 
-                            <div class="profile-role">Administrator</div>
+                            <div class="profile-role">Petugas</div>
                         </div>
 
                         <div class="profile-meta">
@@ -97,22 +133,24 @@ $page_sub   = 'Kelola informasi akun';
 
                     </div>
 
-                    <!-- Edit Forms -->
-                    <div style="display:flex;flex-direction:column;gap:20px">
+                    <!-- FORM SECTION -->
+                    <div class="profile-forms">
 
-                        <!-- Update Info -->
+                        <!-- UPDATE INFO -->
                         <div class="card">
                             <div class="card-header">
                                 <div class="card-title">Edit Informasi</div>
                             </div>
+
                             <form method="POST">
                                 <div class="card-body">
                                     <div class="form-grid">
                                         <div class="form-group form-full">
                                             <label class="form-label">Nama Lengkap</label>
                                             <input name="nama_pengguna" class="form-control"
-                                                value="<?= htmlspecialchars($user['nama_pengguna']) ?>">
+                                                value="<?= htmlspecialchars($user['nama_pengguna']) ?>" required>
                                         </div>
+
                                         <div class="form-group form-full">
                                             <label class="form-label">Email</label>
                                             <input name="email" type="email" class="form-control"
@@ -120,18 +158,21 @@ $page_sub   = 'Kelola informasi akun';
                                         </div>
                                     </div>
                                 </div>
-                                <div
-                                    style="padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
-                                    <button name="update" class="btn btn-navy">Simpan Perubahan</button>
+
+                                <div class="card-footer">
+                                    <button name="update" class="btn btn-primary">
+                                        Simpan Perubahan
+                                    </button>
                                 </div>
                             </form>
                         </div>
 
-                        <!-- Change Password -->
+                        <!-- CHANGE PASSWORD -->
                         <div class="card">
                             <div class="card-header">
                                 <div class="card-title">Ubah Password</div>
                             </div>
+
                             <form method="POST">
                                 <div class="card-body">
                                     <div class="form-grid">
@@ -139,10 +180,12 @@ $page_sub   = 'Kelola informasi akun';
                                             <label class="form-label">Password Lama</label>
                                             <input name="old_password" type="password" class="form-control" required>
                                         </div>
+
                                         <div class="form-group">
                                             <label class="form-label">Password Baru</label>
                                             <input name="new_password" type="password" class="form-control" required>
                                         </div>
+
                                         <div class="form-group">
                                             <label class="form-label">Konfirmasi Password</label>
                                             <input name="confirm_password" type="password" class="form-control"
@@ -150,18 +193,24 @@ $page_sub   = 'Kelola informasi akun';
                                         </div>
                                     </div>
                                 </div>
-                                <div
-                                    style="padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
-                                    <button name="change_pass" class="btn btn-navy">Ubah Password</button>
+
+                                <div class="card-footer">
+                                    <button name="change_pass" class="btn btn-primary">
+                                        Ubah Password
+                                    </button>
                                 </div>
                             </form>
                         </div>
+
                     </div>
 
                 </div>
+
             </main>
         </div>
     </div>
+
+    <script src="../assets/js/script.js"></script>
 </body>
 
 </html>

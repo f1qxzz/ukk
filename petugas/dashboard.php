@@ -18,7 +18,7 @@ $page_title='Dashboard'; $page_sub='Panel Petugas · Perpustakaan Digital';
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard Petugas — Perpustakaan Digital</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
@@ -41,19 +41,19 @@ $page_title='Dashboard'; $page_sub='Panel Petugas · Perpustakaan Digital';
 </div>
 
 <div class="srow">
-  <div class="sc" style="--a:var(--navy);--ab:rgba(44,79,124,.08)">
+  <div class="sc" style="--a:var(--accent);--ab:rgba(44,79,124,.08)">
     <div><div class="sc-l">Total Buku</div><div class="sc-v"><?=$tb?></div><div class="sc-s ok"><?=$ts?> tersedia</div></div>
     <div class="sc-i"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
   </div>
-  <div class="sc" style="--a:var(--rust);--ab:rgba(184,74,44,.08)">
+  <div class="sc" style="--a:#ef4444;--ab:rgba(239,68,68,.08)">
     <div><div class="sc-l">Aktif Pinjam</div><div class="sc-v"><?=$ap?></div><div class="sc-s <?=$tl>0?'bad':''?>"><?=$tl?> terlambat</div></div>
     <div class="sc-i"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></div>
   </div>
-  <div class="sc" style="--a:var(--sage);--ab:rgba(73,102,64,.08)">
+  <div class="sc" style="--a:var(--success);--ab:rgba(16,185,129,.08)">
     <div><div class="sc-l">Total Anggota</div><div class="sc-v"><?=$ta?></div><div class="sc-s">terdaftar</div></div>
     <div class="sc-i"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
   </div>
-  <div class="sc" style="--a:var(--gold);--ab:rgba(196,138,32,.08)">
+  <div class="sc" style="--a:#f59e0b;--ab:rgba(245,158,11,.08)">
     <div><div class="sc-l">Denda Belum Lunas</div><div class="sc-v" style="font-size:1.3rem">Rp <?=number_format($td,0,',','.')?></div><div class="sc-s bad">perlu diproses</div></div>
     <div class="sc-i"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
   </div>
@@ -93,4 +93,5 @@ $page_title='Dashboard'; $page_sub='Panel Petugas · Perpustakaan Digital';
 </div>
 
 </main></div></div>
+<script src="../assets/js/script.js"></script>
 </body></html>

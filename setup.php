@@ -119,6 +119,7 @@ Anggota → username: budi     | password: budi123</pre>';
 $conn->close();
 ?>
     </div>
+<script src="../assets/js/script.js"></script>
 </body>
 
 </html>
