@@ -110,10 +110,6 @@ $page_sub   = 'Kelola data anggota perpustakaan';
                 <div class="card">
                     <form method="GET" class="filter-bar">
                         <div class="search-wrap">
-                            <svg viewBox="0 0 24 24">
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                            </svg>
                             <input type="text" name="search" placeholder="Cari nama, NIS, kelas…"
                                 value="<?= htmlspecialchars($search) ?>">
                         </div>
@@ -295,7 +291,7 @@ $page_sub   = 'Kelola data anggota perpustakaan';
         document.getElementById('resetModal').style.display = 'flex';
     }
     </script>
-<script src="../assets/js/script.js"></script>
+    <script src="../assets/js/script.js"></script>
 </body>
 
 </html>

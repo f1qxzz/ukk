@@ -103,9 +103,7 @@ $page_sub   = 'Kelola informasi akun';
                         <div class="profile-card">
                             <div class="profile-banner"></div>
 
-                            <div class="profile-avatar">
-                                <?= strtoupper(substr($user['nama_pengguna'],0,1)) ?>
-                            </div>
+
 
                             <div class="profile-name">
                                 <?= htmlspecialchars($user['nama_pengguna']) ?>

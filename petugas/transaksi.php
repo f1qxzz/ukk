@@ -65,184 +65,214 @@ $page_sub   = 'Manajemen Peminjaman & Pengembalian';
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Transaksi — Admin Perpustakaan</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Transaksi — Admin Perpustakaan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
+
 <body>
-<div class="app-wrap">
-  <?php include 'includes/nav.php'; ?>
-  <div class="main-area">
-    <?php include 'includes/header.php'; ?>
-    <main class="content">
+    <div class="app-wrap">
+        <?php include 'includes/nav.php'; ?>
+        <div class="main-area">
+            <?php include 'includes/header.php'; ?>
+            <main class="content">
 
-      <?php if ($msg): ?>
-        <div class="alert alert-<?= $msgType ?>"><?= $msg ?></div>
-      <?php endif; ?>
+                <?php if ($msg): ?>
+                <div class="alert alert-<?= $msgType ?>"><?= $msg ?></div>
+                <?php endif; ?>
 
-      <div class="page-header">
-        <div>
-          <div class="page-header-title">Transaksi Peminjaman</div>
-          <div class="page-header-sub">Catat peminjaman dan proses pengembalian buku</div>
-        </div>
-        <button class="btn btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Catat Pinjam
-        </button>
-      </div>
+                <div class="page-header">
+                    <div>
+                        <div class="page-header-title">Transaksi Peminjaman</div>
+                        <div class="page-header-sub">Catat peminjaman dan proses pengembalian buku</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Catat Pinjam
+                    </button>
+                </div>
 
-      <div class="card">
-        <form method="GET" class="filter-bar">
-          <div class="search-wrap">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" name="search" placeholder="Cari anggota atau buku…" value="<?= htmlspecialchars($search) ?>">
-          </div>
-          <select name="status" class="form-control" style="width:auto">
-            <option value="">Semua Status</option>
-            <option value="Peminjaman" <?= $filter_status==='Peminjaman'?'selected':'' ?>>Sedang Dipinjam</option>
-            <option value="Pengembalian" <?= $filter_status==='Pengembalian'?'selected':'' ?>>Sudah Kembali</option>
-          </select>
-          <button type="submit" class="btn btn-ghost btn-sm">Filter</button>
-          <?php if ($search||$filter_status): ?>
-            <a href="transaksi.php" class="btn btn-ghost btn-sm">Reset</a>
-          <?php endif; ?>
-        </form>
+                <div class="card">
+                    <form method="GET" class="filter-bar">
+                        <div class="search-wrap">
+                            <input type="text" name="search" placeholder="Cari anggota atau buku…"
+                                value="<?= htmlspecialchars($search) ?>">
+                        </div>
+                        <select name="status" class="form-control" style="width:auto">
+                            <option value="">Semua Status</option>
+                            <option value="Peminjaman" <?= $filter_status==='Peminjaman'?'selected':'' ?>>Sedang
+                                Dipinjam</option>
+                            <option value="Pengembalian" <?= $filter_status==='Pengembalian'?'selected':'' ?>>Sudah
+                                Kembali</option>
+                        </select>
+                        <button type="submit" class="btn btn-ghost btn-sm">Filter</button>
+                        <?php if ($search||$filter_status): ?>
+                        <a href="transaksi.php" class="btn btn-ghost btn-sm">Reset</a>
+                        <?php endif; ?>
+                    </form>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Anggota</th>
-                <th>Buku</th>
-                <th>Tgl Pinjam</th>
-                <th>Jatuh Tempo</th>
-                <th>Tgl Kembali</th>
-                <th>Status</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php if ($transaksi && $transaksi->num_rows > 0): $no=1; ?>
-                <?php while($r=$transaksi->fetch_assoc()): ?>
-                  <?php
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Anggota</th>
+                                    <th>Buku</th>
+                                    <th>Tgl Pinjam</th>
+                                    <th>Jatuh Tempo</th>
+                                    <th>Tgl Kembali</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if ($transaksi && $transaksi->num_rows > 0): $no=1; ?>
+                                <?php while($r=$transaksi->fetch_assoc()): ?>
+                                <?php
                   $late = $r['status_transaksi']==='Peminjaman' && strtotime($r['tgl_kembali_rencana']) < time();
                   $sc = $r['status_transaksi']==='Pengembalian' ? 'status-kembali' : ($late?'status-terlambat':'status-dipinjam');
                   $sl = $r['status_transaksi']==='Pengembalian' ? '✓ Kembali' : ($late?'⚠ Terlambat':'⇄ Dipinjam');
                   ?>
-                  <tr>
-                    <td class="text-muted text-sm"><?= $no++ ?></td>
-                    <td>
-                      <div class="fw-600"><?= htmlspecialchars($r['nama_anggota']) ?></div>
-                      <div class="text-xs text-muted"><?= htmlspecialchars($r['nis']) ?></div>
-                    </td>
-                    <td><?= htmlspecialchars($r['judul_buku']) ?></td>
-                    <td><?= date('d/m/Y',strtotime($r['tgl_pinjam'])) ?></td>
-                    <td><?= date('d/m/Y',strtotime($r['tgl_kembali_rencana'])) ?></td>
-                    <td><?= $r['tgl_kembali_aktual'] ? date('d/m/Y',strtotime($r['tgl_kembali_aktual'])) : '—' ?></td>
-                    <td><span class="badge <?= $sc ?>"><?= $sl ?></span></td>
-                    <td>
-                      <?php if ($r['status_transaksi']==='Peminjaman'): ?>
-                        <a href="?return=<?= $r['id_transaksi'] ?>" class="btn btn-sage btn-sm">Kembalikan</a>
-                      <?php else: ?>
-                        <span class="text-muted text-xs">Selesai</span>
-                      <?php endif; ?>
-                    </td>
-                  </tr>
-                <?php endwhile; ?>
-              <?php else: ?>
-                <tr><td colspan="8"><div class="empty-state"><div class="empty-state-ico">📋</div><div class="empty-state-title">Belum ada transaksi</div></div></td></tr>
-              <?php endif; ?>
-            </tbody>
-          </table>
+                                <tr>
+                                    <td class="text-muted text-sm"><?= $no++ ?></td>
+                                    <td>
+                                        <div class="fw-600"><?= htmlspecialchars($r['nama_anggota']) ?></div>
+                                        <div class="text-xs text-muted"><?= htmlspecialchars($r['nis']) ?></div>
+                                    </td>
+                                    <td><?= htmlspecialchars($r['judul_buku']) ?></td>
+                                    <td><?= date('d/m/Y',strtotime($r['tgl_pinjam'])) ?></td>
+                                    <td><?= date('d/m/Y',strtotime($r['tgl_kembali_rencana'])) ?></td>
+                                    <td><?= $r['tgl_kembali_aktual'] ? date('d/m/Y',strtotime($r['tgl_kembali_aktual'])) : '—' ?>
+                                    </td>
+                                    <td><span class="badge <?= $sc ?>"><?= $sl ?></span></td>
+                                    <td>
+                                        <?php if ($r['status_transaksi']==='Peminjaman'): ?>
+                                        <a href="?return=<?= $r['id_transaksi'] ?>"
+                                            class="btn btn-sage btn-sm">Kembalikan</a>
+                                        <?php else: ?>
+                                        <span class="text-muted text-xs">Selesai</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                                <?php else: ?>
+                                <tr>
+                                    <td colspan="8">
+                                        <div class="empty-state">
+                                            <div class="empty-state-ico">📋</div>
+                                            <div class="empty-state-title">Belum ada transaksi</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
         </div>
-      </div>
-
-    </main>
-  </div>
-</div>
-
-<!-- ADD MODAL -->
-<div id="addModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Catat Peminjaman Baru</div>
-      <button class="modal-close" onclick="document.getElementById('addModal').style.display='none'">✕</button>
     </div>
-    <form method="POST">
-      <div class="modal-body">
-        <div class="form-grid">
-          <div class="form-group form-full">
-            <label class="form-label">Anggota *</label>
-            <select name="id_anggota" class="form-control" required>
-              <option value="">-- Pilih Anggota --</option>
-              <?php while($a=$anggota_list->fetch_assoc()): ?>
-              <option value="<?= $a['id_anggota'] ?>"><?= htmlspecialchars($a['nama_anggota']) ?> (<?= $a['nis'] ?>)</option>
-              <?php endwhile; ?>
-            </select>
-          </div>
-          <div class="form-group form-full">
-            <label class="form-label">Buku *</label>
-            <select name="id_buku" class="form-control" required>
-              <option value="">-- Pilih Buku --</option>
-              <?php while($b=$buku_list->fetch_assoc()): ?>
-              <option value="<?= $b['id_buku'] ?>"><?= htmlspecialchars($b['judul_buku']) ?> (stok: <?= $b['stok'] ?>)</option>
-              <?php endwhile; ?>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Tanggal Pinjam *</label>
-            <input name="tgl_pinjam" type="date" class="form-control" value="<?= date('Y-m-d') ?>" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Rencana Kembali *</label>
-            <input name="tgl_kembali_rencana" type="date" class="form-control" value="<?= date('Y-m-d', strtotime('+7 days')) ?>" required>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-ghost" onclick="document.getElementById('addModal').style.display='none'">Batal</button>
-        <button name="add" class="btn btn-primary">Catat Pinjam</button>
-      </div>
-    </form>
-  </div>
-</div>
 
-<?php if ($returnItem): ?>
-<!-- RETURN MODAL -->
-<div id="returnModal" class="modal-overlay" onclick="if(event.target===this)location.href='transaksi.php'">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Proses Pengembalian</div>
-      <a href="transaksi.php" class="modal-close">✕</a>
+    <!-- ADD MODAL -->
+    <div id="addModal" class="modal-overlay" style="display:none"
+        onclick="if(event.target===this)this.style.display='none'">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Catat Peminjaman Baru</div>
+                <button class="modal-close"
+                    onclick="document.getElementById('addModal').style.display='none'">✕</button>
+            </div>
+            <form method="POST">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group form-full">
+                            <label class="form-label">Anggota *</label>
+                            <select name="id_anggota" class="form-control" required>
+                                <option value="">-- Pilih Anggota --</option>
+                                <?php while($a=$anggota_list->fetch_assoc()): ?>
+                                <option value="<?= $a['id_anggota'] ?>"><?= htmlspecialchars($a['nama_anggota']) ?>
+                                    (<?= $a['nis'] ?>)</option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
+                        <div class="form-group form-full">
+                            <label class="form-label">Buku *</label>
+                            <select name="id_buku" class="form-control" required>
+                                <option value="">-- Pilih Buku --</option>
+                                <?php while($b=$buku_list->fetch_assoc()): ?>
+                                <option value="<?= $b['id_buku'] ?>"><?= htmlspecialchars($b['judul_buku']) ?> (stok:
+                                    <?= $b['stok'] ?>)</option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tanggal Pinjam *</label>
+                            <input name="tgl_pinjam" type="date" class="form-control" value="<?= date('Y-m-d') ?>"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Rencana Kembali *</label>
+                            <input name="tgl_kembali_rencana" type="date" class="form-control"
+                                value="<?= date('Y-m-d', strtotime('+7 days')) ?>" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost"
+                        onclick="document.getElementById('addModal').style.display='none'">Batal</button>
+                    <button name="add" class="btn btn-primary">Catat Pinjam</button>
+                </div>
+            </form>
+        </div>
     </div>
-    <form method="POST">
-      <input type="hidden" name="id_transaksi" value="<?= $returnItem['id_transaksi'] ?>">
-      <div class="modal-body">
-        <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:18px">
-          <div class="text-sm fw-600"><?= htmlspecialchars($returnItem['nama_anggota']) ?></div>
-          <div class="text-sm text-muted mt-8"><?= htmlspecialchars($returnItem['judul_buku']) ?></div>
-          <div class="text-xs text-muted mt-8">Jatuh tempo: <?= date('d M Y',strtotime($returnItem['tgl_kembali_rencana'])) ?></div>
+
+    <?php if ($returnItem): ?>
+    <!-- RETURN MODAL -->
+    <div id="returnModal" class="modal-overlay" onclick="if(event.target===this)location.href='transaksi.php'">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Proses Pengembalian</div>
+                <a href="transaksi.php" class="modal-close">✕</a>
+            </div>
+            <form method="POST">
+                <input type="hidden" name="id_transaksi" value="<?= $returnItem['id_transaksi'] ?>">
+                <div class="modal-body">
+                    <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:18px">
+                        <div class="text-sm fw-600"><?= htmlspecialchars($returnItem['nama_anggota']) ?></div>
+                        <div class="text-sm text-muted mt-8"><?= htmlspecialchars($returnItem['judul_buku']) ?></div>
+                        <div class="text-xs text-muted mt-8">Jatuh tempo:
+                            <?= date('d M Y',strtotime($returnItem['tgl_kembali_rencana'])) ?></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tanggal Kembali *</label>
+                        <input name="tgl_kembali" type="date" class="form-control" value="<?= date('Y-m-d') ?>"
+                            required>
+                    </div>
+                    <p class="text-xs text-muted mt-8">Denda Rp 1.000/hari jika terlambat dari jatuh tempo.</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="transaksi.php" class="btn btn-ghost">Batal</a>
+                    <button name="return" class="btn btn-sage">Proses Pengembalian</button>
+                </div>
+            </form>
         </div>
-        <div class="form-group">
-          <label class="form-label">Tanggal Kembali *</label>
-          <input name="tgl_kembali" type="date" class="form-control" value="<?= date('Y-m-d') ?>" required>
-        </div>
-        <p class="text-xs text-muted mt-8">Denda Rp 1.000/hari jika terlambat dari jatuh tempo.</p>
-      </div>
-      <div class="modal-footer">
-        <a href="transaksi.php" class="btn btn-ghost">Batal</a>
-        <button name="return" class="btn btn-sage">Proses Pengembalian</button>
-      </div>
-    </form>
-  </div>
-</div>
-<script>document.getElementById('returnModal').style.display='flex';</script>
-<?php endif; ?>
-<script src="../assets/js/script.js"></script>
+    </div>
+    <script>
+    document.getElementById('returnModal').style.display = 'flex';
+    </script>
+    <?php endif; ?>
+    <script src="../assets/js/script.js"></script>
 </body>
+
 </html>

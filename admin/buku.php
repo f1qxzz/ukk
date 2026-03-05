@@ -114,7 +114,7 @@ if (isset($_POST['edit'])) {
              tahun_terbit=?,isbn=?,deskripsi=?,stok=?,status=?,cover=? WHERE id_buku=?"
         );
 $s->bind_param(
-    "sissississi",
+    "sississsssi",
     $judul, $id_kat, $peng, $nerbit,
     $tahun, $isbn, $desk, $stok,
     $status, $newCover, $id
@@ -276,10 +276,6 @@ if (isset($_GET['edit'])) {
                 <div class="card">
                     <form method="GET" class="filter-bar">
                         <div class="search-wrap">
-                            <svg viewBox="0 0 24 24">
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                            </svg>
                             <input type="text" name="search" placeholder="Cari judul atau pengarang…"
                                 value="<?= htmlspecialchars($search) ?>">
                         </div>
@@ -617,7 +613,7 @@ if (isset($_GET['edit'])) {
         }
     }
     </script>
-<script src="../assets/js/script.js"></script>
+    <script src="../assets/js/script.js"></script>
 </body>
 
 </html>

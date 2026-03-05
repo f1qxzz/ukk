@@ -84,11 +84,137 @@ $quote=$quotes[date('z')%count($quotes)];
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="description"
         content="LibraSpace — Perpustakaan digital modern. Temukan, pinjam, dan nikmati ribuan koleksi buku pilihan secara online.">
-    <title> Perpustakaan Digital Modern</title>
+    <title>LibraSpace — Perpustakaan Digital Modern</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
+    <!-- Scroll Progress Bar -->
+    <style>
+    #scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        width: 0%;
+        background: linear-gradient(90deg, #2563eb, #7c3aed, #06b6d4);
+        z-index: 9999;
+        transition: width .1s linear;
+        border-radius: 0 2px 2px 0;
+        box-shadow: 0 0 8px rgba(37,99,235,.5);
+    }
+    /* Floating action button */
+    #fab-top {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(37,99,235,.4);
+        z-index: 800;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all .3s;
+        border: none;
+    }
+    #fab-top.show { opacity: 1; transform: none; }
+    #fab-top:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(37,99,235,.55); }
+    /* Glassmorphism improvement for hero widgets */
+    .hw { background: rgba(255,255,255,.92) !important; border: 1px solid rgba(255,255,255,.6) !important; }
+    /* Enhanced nav active state */
+    .nav-links a.active { color: var(--blue); background: var(--blue-ll); }
+    /* Reading ticker */
+    .reading-ticker {
+        background: linear-gradient(90deg, #0a0f2e 0%, #1e40af 100%);
+        padding: 7px 7%;
+        overflow: hidden;
+        position: relative;
+        z-index: 10;
+    }
+    .ticker-inner {
+        display: flex;
+        gap: 48px;
+        width: max-content;
+        animation: tickerScroll 30s linear infinite;
+        font-size: .72rem;
+        color: rgba(255,255,255,.65);
+        white-space: nowrap;
+    }
+    .ticker-item { display: flex; align-items: center; gap: 8px; }
+    .ticker-item strong { color: rgba(255,255,255,.9); }
+    @keyframes tickerScroll {
+        from { transform: translateX(0); }
+        to   { transform: translateX(-50%); }
+    }
+    /* Category hover glow */
+    .kat { position: relative; overflow: hidden; }
+    .kat::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 14px;
+        opacity: 0;
+        background: radial-gradient(ellipse at top left, var(--kc, #2563eb) 0%, transparent 65%);
+        transition: opacity .3s;
+    }
+    .kat:hover::before { opacity: .06; }
+    /* Pulse animation on status dot */
+    .dot-open { box-shadow: 0 0 0 0 rgba(52,211,153,.6); animation: pulse-green 2s infinite; }
+    @keyframes pulse-green {
+        0%   { box-shadow: 0 0 0 0 rgba(52,211,153,.6); }
+        70%  { box-shadow: 0 0 0 7px rgba(52,211,153,0); }
+        100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+    }
+    /* Book cards tilt effect */
+    .nbk { transition: all .3s cubic-bezier(.34,1.56,.64,1) !important; }
+    .nbk:hover { transform: translateY(-8px) rotate(-1deg) !important; }
+    /* Footer newsletter */
+    .foot-nl {
+        background: rgba(255,255,255,.05);
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-top: 18px;
+        display: flex;
+        gap: 8px;
+    }
+    .foot-nl input {
+        flex: 1;
+        background: rgba(255,255,255,.08);
+        border: 1px solid rgba(255,255,255,.1);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: .77rem;
+        color: rgba(255,255,255,.7);
+        font-family: 'Sora', sans-serif;
+        outline: none;
+    }
+    .foot-nl input::placeholder { color: rgba(255,255,255,.3); }
+    .foot-nl button {
+        background: var(--blue);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 14px;
+        color: #fff;
+        font-size: .75rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: 'Sora', sans-serif;
+        transition: background .2s;
+        white-space: nowrap;
+    }
+    .foot-nl button:hover { background: var(--blue2); }
+    /* Enhanced stat counter with gradient */
+    .hnum-n { background: linear-gradient(135deg, #2563eb, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
     <style>
     :root {
         --w: #fff;
@@ -3336,6 +3462,11 @@ $quote=$quotes[date('z')%count($quotes)];
 
 <body>
 
+    <!-- Scroll Progress -->
+    <div id="scroll-progress"></div>
+    <!-- Back to Top FAB -->
+    <button id="fab-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Kembali ke atas">↑</button>
+
     <!-- ██ TOP STATUS BAR ██ -->
     <div class="topbar" id="topbar">
         <div class="topbar-left">
@@ -3534,6 +3665,25 @@ $quote=$quotes[date('z')%count($quotes)];
             </div>
         </div>
     </section>
+
+    <!-- ██ READING TICKER ██ -->
+    <div class="reading-ticker">
+        <div class="ticker-inner">
+            <?php
+            $ticker_items = [
+                '📚 ' . $total_buku . ' Koleksi Buku Tersedia',
+                '✅ ' . $buku_tersedia . ' Buku Siap Dipinjam',
+                '👥 ' . $total_anggota . ' Anggota Terdaftar',
+                '🔄 ' . $total_pinjam . ' Sedang Dipinjam',
+                '⭐ Rating ' . number_format($avg_rating > 0 ? $avg_rating : 4.5, 1) . '/5.0 dari ' . $total_ulasan . ' Ulasan',
+                '📅 Pinjaman Bulan Ini: ' . $pinjam_bulan_ini . ' Transaksi',
+                '🕐 Jam Buka: Senin–Jumat 07.00–16.00 WIB',
+            ];
+            $ticker_str = implode(' &nbsp;·&nbsp; ', array_map(fn($t) => "<span class='ticker-item'>{$t}</span>", $ticker_items));
+            echo $ticker_str . ' &nbsp;&nbsp;&nbsp;&nbsp; ' . $ticker_str;
+            ?>
+        </div>
+    </div>
 
     <!-- ██ INFO STRIP ██ -->
     <div class="info-strip">
@@ -4153,6 +4303,10 @@ $quote=$quotes[date('z')%count($quotes)];
                 </div>
                 <p class="foot-desc">Platform perpustakaan digital modern untuk sekolah. Memudahkan pengelolaan koleksi,
                     peminjaman, dan pengembalian buku secara efisien dan transparan.</p>
+                <div class="foot-nl">
+                    <input type="email" placeholder="Email kamu..." />
+                    <button onclick="alert('Terima kasih! Notifikasi akan dikirimkan ke email Anda.')">Langganan</button>
+                </div>
                 <div class="foot-contacts">
                     <?php $fc=[['M3 8 5h14l-1.68 8.39a2 2 0 01-1.98 1.61H8.68a2 2 0 01-1.97-1.67L5 8zm0 0L3.18 4H1','Jl. Pendidikan No. 123, Jakarta Selatan'],['M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A2 2 0 013.6 1.28h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6','(021) 1234-5678'],['M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 0l8 9 8-9','perpustakaan@sekolah.sch.id']];
         foreach($fc as $f):?>
@@ -4208,6 +4362,15 @@ $quote=$quotes[date('z')%count($quotes)];
     const topH = document.getElementById('topbar')?.offsetHeight || 36;
     nav.style.top = topH + 'px';
     window.addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > topH + 20));
+
+    /* ── Scroll progress bar ── */
+    const prog = document.getElementById('scroll-progress');
+    const fab  = document.getElementById('fab-top');
+    window.addEventListener('scroll', () => {
+        const pct = (scrollY / (document.documentElement.scrollHeight - innerHeight)) * 100;
+        prog.style.width = pct + '%';
+        fab.classList.toggle('show', scrollY > 400);
+    });
 
     /* ── Smooth scroll ── */
     document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
