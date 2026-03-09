@@ -66,10 +66,6 @@ $page_sub   = 'Jelajahi koleksi perpustakaan';
                 <form method="GET" class="card mb-24" style="overflow:visible">
                     <div class="filter-bar" style="border:none">
                         <div class="search-wrap" style="flex:1">
-                            <svg viewBox="0 0 24 24">
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                            </svg>
                             <input type="text" name="search" placeholder="Cari judul buku atau pengarang…"
                                 value="<?= htmlspecialchars($search) ?>">
                         </div>
@@ -149,7 +145,7 @@ $page_sub   = 'Jelajahi koleksi perpustakaan';
             </main>
         </div>
     </div>
-<script src="../assets/js/script.js"></script>
+    <script src="../assets/js/script.js"></script>
 </body>
 
 </html>
