@@ -20,12 +20,10 @@ if (isset($_POST['add'])) {
     $isbn   = trim($_POST['isbn']);
     $desk   = trim($_POST['deskripsi']);
     $stok   = (int)$_POST['stok'];
-    $status = $stok > 0 ? 'tersedia' : 'tidak tersedia';
+    $status = $stok > 0 ? 'tersedia' : 'tidak';
 
-    // Cek apakah ada file yang diupload
-    $adaFileAdd = isset($_FILES['cover'])
-                  && $_FILES['cover']['error'] === UPLOAD_ERR_OK
-                  && $_FILES['cover']['size'] > 0;
+    // PERBAIKAN: Tangkap error jika file ditolak server (misal kebesaran)
+    $adaFileAdd = isset($_FILES['cover']) && $_FILES['cover']['error'] !== UPLOAD_ERR_NO_FILE;
 
     $coverPath   = null;
     $uploadGagal = false;
@@ -42,7 +40,6 @@ if (isset($_POST['add'])) {
     }
 
     if (!$uploadGagal) {
-        // s=judul, i=id_kat, s=peng, s=nerbit, i=tahun, s=isbn, s=desk, i=stok, s=status, s=cover → 10 param
         $s = $conn->prepare(
             "INSERT INTO buku (judul_buku,id_kategori,pengarang,penerbit,tahun_terbit,isbn,deskripsi,stok,status,cover)
              VALUES (?,?,?,?,?,?,?,?,?,?)"
@@ -55,7 +52,7 @@ if (isset($_POST['add'])) {
             header('Location: buku.php?notif=tambah_ok');
             exit;
         } else {
-            deleteBookCover($coverPath);
+            if ($coverPath) deleteBookCover($coverPath);
             $msg     = 'Gagal menyimpan buku: ' . $conn->error;
             $msgType = 'danger';
         }
@@ -86,12 +83,10 @@ if (isset($_POST['edit'])) {
     $stmtOld->fetch();
     $stmtOld->close();
 
-    // Cek file baru
-    $adaFileBaru = isset($_FILES['cover'])
-                   && $_FILES['cover']['error'] === UPLOAD_ERR_OK
-                   && $_FILES['cover']['size'] > 0;
+    // Deteksi file baru: termasuk error batas ukuran (UPLOAD_ERR_INI_SIZE, dll.)
+    $adaFileBaru = isset($_FILES['cover']) && $_FILES['cover']['error'] !== UPLOAD_ERR_NO_FILE;
 
-    $newCover    = $oldCover; // default pertahankan lama
+    $newCover    = $oldCover; // default: pertahankan cover lama
     $uploadGagal = false;
 
     if ($adaFileBaru) {
@@ -101,37 +96,53 @@ if (isset($_POST['edit'])) {
             $msgType     = 'warning';
             $uploadGagal = true;
         } else {
-            // Hapus file lama, pakai file baru
-            deleteBookCover($oldCover);
+            // Simpan path cover baru; cover lama BELUM dihapus di sini,
+            // hapus dilakukan SETELAH database berhasil di-update.
             $newCover = $coverResult['path'];
         }
     }
 
     if (!$uploadGagal) {
-        // s=judul, i=id_kat, s=peng, s=nerbit, i=tahun, s=isbn, s=desk, i=stok, s=status, s=cover, i=id → 11 param
         $s = $conn->prepare(
             "UPDATE buku SET judul_buku=?,id_kategori=?,pengarang=?,penerbit=?,
              tahun_terbit=?,isbn=?,deskripsi=?,stok=?,status=?,cover=? WHERE id_buku=?"
         );
-$s->bind_param(
-    "sississsssi",
-    $judul, $id_kat, $peng, $nerbit,
-    $tahun, $isbn, $desk, $stok,
-    $status, $newCover, $id
-);
-        if ($s->execute()) {
+
+        // Tipe: s  i        s     s       i      s     s     i     s       s         i
+        //    judul id_kat  peng nerbit  tahun  isbn  desk  stok  status newCover  id
+        $s->bind_param(
+            "sissississi",
+            $judul, $id_kat, $peng, $nerbit,
+            $tahun, $isbn, $desk, $stok,
+            $status, $newCover, $id
+        );
+
+        try {
+            $s->execute();
             $s->close();
+
+            // UPDATE berhasil — baru sekarang hapus cover lama (jika benar-benar diganti)
+            if ($adaFileBaru && $newCover !== $oldCover) {
+                // Jangan hapus cover "default"
+                if (!empty($oldCover) && strpos($oldCover, 'default') === false) {
+                    deleteBookCover($oldCover);
+                }
+            }
+
             header('Location: buku.php?notif=edit_ok');
             exit;
-        } else {
-            if ($adaFileBaru) deleteBookCover($newCover);
-            $msg     = 'Gagal memperbarui buku: ' . $conn->error;
+
+        } catch (Exception $e) {
+            // UPDATE gagal — tampilkan error MySQL, rollback file baru yang terlanjur ter-upload
+            if ($adaFileBaru && $newCover !== $oldCover) {
+                deleteBookCover($newCover);
+            }
+            $msg     = 'Gagal memperbarui buku: ' . $e->getMessage();
             $msgType = 'danger';
+            $s->close();
         }
-        $s->close();
     }
 }
-
 // ============================================================
 //  HAPUS BUKU
 // ============================================================
@@ -172,7 +183,11 @@ if (isset($_POST['delete'])) {
             $d3->bind_param("i", $id); $d3->execute(); $d3->close();
 
             $conn->commit();
-            deleteBookCover($coverToDel);
+            
+            // Perbaikan Hapus: Jangan hapus cover default
+            if (!empty($coverToDel) && strpos($coverToDel, 'default') === false) {
+                deleteBookCover($coverToDel);
+            }
             $msg     = 'Buku dan riwayat transaksinya berhasil dihapus!';
             $msgType = 'success';
         } catch (Exception $e) {
@@ -189,7 +204,11 @@ if (isset($_POST['delete'])) {
         $s->bind_param("i", $id);
         if ($s->execute()) {
             $s->close();
-            deleteBookCover($coverToDel);
+            
+            // Perbaikan Hapus: Jangan hapus cover default
+            if (!empty($coverToDel) && strpos($coverToDel, 'default') === false) {
+                deleteBookCover($coverToDel);
+            }
             header('Location: buku.php?notif=hapus_ok');
             exit;
         } else {
@@ -246,6 +265,133 @@ if (isset($_GET['edit'])) {
         href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+    /* =========================================================
+   DESAIN AREA UPLOAD/EDIT COVER BUKU
+   ========================================================= */
+
+    /* Area utama upload (Kotak putus-putus) */
+    .cover-upload-area {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+        border: 2px dashed #cbd5e1;
+        /* Warna garis putus-putus abu-abu */
+        border-radius: 12px;
+        background-color: #f8fafc;
+        transition: all 0.3s ease-in-out;
+    }
+
+    /* Efek saat area di-hover */
+    .cover-upload-area:hover {
+        border-color: #3b82f6;
+        /* Berubah biru saat di-hover */
+        background-color: #eff6ff;
+    }
+
+    /* Pembungkus gambar preview */
+    .cover-preview-wrap {
+        position: relative;
+        width: 110px;
+        /* Proporsi rasio cover buku */
+        height: 150px;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+        background-color: #e2e8f0;
+    }
+
+    /* Gambar preview di dalamnya */
+    .cover-preview-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    /* Efek zoom kecil saat gambar disentuh */
+    .cover-preview-wrap:hover img {
+        transform: scale(1.05);
+    }
+
+    /* Lapisan transparan (Overlay) 'Ganti Cover' di atas gambar */
+    .overlay-hint {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.65);
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 500;
+        text-align: center;
+        padding: 8px 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        opacity: 0;
+        /* Disembunyikan secara default */
+        transition: opacity 0.3s ease;
+    }
+
+    /* Munculkan overlay saat gambar di-hover */
+    .cover-preview-wrap:hover .overlay-hint {
+        opacity: 1;
+    }
+
+    /* Bagian teks dan tombol di sebelah gambar */
+    .cover-upload-meta {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    /* Desain Tombol Pilih File */
+    .cover-upload-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        color: #334155;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: fit-content;
+    }
+
+    .cover-upload-btn:hover {
+        background-color: #f1f5f9;
+        border-color: #94a3b8;
+    }
+
+    /* Nama file yang terpilih */
+    .cover-filename {
+        font-size: 13px;
+        font-weight: 600;
+        color: #10b981;
+        /* Warna hijau sukses */
+        display: none;
+        /* Disembunyikan sampai ada file dipilih */
+        word-break: break-all;
+        max-width: 200px;
+    }
+
+    /* Teks panduan (Maks 2MB, format JPG, dll) */
+    .cover-upload-hint {
+        font-size: 12px;
+        color: #64748b;
+        line-height: 1.5;
+    }
+    </style>
 </head>
 
 <body>
@@ -370,7 +516,6 @@ if (isset($_GET['edit'])) {
         </div>
     </div>
 
-    <!-- ══ MODAL TAMBAH ══ -->
     <div id="addModal" class="modal-overlay" style="display:none"
         onclick="if(event.target===this)this.style.display='none'">
         <div class="modal modal-lg">
@@ -466,7 +611,6 @@ if (isset($_GET['edit'])) {
     </div>
 
     <?php if ($editBook): ?>
-    <!-- ══ MODAL EDIT ══ -->
     <div id="editModal" class="modal-overlay" onclick="if(event.target===this)location.href='buku.php'">
         <div class="modal modal-lg">
             <div class="modal-header">
@@ -521,8 +665,8 @@ if (isset($_GET['edit'])) {
                             <select name="status" class="form-control">
                                 <option value="tersedia" <?= $editBook['status']==='tersedia'?'selected':'' ?>>Tersedia
                                 </option>
-                                <option value="tidak tersedia"
-                                    <?= $editBook['status']==='tidak tersedia'?'selected':'' ?>>Tidak Tersedia</option>
+                                <option value="tidak" <?= $editBook['status']==='tidak'?'selected':'' ?>>Tidak Tersedia
+                                </option>
                             </select>
                         </div>
                         <div class="form-group">

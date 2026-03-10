@@ -798,7 +798,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
         el.addEventListener('blur', () => el.closest('.fi').style.transform = '');
     });
     </script>
-<script src="assets/js/script.js"></script>
+    <script src="assets/js/script.js"></script>
 </body>
 
 </html>
