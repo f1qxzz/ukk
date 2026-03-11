@@ -68,252 +68,576 @@ $reg_success = isset($_GET['registered']) ? 'Registrasi berhasil! Silakan masuk.
 $conn = getConnection();
 
 $query = $conn->query("SELECT COUNT(*) AS total FROM buku");
-
 if (!$query) {
     die("Query error: " . $conn->error);
 }
-
 $data = $query->fetch_assoc();
 
+// Quote of the day
+$quotes = [
+    ['Membaca adalah jendela dunia yang tidak pernah tertutup.', 'Pepatah Indonesia'],
+    ['Buku adalah teman terbaik yang tidak pernah mengecewakan.', 'Pepatah'],
+    ['Satu buku yang kamu baca bisa mengubah hidupmu selamanya.', 'Nelson Mandela'],
+    ['Investasi terbaik adalah investasi pada dirimu sendiri — membaca!', 'Benjamin Franklin'],
+    ['Perpustakaan adalah tempat di mana masa lalu dan masa depan bertemu.', 'A. Whitney Brown'],
+];
+$quote = $quotes[date('z') % count($quotes)];
 ?>
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Masuk — Perpustakaan Digital</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-    .login-left-extra {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        margin-top: 28px;
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
     }
 
-    .login-stat {
+    :root {
+        --primary-50: #eef2ff;
+        --primary-100: #e0e7ff;
+        --primary-200: #c7d2fe;
+        --primary-300: #a5b4fc;
+        --primary-400: #818cf8;
+        --primary-500: #6366f1;
+        --primary-600: #4f46e5;
+        --primary-700: #4338ca;
+        --primary-800: #3730a3;
+        --primary-900: #312e81;
+
+        --neutral-50: #f9fafb;
+        --neutral-100: #f3f4f6;
+        --neutral-200: #e5e7eb;
+        --neutral-300: #d1d5db;
+        --neutral-400: #9ca3af;
+        --neutral-500: #6b7280;
+        --neutral-600: #4b5563;
+        --neutral-700: #374151;
+        --neutral-800: #1f2937;
+        --neutral-900: #111827;
+
+        --success-500: #10b981;
+        --warning-500: #f59e0b;
+        --danger-500: #ef4444;
+
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+        --radius-lg: 1rem;
+        --radius-xl: 1.5rem;
+        --radius-2xl: 2rem;
+        --radius-full: 9999px;
+
+        --transition: all 0.3s ease;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    /* Main Container */
+    .login-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        max-width: 1200px;
+        width: 100%;
+        background: white;
+        border-radius: var(--radius-2xl);
+        overflow: hidden;
+        box-shadow: var(--shadow-2xl);
+    }
+
+    /* Left Panel */
+    .login-left {
+        background: linear-gradient(135deg, #4338ca, #312e81);
+        padding: 48px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .login-left-content {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .login-icon {
+        font-size: 3rem;
+        margin-bottom: 24px;
+        background: rgba(255, 255, 255, 0.1);
+        width: fit-content;
+        padding: 16px;
+        border-radius: var(--radius-xl);
+    }
+
+    .login-title-large {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 2.2rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 16px;
+    }
+
+    .login-title-large span {
+        color: #fbbf24;
+    }
+
+    .login-description {
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.6;
+        margin-bottom: 32px;
+    }
+
+    /* Quote Box */
+    .quote-box {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-xl);
+        padding: 24px;
+        margin-bottom: 32px;
+    }
+
+    .quote-text {
+        font-size: 1rem;
+        font-style: italic;
+        color: white;
+        line-height: 1.6;
+        margin-bottom: 12px;
+    }
+
+    .quote-author {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.6);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .quote-author::before {
+        content: '';
+        width: 30px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: var(--radius-full);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-lg);
+        padding: 16px;
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+    }
+
+    .stat-value {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: white;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.7);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Back Link */
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        font-size: 0.9rem;
+        margin-top: auto;
+        padding: 8px 12px;
+        border-radius: var(--radius-full);
+        width: fit-content;
+        transition: var(--transition);
+    }
+
+    .back-link:hover {
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Right Panel */
+    .login-right {
+        padding: 48px;
+        background: white;
+    }
+
+    .login-box {
+        max-width: 360px;
+        margin: 0 auto;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .login-header-icon {
+        font-size: 2.5rem;
+        margin-bottom: 16px;
+        color: var(--primary-600);
+    }
+
+    .login-header-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--neutral-900);
+        margin-bottom: 8px;
+    }
+
+    .login-header-subtitle {
+        color: var(--neutral-500);
+        font-size: 0.9rem;
+    }
+
+    /* Alert */
+    .alert {
         display: flex;
         align-items: center;
         gap: 12px;
         padding: 12px 16px;
-        background: rgba(255, 255, 255, .08);
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, .1);
-    }
-
-    .login-stat-val {
-        font-family: "Playfair Display", serif;
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #fff;
-    }
-
-    .login-stat-lbl {
-        font-size: .73rem;
-        color: rgba(255, 255, 255, .55);
-        margin-top: 1px;
-    }
-
-    .login-divider {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin: 20px 0;
-    }
-
-    .login-divider::before,
-    .login-divider::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: var(--gray-200);
-    }
-
-    .login-divider span {
-        font-size: .72rem;
-        color: var(--gray-400);
-        text-transform: uppercase;
-        letter-spacing: .07em;
-        white-space: nowrap;
-    }
-
-    .login-tabs-wrap {
+        border-radius: var(--radius-lg);
         margin-bottom: 24px;
+        font-size: 0.9rem;
     }
 
+    .alert-danger {
+        background: #fef2f2;
+        border-left: 4px solid var(--danger-500);
+        color: #991b1b;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        border-left: 4px solid var(--success-500);
+        color: #166534;
+    }
+
+    /* Form */
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--neutral-700);
+        margin-bottom: 6px;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--neutral-400);
+        font-size: 1rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px 12px 44px;
+        border: 1px solid var(--neutral-200);
+        border-radius: var(--radius-lg);
+        font-size: 0.95rem;
+        font-family: 'Inter', sans-serif;
+        transition: var(--transition);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-500);
+        box-shadow: 0 0 0 3px var(--primary-100);
+    }
+
+    select.form-control {
+        padding: 12px 16px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 16px;
+        appearance: none;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--neutral-400);
+        cursor: pointer;
+        padding: 4px;
+    }
+
+    .password-toggle:hover {
+        color: var(--primary-500);
+    }
+
+    /* Login Button */
     .btn-login {
         width: 100%;
-        padding: 12px;
-        border-radius: 8px;
-        background: var(--accent);
-        color: #fff;
-        font-size: .95rem;
-        font-weight: 600;
-        cursor: pointer;
+        padding: 14px;
+        background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+        color: white;
         border: none;
-        font-family: inherit;
-        transition: all .2s;
-        box-shadow: 0 4px 16px rgba(59, 130, 246, .3);
+        border-radius: var(--radius-lg);
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
+        transition: var(--transition);
+        box-shadow: 0 4px 6px -1px rgba(67, 97, 238, 0.3);
+        margin-top: 10px;
     }
 
     .btn-login:hover {
-        background: var(--accent-2);
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(59, 130, 246, .4);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(67, 97, 238, 0.4);
     }
 
-    .input-icon-wrap {
-        position: relative;
+    .btn-login i {
+        transition: var(--transition);
     }
 
-    .input-icon-wrap svg {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 16px;
-        height: 16px;
-        stroke: var(--gray-400);
-        fill: none;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        pointer-events: none;
+    .btn-login:hover i {
+        transform: translateX(5px);
     }
 
-    .input-icon-wrap .form-control {
-        padding-left: 38px;
-    }
-
-    .eye-btn {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        cursor: pointer;
-        color: var(--gray-400);
-        background: none;
-        border: none;
+    /* Divider */
+    .divider {
         display: flex;
         align-items: center;
-        justify-content: center;
+        gap: 12px;
+        margin: 24px 0;
+        color: var(--neutral-400);
+        font-size: 0.8rem;
     }
 
-    .eye-btn svg {
-        width: 17px;
-        height: 17px;
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--neutral-200);
     }
 
-    .reg-row {
+    /* Register Link */
+    .register-link {
         text-align: center;
-        margin-top: 16px;
-        font-size: .85rem;
-        color: var(--gray-500);
+        font-size: 0.9rem;
+        color: var(--neutral-600);
     }
 
-    .reg-link {
-        color: var(--accent);
+    .register-link a {
+        color: var(--primary-600);
         font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: var(--transition);
     }
 
-    .reg-link:hover {
-        color: var(--accent-2);
+    .register-link a:hover {
+        color: var(--primary-700);
+        gap: 8px;
     }
 
-    .foot {
+    /* Footer */
+    .footer-text {
         text-align: center;
-        margin-top: 28px;
-        font-size: .7rem;
-        color: var(--gray-300);
+        margin-top: 24px;
+        font-size: 0.7rem;
+        color: var(--neutral-400);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .login-container {
+            grid-template-columns: 1fr;
+        }
+
+        .login-left {
+            display: none;
+        }
+
+        .login-right {
+            padding: 32px 24px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        body {
+            padding: 10px;
+        }
+
+        .login-right {
+            padding: 24px 16px;
+        }
+
+        .login-header-title {
+            font-size: 1.5rem;
+        }
+    }
+
+    /* Loading animation */
+    .btn-login.loading {
+        pointer-events: none;
+        opacity: 0.8;
+    }
+
+    .btn-login.loading i {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
     }
     </style>
 </head>
 
 <body>
-    <div class="login-page">
-        <!-- LEFT -->
-        <aside class="login-left">
-            <div class="login-hero-icon">📖</div>
-            <h1 class="login-hero-title">Perpustakaan Digital</h1>
-            <p class="login-hero-sub">Platform manajemen perpustakaan modern untuk mengelola koleksi, anggota, dan
-                transaksi peminjaman buku.</p>
+    <div class="login-container">
+        <!-- Left Panel -->
+        <div class="login-left">
+            <div class="login-left-content">
+                <div class="login-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
 
-            <div class="login-left-extra">
-                <div class="login-stat">
-                    <svg style="width:24px;height:24px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
-                        viewBox="0 0 24 24">
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                    </svg>
-                    <div>
-                        <div class="login-stat-val"><?= $data['total'] ?></div>
-                        <div class="login-stat-lbl">Koleksi Buku Tersedia</div>
+                <h1 class="login-title-large">
+                    Selamat Datang di<br>
+                    <span>Perpustakaan Digital</span>
+                </h1>
+
+                <p class="login-description">
+                    Platform manajemen perpustakaan modern untuk mengelola koleksi, anggota, dan transaksi peminjaman
+                    buku secara efisien.
+                </p>
+
+                <!-- Quote of the Day -->
+                <div class="quote-box">
+                    <div class="quote-text">
+                        "<?= htmlspecialchars($quote[0]) ?>"
+                    </div>
+                    <div class="quote-author">
+                        <?= htmlspecialchars($quote[1]) ?>
                     </div>
                 </div>
-                <div class="login-stat">
-                    <svg style="width:24px;height:24px;stroke:var(--success);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
-                        viewBox="0 0 24 24">
-                        <polyline points="12 8 12 12 14 14" />
-                        <path d="M3.05 11a9 9 0 1 0 .5-4" />
-                        <polyline points="3 3 3 7 7 7" />
-                    </svg>
-                    <div>
-                        <div class="login-stat-val">7 Hari</div>
-                        <div class="login-stat-lbl">Masa Peminjaman</div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-book"></i></div>
+                        <div class="stat-value"><?= $data['total'] ?></div>
+                        <div class="stat-label">Koleksi Buku</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                        <div class="stat-value">7 Hari</div>
+                        <div class="stat-label">Masa Pinjam</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-value">3 Level</div>
+                        <div class="stat-label">Pengguna</div>
                     </div>
                 </div>
-                <div class="login-stat">
-                    <svg style="width:24px;height:24px;stroke:#f59e0b;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
-                        viewBox="0 0 24 24">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                    <div>
-                        <div class="login-stat-val">3 Level</div>
-                        <div class="login-stat-lbl">Admin · Petugas · Anggota</div>
-                    </div>
-                </div>
+
+                <!-- Back to Home -->
+                <a href="index.php" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Kembali ke Beranda
+                </a>
             </div>
+        </div>
 
-            <a href="index.php"
-                style="margin-top:32px;font-size:.8rem;color:rgba(255,255,255,.5);display:inline-flex;align-items:center;gap:6px;">
-                <svg viewBox="0 0 24 24"
-                    style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">
-                    <path d="M15 18l-6-6 6-6" />
-                </svg>
-                Kembali ke Beranda
-            </a>
-        </aside>
-
-        <!-- RIGHT -->
-        <main class="login-right">
+        <!-- Right Panel -->
+        <div class="login-right">
             <div class="login-box">
-                <div class="login-logo">
-                    <div class="login-logo-icon">📖</div>
-                    <div>
-                        <div class="login-title">Masuk ke Akun</div>
-                        <div class="login-subtitle">Gunakan username dan password terdaftar</div>
+                <div class="login-header">
+                    <div class="login-header-icon">
+                        <i class="fas fa-user-circle"></i>
                     </div>
+                    <h2 class="login-header-title">Masuk ke Akun</h2>
+                    <p class="login-header-subtitle">Gunakan username dan password terdaftar</p>
                 </div>
 
+                <!-- Alert Messages -->
                 <?php if ($error): ?>
-                <div class="alert alert-danger">⚠ <?= htmlspecialchars($error) ?></div>
-                <?php endif; ?>
-                <?php if ($reg_success): ?>
-                <div class="alert alert-success">✓ <?= htmlspecialchars($reg_success) ?></div>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <?= htmlspecialchars($error) ?>
+                </div>
                 <?php endif; ?>
 
+                <?php if ($reg_success): ?>
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <?= htmlspecialchars($reg_success) ?>
+                </div>
+                <?php endif; ?>
+
+                <!-- Login Form -->
                 <form method="POST" novalidate>
                     <div class="form-group">
                         <label class="form-label">Masuk Sebagai</label>
@@ -326,11 +650,8 @@ $data = $query->fetch_assoc();
 
                     <div class="form-group">
                         <label class="form-label">Username</label>
-                        <div class="input-icon-wrap">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                            </svg>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
                             <input type="text" name="username" class="form-control" placeholder="Masukkan username"
                                 required autocomplete="username"
                                 value="<?= htmlspecialchars($_POST['username'] ?? '') ?>">
@@ -339,52 +660,82 @@ $data = $query->fetch_assoc();
 
                     <div class="form-group">
                         <label class="form-label">Password</label>
-                        <div class="input-icon-wrap">
-                            <svg viewBox="0 0 24 24">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                            </svg>
-                            <input type="password" name="password" id="pw" class="form-control"
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" name="password" id="password" class="form-control"
                                 placeholder="Masukkan password" required autocomplete="current-password">
-                            <button type="button" class="eye-btn" onclick="togglePw()">
-                                <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                    <circle cx="12" cy="12" r="3" />
-                                </svg>
+                            <button type="button" class="password-toggle" onclick="togglePassword()">
+                                <i class="fas fa-eye" id="toggleIcon"></i>
                             </button>
                         </div>
                     </div>
 
-                    <button type="submit" name="login" class="btn-login">
-                        <svg viewBox="0 0 24 24"
-                            style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round">
-                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                            <polyline points="10 17 15 12 10 7" />
-                            <line x1="15" y1="12" x2="3" y2="12" />
-                        </svg>
-                        Masuk ke Sistem
+                    <button type="submit" name="login" class="btn-login" id="loginBtn">
+                        <span>Masuk ke Sistem</span>
+                        <i class="fas fa-arrow-right"></i>
                     </button>
                 </form>
 
-                <div class="login-divider"><span>belum punya akun?</span></div>
-                <div class="reg-row">
-                    <span>Daftar sebagai anggota </span>
-                    <a href="register.php" class="reg-link">Daftar Gratis →</a>
+                <div class="divider">
+                    <span>atau</span>
                 </div>
 
-                <p class="foot">© <?= date('Y') ?> Perpustakaan Digital · Sistem Peminjaman Buku</p>
+                <div class="register-link">
+                    <span>Belum punya akun? </span>
+                    <a href="register.php">
+                        Daftar Sekarang
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <p class="footer-text">
+                    © <?= date('Y') ?> Perpustakaan Digital · Sistem Peminjaman Buku
+                </p>
             </div>
-        </main>
+        </div>
     </div>
 
     <script>
-    function togglePw() {
-        const pw = document.getElementById('pw');
-        pw.type = pw.type === 'password' ? 'text' : 'password';
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('toggleIcon');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
     }
+
+    // Form submission with loading animation
+    document.getElementById('loginBtn')?.addEventListener('click', function(e) {
+        const form = this.closest('form');
+        if (form && form.checkValidity()) {
+            this.classList.add('loading');
+            this.innerHTML = '<span>Memproses...</span><i class="fas fa-spinner"></i>';
+        }
+    });
+
+    // Prevent form resubmission
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+
+    // Auto-hide alerts after 5 seconds
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(alert => {
+            alert.style.transition = 'opacity 0.5s ease';
+            alert.style.opacity = '0';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 500);
+        });
+    }, 5000);
     </script>
-    <script src="assets/js/script.js"></script>
 </body>
 
 </html>

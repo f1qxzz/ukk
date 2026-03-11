@@ -57,748 +57,670 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-    :root {
-        --bg: #f4ede0;
-        --bg2: #ede4d2;
-        --paper: #faf6ef;
-        --white: #ffffff;
-        --ink: #1c1509;
-        --ink2: #3b2f1e;
-        --muted: #7c6b52;
-        --border: rgba(80, 55, 25, .11);
-        --rust: #b84a2c;
-        --rust2: #d05a38;
-        --gold: #c48a20;
-        --sage: #496640;
-        --navy: #2c4f7c;
-        --sh1: 0 1px 12px rgba(28, 21, 9, .07);
-        --sh2: 0 6px 32px rgba(28, 21, 9, .13);
-    }
-
-    *,
-    *::before,
-    *::after {
+    * {
         margin: 0;
         padding: 0;
-        box-sizing: border-box
+        box-sizing: border-box;
     }
 
-    html {
-        height: 100%
+    :root {
+        --primary-50: #eef2ff;
+        --primary-100: #e0e7ff;
+        --primary-200: #c7d2fe;
+        --primary-300: #a5b4fc;
+        --primary-400: #818cf8;
+        --primary-500: #6366f1;
+        --primary-600: #4f46e5;
+        --primary-700: #4338ca;
+        --primary-800: #3730a3;
+        --primary-900: #312e81;
+
+        --neutral-50: #f9fafb;
+        --neutral-100: #f3f4f6;
+        --neutral-200: #e5e7eb;
+        --neutral-300: #d1d5db;
+        --neutral-400: #9ca3af;
+        --neutral-500: #6b7280;
+        --neutral-600: #4b5563;
+        --neutral-700: #374151;
+        --neutral-800: #1f2937;
+        --neutral-900: #111827;
+
+        --success-500: #10b981;
+        --warning-500: #f59e0b;
+        --danger-500: #ef4444;
+
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+        --radius-lg: 1rem;
+        --radius-xl: 1.5rem;
+        --radius-2xl: 2rem;
+        --radius-full: 9999px;
+
+        --transition: all 0.3s ease;
     }
 
     body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
-        font-family: 'Outfit', sans-serif;
-        background: var(--bg);
-        color: var(--ink);
-        overflow-x: hidden;
-        display: grid;
-        grid-template-columns: 460px 1fr;
-    }
-
-    /* ── LEFT PANEL ── */
-    .left {
-        background: linear-gradient(175deg, var(--ink) 0%, #2c1f0a 100%);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 48px 44px;
-        position: relative;
-        overflow: hidden;
-        min-height: 100vh;
-    }
-
-    /* ambient glows */
-    .left::before {
-        content: '';
-        position: absolute;
-        top: -80px;
-        right: -80px;
-        width: 380px;
-        height: 380px;
-        border-radius: 50%;
-        background: radial-gradient(rgba(184, 74, 44, .15), transparent 70%);
-        pointer-events: none;
-    }
-
-    .left::after {
-        content: '';
-        position: absolute;
-        bottom: -60px;
-        left: -60px;
-        width: 300px;
-        height: 300px;
-        border-radius: 50%;
-        background: radial-gradient(rgba(196, 138, 32, .1), transparent 70%);
-        pointer-events: none;
-    }
-
-    /* logo */
-    .left-logo {
-        display: flex;
-        align-items: center;
-        gap: 11px;
-        position: relative;
-        z-index: 2
-    }
-
-    .left-logo-ico {
-        width: 38px;
-        height: 38px;
-        border-radius: 8px;
-        background: var(--rust);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.05rem;
-        flex-shrink: 0
+        padding: 20px;
     }
 
-    .left-logo-n {
-        font-family: 'Fraunces', serif;
-        font-size: .95rem;
-        font-weight: 700;
-        color: #fff;
-        line-height: 1.15
+    /* Main Container */
+    .register-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        max-width: 1200px;
+        width: 100%;
+        background: white;
+        border-radius: var(--radius-2xl);
+        overflow: hidden;
+        box-shadow: var(--shadow-2xl);
     }
 
-    .left-logo-s {
-        font-size: .62rem;
-        color: rgba(255, 255, 255, .35);
-        font-weight: 300
+    /* Left Panel */
+    .register-left {
+        background: linear-gradient(135deg, #4338ca, #312e81);
+        padding: 48px;
+        color: white;
+        display: flex;
+        flex-direction: column;
     }
 
-    /* centre content */
-    .left-body {
-        position: relative;
-        z-index: 2
+    .register-left-content {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
-    .left-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 14px;
-        border-radius: 40px;
+    .register-icon {
+        font-size: 3rem;
+        margin-bottom: 24px;
+        background: rgba(255, 255, 255, 0.1);
         width: fit-content;
-        background: rgba(255, 255, 255, .07);
-        border: 1px solid rgba(255, 255, 255, .12);
-        font-size: .68rem;
-        letter-spacing: .13em;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, .5);
-        margin-bottom: 22px;
+        padding: 16px;
+        border-radius: var(--radius-xl);
     }
 
-    .ldot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--sage)
-    }
-
-    .left-h1 {
-        font-family: 'Fraunces', serif;
-        font-size: clamp(2rem, 3.2vw, 2.9rem);
+    .register-title-large {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 2.2rem;
         font-weight: 700;
-        line-height: 1.1;
-        color: #fff;
-        margin-bottom: 14px;
+        line-height: 1.2;
+        margin-bottom: 16px;
     }
 
-    .left-h1 em {
-        font-style: italic;
-        color: var(--rust2)
+    .register-title-large span {
+        color: #fbbf24;
     }
 
-    .left-p {
-        font-size: .9rem;
-        line-height: 1.8;
-        color: rgba(255, 255, 255, .45);
-        font-weight: 300;
-        margin-bottom: 38px;
+    .register-description {
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.6;
+        margin-bottom: 32px;
     }
 
-    /* benefit list */
-    .benefit-list {
+    /* Benefits List */
+    .benefits-list {
         list-style: none;
         display: flex;
         flex-direction: column;
-        gap: 12px
-    }
-
-    .benefit-list li {
-        display: flex;
-        align-items: flex-start;
         gap: 12px;
-        font-size: .85rem;
-        color: rgba(255, 255, 255, .55);
-        line-height: 1.5;
-        font-weight: 300;
+        margin-bottom: 32px;
     }
 
-    .bi {
-        width: 28px;
-        height: 28px;
-        border-radius: 7px;
-        flex-shrink: 0;
-        background: rgba(255, 255, 255, .06);
-        border: 1px solid rgba(255, 255, 255, .1);
+    .benefit-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.9);
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .benefit-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.1);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: .85rem;
+        font-size: 1rem;
+        flex-shrink: 0;
     }
 
-    /* bottom */
-    .left-foot {
-        position: relative;
-        z-index: 2;
-        padding-top: 28px;
-        border-top: 1px solid rgba(255, 255, 255, .07)
+    /* Back Link */
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        font-size: 0.9rem;
+        margin-top: auto;
+        padding: 8px 12px;
+        border-radius: var(--radius-full);
+        width: fit-content;
+        transition: var(--transition);
     }
 
-    .left-foot p {
-        font-size: .78rem;
-        color: rgba(255, 255, 255, .28)
+    .back-link:hover {
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
     }
 
-    .left-foot a {
-        color: rgba(255, 255, 255, .5);
-        text-decoration: underline;
-        text-underline-offset: 3px;
-        transition: color .2s
+    /* Right Panel */
+    .register-right {
+        padding: 48px;
+        background: white;
     }
 
-    .left-foot a:hover {
-        color: rgba(255, 255, 255, .8)
+    .register-box {
+        max-width: 400px;
+        margin: 0 auto;
     }
 
-    /* ── RIGHT FORM ── */
-    .right {
-        background: var(--paper);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        padding: 48px 56px;
-        position: relative;
-        overflow: hidden;
-        min-height: 100vh;
+    .register-header {
+        text-align: center;
+        margin-bottom: 32px;
     }
 
-    .right::before {
-        content: '';
-        position: absolute;
-        top: -40px;
-        right: -40px;
-        width: 280px;
-        height: 280px;
-        border-radius: 50%;
-        background: radial-gradient(rgba(196, 138, 32, .07), transparent 70%);
-        pointer-events: none;
+    .register-header-icon {
+        font-size: 2.5rem;
+        margin-bottom: 16px;
+        color: var(--primary-600);
     }
 
-    /* form header */
-    .form-hd {
-        margin-bottom: 28px;
-        opacity: 0;
-        animation: up .6s .08s ease forwards;
-    }
-
-    .form-h {
-        font-family: 'Fraunces', serif;
-        font-size: 1.65rem;
+    .register-header-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 1.6rem;
         font-weight: 700;
-        color: var(--ink);
-        margin-bottom: 5px
+        color: var(--neutral-900);
+        margin-bottom: 8px;
     }
 
-    .form-sub {
-        font-size: .82rem;
-        color: var(--muted);
-        font-weight: 300
+    .register-header-subtitle {
+        color: var(--neutral-500);
+        font-size: 0.9rem;
     }
 
-    /* alert */
+    /* Alert */
     .alert {
-        padding: 12px 16px;
-        border-radius: 10px;
-        font-size: .84rem;
-        margin-bottom: 20px;
         display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        animation: alertIn .3s ease;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 24px;
+        font-size: 0.9rem;
     }
 
-    @keyframes alertIn {
-        from {
-            opacity: 0;
-            transform: translateY(-6px)
-        }
-
-        to {
-            opacity: 1;
-            transform: none
-        }
+    .alert-danger {
+        background: #fef2f2;
+        border-left: 4px solid var(--danger-500);
+        color: #991b1b;
     }
 
-    .alert-err {
-        background: rgba(184, 74, 44, .09);
-        border: 1px solid rgba(184, 74, 44, .2);
-        color: #9a2a10
+    /* Form */
+    .form-group {
+        margin-bottom: 20px;
     }
 
-    /* fields */
-    .form-body {
-        opacity: 0;
-        animation: up .6s .16s ease forwards
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
     }
 
-    .field {
-        margin-bottom: 16px
-    }
-
-    .field label {
+    .form-label {
         display: block;
-        font-size: .7rem;
-        letter-spacing: .1em;
-        text-transform: uppercase;
-        color: var(--muted);
-        margin-bottom: 7px;
-        font-weight: 500;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--neutral-700);
+        margin-bottom: 6px;
     }
 
-    .fi {
-        position: relative
+    .form-label span {
+        color: var(--danger-500);
+        margin-left: 2px;
     }
 
-    .fi-ico {
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-icon {
         position: absolute;
-        left: 13px;
+        left: 14px;
         top: 50%;
         transform: translateY(-50%);
-        font-size: .86rem;
-        opacity: .32;
-        pointer-events: none;
-        z-index: 1;
+        color: var(--neutral-400);
+        font-size: 1rem;
     }
 
-    .fi input {
+    .form-control {
         width: 100%;
-        padding: 12px 14px 12px 40px;
-        background: rgba(255, 255, 255, .8);
-        border: 1.5px solid var(--border);
-        border-radius: 10px;
-        font-family: 'Outfit', sans-serif;
-        font-size: .92rem;
-        color: var(--ink);
-        transition: all .22s;
+        padding: 12px 16px 12px 44px;
+        border: 1px solid var(--neutral-200);
+        border-radius: var(--radius-lg);
+        font-size: 0.95rem;
+        font-family: 'Inter', sans-serif;
+        transition: var(--transition);
     }
 
-    .fi input::placeholder {
-        color: var(--muted);
-        opacity: .35
-    }
-
-    .fi input:focus {
+    .form-control:focus {
         outline: none;
-        border-color: rgba(184, 74, 44, .45);
-        background: #fff;
-        box-shadow: 0 0 0 3px rgba(184, 74, 44, .08);
+        border-color: var(--primary-500);
+        box-shadow: 0 0 0 3px var(--primary-100);
     }
 
-    /* eye */
-    .eye-btn {
+    .password-toggle {
         position: absolute;
-        right: 13px;
+        right: 14px;
         top: 50%;
         transform: translateY(-50%);
         background: none;
         border: none;
+        color: var(--neutral-400);
         cursor: pointer;
-        color: var(--muted);
-        opacity: .32;
-        font-size: .86rem;
-        transition: opacity .2s;
+        padding: 4px;
     }
 
-    .eye-btn:hover {
-        opacity: .7
+    .password-toggle:hover {
+        color: var(--primary-500);
     }
 
-    /* 2-col row */
-    .row2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px
-    }
-
-    /* strength bar */
-    .pw-strength {
-        margin-top: 7px;
+    /* Password Strength */
+    .password-strength {
+        margin-top: 8px;
         display: flex;
         gap: 4px;
-        height: 3px
+        height: 4px;
     }
 
-    .pws {
+    .strength-bar {
         flex: 1;
-        border-radius: 3px;
-        background: var(--border);
-        transition: background .3s
+        border-radius: var(--radius-full);
+        background: var(--neutral-200);
+        transition: var(--transition);
     }
 
-    .pw-s.weak {
-        background: #e05050
+    .strength-bar.weak {
+        background: var(--danger-500);
     }
 
-    .pw-s.fair {
-        background: var(--gold)
+    .strength-bar.medium {
+        background: var(--warning-500);
     }
 
-    .pw-s.strong {
-        background: var(--sage)
+    .strength-bar.strong {
+        background: var(--success-500);
     }
 
-    /* submit */
-    .btn-submit {
+    .strength-text {
+        font-size: 0.7rem;
+        margin-top: 4px;
+        color: var(--neutral-500);
+    }
+
+    /* Register Button */
+    .btn-register {
         width: 100%;
         padding: 14px;
-        border-radius: 10px;
-        margin-top: 8px;
+        background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+        color: white;
         border: none;
-        cursor: pointer;
-        font-family: 'Outfit', sans-serif;
-        font-size: .97rem;
+        border-radius: var(--radius-lg);
         font-weight: 600;
-        letter-spacing: .025em;
-        background: linear-gradient(135deg, var(--rust), var(--rust2));
-        color: #fff;
-        box-shadow: 0 4px 20px rgba(184, 74, 44, .3);
-        position: relative;
-        overflow: hidden;
-        transition: all .26s;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: var(--transition);
+        box-shadow: 0 4px 6px -1px rgba(67, 97, 238, 0.3);
+        margin-top: 10px;
     }
 
-    .btn-submit::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -110%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .2), transparent);
-        transition: left .4s ease;
-    }
-
-    .btn-submit:hover {
+    .btn-register:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(184, 74, 44, .4)
+        box-shadow: 0 10px 15px -3px rgba(67, 97, 238, 0.4);
     }
 
-    .btn-submit:hover::after {
-        left: 110%
-    }
-
-    .btn-submit:active {
-        transform: none
-    }
-
-    /* bottom link */
-    .dvd {
+    /* Divider */
+    .divider {
         display: flex;
         align-items: center;
         gap: 12px;
-        margin: 22px 0
+        margin: 24px 0;
+        color: var(--neutral-400);
+        font-size: 0.8rem;
     }
 
-    .dvd::before,
-    .dvd::after {
+    .divider::before,
+    .divider::after {
         content: '';
         flex: 1;
         height: 1px;
-        background: var(--border)
+        background: var(--neutral-200);
     }
 
-    .dvd span {
-        font-size: .7rem;
-        color: var(--muted);
-        opacity: .45;
-        white-space: nowrap;
-        letter-spacing: .07em;
-        text-transform: uppercase
-    }
-
-    .login-row {
-        text-align: center;
-        font-size: .84rem
-    }
-
-    .login-row span {
-        color: var(--muted);
-        font-weight: 300
-    }
-
+    /* Login Link */
     .login-link {
-        font-weight: 600;
-        color: var(--rust);
-        text-decoration: underline;
-        text-underline-offset: 3px;
-        transition: color .2s
-    }
-
-    .login-link:hover {
-        color: var(--rust2)
-    }
-
-    .foot-note {
-        margin-top: 22px;
         text-align: center;
-        font-size: .7rem;
-        color: var(--muted);
-        opacity: .35;
-        font-weight: 300;
+        font-size: 0.9rem;
+        color: var(--neutral-600);
     }
 
-    @keyframes up {
-        from {
-            opacity: 0;
-            transform: translateY(20px)
+    .login-link a {
+        color: var(--primary-600);
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: var(--transition);
+    }
+
+    .login-link a:hover {
+        color: var(--primary-700);
+        gap: 8px;
+    }
+
+    /* Footer */
+    .footer-text {
+        text-align: center;
+        margin-top: 24px;
+        font-size: 0.7rem;
+        color: var(--neutral-400);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .register-container {
+            grid-template-columns: 1fr;
         }
 
-        to {
-            opacity: 1;
-            transform: none
+        .register-left {
+            display: none;
+        }
+
+        .register-right {
+            padding: 32px 24px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
         }
     }
 
-    ::-webkit-scrollbar {
-        width: 4px
-    }
-
-    ::-webkit-scrollbar-track {
-        background: var(--bg)
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: #c4b090;
-        border-radius: 4px
-    }
-
-    @media(max-width:900px) {
+    @media (max-width: 480px) {
         body {
-            grid-template-columns: 1fr
+            padding: 10px;
         }
 
-        .left {
-            display: none
+        .register-right {
+            padding: 24px 16px;
         }
 
-        .right {
-            min-height: 100vh;
-            padding: 44px 26px
-        }
-    }
-
-    @media(max-width:480px) {
-        .row2 {
-            grid-template-columns: 1fr
+        .register-header-title {
+            font-size: 1.4rem;
         }
     }
     </style>
 </head>
 
 <body>
+    <div class="register-container">
+        <!-- Left Panel -->
+        <div class="register-left">
+            <div class="register-left-content">
+                <div class="register-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
 
-    <!-- ── LEFT ────────────────────────── -->
-    <aside class="left">
-        <div class="left-logo">
-            <div class="left-logo-ico">📖</div>
-            <div>
-                <div class="left-logo-n">Perpustakaan Digital</div>
-                <div class="left-logo-s">Sistem Peminjaman Buku</div>
+                <h1 class="register-title-large">
+                    Bergabung dengan<br>
+                    <span>Perpustakaan Digital</span>
+                </h1>
+
+                <p class="register-description">
+                    Daftar sebagai anggota dan nikmati kemudahan mengakses ribuan koleksi buku dari mana saja, kapan
+                    saja.
+                </p>
+
+                <!-- Benefits List -->
+                <ul class="benefits-list">
+                    <li class="benefit-item">
+                        <div class="benefit-icon"><i class="fas fa-book"></i></div>
+                        <span>Akses koleksi buku digital kapan saja</span>
+                    </li>
+                    <li class="benefit-item">
+                        <div class="benefit-icon"><i class="fas fa-pen"></i></div>
+                        <span>Ajukan peminjaman langsung dari sistem</span>
+                    </li>
+                    <li class="benefit-item">
+                        <div class="benefit-icon"><i class="fas fa-chart-line"></i></div>
+                        <span>Pantau riwayat pinjaman dan status denda</span>
+                    </li>
+                    <li class="benefit-item">
+                        <div class="benefit-icon"><i class="fas fa-star"></i></div>
+                        <span>Tulis ulasan dan rating untuk buku favorit</span>
+                    </li>
+                    <li class="benefit-item">
+                        <div class="benefit-icon"><i class="fas fa-bell"></i></div>
+                        <span>Notifikasi jatuh tempo pengembalian buku</span>
+                    </li>
+                </ul>
+
+                <!-- Back to Home -->
+                <a href="index.php" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Kembali ke Beranda
+                </a>
             </div>
         </div>
 
-        <div class="left-body">
-            <div class="left-tag">
-                <span class="ldot"></span>
-                Daftar Anggota Baru
-            </div>
-
-            <h1 class="left-h1">
-                Mulai Perjalanan<br>
-                <em>Membaca Anda</em>
-            </h1>
-            <p class="left-p">
-                Daftar sebagai anggota perpustakaan digital dan nikmati akses ke ratusan koleksi buku sekolah secara
-                mudah dan gratis.
-            </p>
-
-            <ul class="benefit-list">
-                <li>
-                    <span class="bi">📚</span>
-                    <span>Akses koleksi buku digital kapan saja</span>
-                </li>
-                <li>
-                    <span class="bi">📋</span>
-                    <span>Ajukan peminjaman langsung dari sistem</span>
-                </li>
-                <li>
-                    <span class="bi">📊</span>
-                    <span>Pantau riwayat pinjaman dan status denda</span>
-                </li>
-                <li>
-                    <span class="bi">⭐</span>
-                    <span>Tulis ulasan dan rating untuk buku favorit</span>
-                </li>
-                <li>
-                    <span class="bi">🔔</span>
-                    <span>Notifikasi jatuh tempo pengembalian buku</span>
-                </li>
-            </ul>
-        </div>
-
-        <div class="left-foot">
-            <p>Sudah punya akun? <a href="login.php">Masuk di sini</a> &nbsp;·&nbsp; <a href="index.php">← Kembali ke
-                    beranda</a></p>
-        </div>
-    </aside>
-
-    <!-- ── RIGHT ────────────────────────── -->
-    <main class="right">
-
-        <!-- heading -->
-        <div class="form-hd">
-            <h2 class="form-h">Buat Akun Baru</h2>
-            <p class="form-sub">Isi data diri Anda untuk mendaftar sebagai anggota perpustakaan</p>
-        </div>
-
-        <!-- alert -->
-        <?php if ($error): ?>
-        <div class="alert alert-err">⚠ <?= htmlspecialchars($error) ?></div>
-        <?php endif; ?>
-
-        <!-- form -->
-        <form method="POST" novalidate class="form-body">
-
-            <!-- row 1 -->
-            <div class="row2">
-                <div class="field">
-                    <label>NIS *</label>
-                    <div class="fi">
-                        <span class="fi-ico">🪪</span>
-                        <input type="text" name="nis" placeholder="Nomor Induk Siswa" required
-                            value="<?= htmlspecialchars($old['nis'] ?? '') ?>">
+        <!-- Right Panel -->
+        <div class="register-right">
+            <div class="register-box">
+                <div class="register-header">
+                    <div class="register-header-icon">
+                        <i class="fas fa-user-circle"></i>
                     </div>
+                    <h2 class="register-header-title">Buat Akun Baru</h2>
+                    <p class="register-header-subtitle">Isi data diri Anda untuk mendaftar sebagai anggota</p>
                 </div>
-                <div class="field">
-                    <label>Kelas *</label>
-                    <div class="fi">
-                        <span class="fi-ico">🏫</span>
-                        <input type="text" name="kelas" placeholder="cth: XII RPL" required
-                            value="<?= htmlspecialchars($old['kelas'] ?? '') ?>">
+
+                <!-- Alert Messages -->
+                <?php if ($error): ?>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <?= htmlspecialchars($error) ?>
+                </div>
+                <?php endif; ?>
+
+                <!-- Registration Form -->
+                <form method="POST" novalidate>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">NIS <span>*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-id-card input-icon"></i>
+                                <input type="text" name="nis" class="form-control" placeholder="Nomor Induk Siswa"
+                                    required value="<?= htmlspecialchars($old['nis'] ?? '') ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Kelas <span>*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-school input-icon"></i>
+                                <input type="text" name="kelas" class="form-control" placeholder="Contoh: XII RPL"
+                                    required value="<?= htmlspecialchars($old['kelas'] ?? '') ?>">
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- nama -->
-            <div class="field">
-                <label>Nama Lengkap *</label>
-                <div class="fi">
-                    <span class="fi-ico">👤</span>
-                    <input type="text" name="nama_anggota" placeholder="Nama sesuai data sekolah" required
-                        value="<?= htmlspecialchars($old['nama'] ?? '') ?>">
-                </div>
-            </div>
-
-            <!-- row 2 -->
-            <div class="row2">
-                <div class="field">
-                    <label>Username *</label>
-                    <div class="fi">
-                        <span class="fi-ico">🔖</span>
-                        <input type="text" name="username" placeholder="Buat username unik" required
-                            value="<?= htmlspecialchars($old['username'] ?? '') ?>">
+                    <div class="form-group">
+                        <label class="form-label">Nama Lengkap <span>*</span></label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" name="nama_anggota" class="form-control"
+                                placeholder="Nama sesuai data sekolah" required
+                                value="<?= htmlspecialchars($old['nama'] ?? '') ?>">
+                        </div>
                     </div>
-                </div>
-                <div class="field">
-                    <label>Email</label>
-                    <div class="fi">
-                        <span class="fi-ico">✉️</span>
-                        <input type="email" name="email" placeholder="email@sekolah.com"
-                            value="<?= htmlspecialchars($old['email'] ?? '') ?>">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Username <span>*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-at input-icon"></i>
+                                <input type="text" name="username" class="form-control" placeholder="Buat username unik"
+                                    required value="<?= htmlspecialchars($old['username'] ?? '') ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-envelope input-icon"></i>
+                                <input type="email" name="email" class="form-control" placeholder="email@sekolah.com"
+                                    value="<?= htmlspecialchars($old['email'] ?? '') ?>">
+                            </div>
+                        </div>
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password <span>*</span></label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" name="password" id="password" class="form-control"
+                                placeholder="Minimal 6 karakter" required minlength="6"
+                                oninput="checkPasswordStrength(this.value)">
+                            <button type="button" class="password-toggle" onclick="togglePassword()">
+                                <i class="fas fa-eye" id="toggleIcon"></i>
+                            </button>
+                        </div>
+
+                        <!-- Password Strength Indicator -->
+                        <div class="password-strength">
+                            <div class="strength-bar" id="bar1"></div>
+                            <div class="strength-bar" id="bar2"></div>
+                            <div class="strength-bar" id="bar3"></div>
+                            <div class="strength-bar" id="bar4"></div>
+                        </div>
+                        <div class="strength-text" id="strengthText"></div>
+                    </div>
+
+                    <button type="submit" name="register" class="btn-register">
+                        <span>Daftar Sekarang</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <div class="divider">
+                    <span>sudah punya akun?</span>
                 </div>
+
+                <div class="login-link">
+                    <span>Masuk dengan akun yang ada </span>
+                    <a href="login.php">
+                        Masuk Sekarang
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <p class="footer-text">
+                    © <?= date('Y') ?> Perpustakaan Digital · Daftar gratis untuk semua siswa terdaftar
+                </p>
             </div>
-
-            <!-- password -->
-            <div class="field">
-                <label>Password * <span
-                        style="font-weight:300;text-transform:none;letter-spacing:0;font-size:.68rem;color:var(--muted)">(min.
-                        6 karakter)</span></label>
-                <div class="fi" style="position:relative">
-                    <span class="fi-ico">🔑</span>
-                    <input type="password" name="password" id="pw" placeholder="Buat password yang kuat" required
-                        minlength="6" oninput="checkStrength(this.value)">
-                    <button type="button" class="eye-btn" onclick="togglePw()">👁</button>
-                </div>
-                <div class="pw-strength">
-                    <div class="pw-s" id="ps1"></div>
-                    <div class="pw-s" id="ps2"></div>
-                    <div class="pw-s" id="ps3"></div>
-                    <div class="pw-s" id="ps4"></div>
-                </div>
-            </div>
-
-            <button type="submit" name="register" class="btn-submit">Daftar Sekarang →</button>
-        </form>
-
-        <div class="dvd"><span>sudah punya akun?</span></div>
-        <div class="login-row">
-            <span>Masuk dengan akun yang ada&nbsp;</span>
-            <a href="login.php" class="login-link">Masuk Sekarang</a>
         </div>
-        <p class="foot-note">© <?= date('Y') ?> Perpustakaan Digital · Daftar gratis untuk semua siswa terdaftar</p>
-    </main>
+    </div>
 
     <script>
-    function togglePw() {
-        const pw = document.getElementById('pw');
-        const btn = pw.nextElementSibling;
-        const t = pw.type === 'text';
-        pw.type = t ? 'password' : 'text';
-        btn.style.opacity = t ? '.32' : '.7';
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('toggleIcon');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
     }
 
-    function checkStrength(v) {
-        const bars = [document.getElementById('ps1'), document.getElementById('ps2'), document.getElementById('ps3'),
-            document.getElementById('ps4')
+    function checkPasswordStrength(password) {
+        const bars = [
+            document.getElementById('bar1'),
+            document.getElementById('bar2'),
+            document.getElementById('bar3'),
+            document.getElementById('bar4')
         ];
-        bars.forEach(b => {
-            b.className = 'pw-s';
+        const strengthText = document.getElementById('strengthText');
+
+        // Reset bars
+        bars.forEach(bar => {
+            bar.className = 'strength-bar';
         });
-        if (!v) return;
+
+        if (!password) {
+            strengthText.textContent = '';
+            return;
+        }
+
         let score = 0;
-        if (v.length >= 6) score++;
-        if (v.length >= 10) score++;
-        if (/[A-Z]/.test(v) && /[0-9]/.test(v)) score++;
-        if (/[^A-Za-z0-9]/.test(v)) score++;
-        const cls = score <= 1 ? 'weak' : score === 2 ? 'fair' : 'strong';
-        for (let i = 0; i < score; i++) bars[i].classList.add(cls);
+
+        // Length check
+        if (password.length >= 6) score++;
+        if (password.length >= 10) score++;
+
+        // Complexity checks
+        if (/[A-Z]/.test(password) && /[0-9]/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+
+        // Update bars
+        for (let i = 0; i < score; i++) {
+            if (bars[i]) {
+                if (score <= 2) bars[i].classList.add('weak');
+                else if (score === 3) bars[i].classList.add('medium');
+                else bars[i].classList.add('strong');
+            }
+        }
+
+        // Update text
+        const strengthLevels = ['Lemah', 'Cukup', 'Baik', 'Kuat'];
+        strengthText.textContent = score > 0 ? `Kekuatan password: ${strengthLevels[score-1]}` : '';
     }
-    document.querySelectorAll('.fi input').forEach(el => {
-        el.addEventListener('focus', () => el.closest('.fi').style.cssText +=
-            'transform:translateY(-1px);transition:transform .18s');
-        el.addEventListener('blur', () => el.closest('.fi').style.transform = '');
-    });
+
+    // Prevent form resubmission
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
     </script>
-    <script src="assets/js/script.js"></script>
 </body>
 
 </html>
