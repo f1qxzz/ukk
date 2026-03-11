@@ -89,14 +89,31 @@ $quote=$quotes[date('z')%count($quotes)];
     <link
         href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
+    <script>
+    (function() {
+        // Cek localStorage segera
+        try {
+            if (localStorage.getItem('libraspace_dark') === '1') {
+                document.documentElement.classList.add('dark-mode-active');
+            }
+        } catch (e) {}
+    })();
+    </script>
+
+    <!-- CSS files -->
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/index.css">
+</head>
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/index.css">
 </head>
 
 <body>
 
     <!-- Scroll Progress -->
     <div id="scroll-progress"></div>
+    <!-- Dark Mode Toggle -->
+    <button id="dark-toggle" onclick="toggleDark()" title="Toggle Dark Mode" type="button">🌙</button>
     <!-- Back to Top FAB -->
     <button id="fab-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Kembali ke atas">↑</button>
 
@@ -862,7 +879,9 @@ $quote=$quotes[date('z')%count($quotes)];
                 <div class="faq-q"><?=htmlspecialchars($f[0])?><svg class="faq-arr" viewBox="0 0 24 24">
                         <polyline points="6 9 12 15 18 9" />
                     </svg></div>
-                <div class="faq-a"><?=htmlspecialchars($f[1])?></div>
+                <div class="faq-a">
+                    <div class="faq-a-inner"><?=htmlspecialchars($f[1])?></div>
+                </div>
             </div>
             <?php endforeach;?>
         </div>
@@ -938,7 +957,8 @@ $quote=$quotes[date('z')%count($quotes)];
                     peminjaman, dan pengembalian buku secara efisien dan transparan.</p>
                 <div class="foot-nl">
                     <input type="email" placeholder="Email kamu..." />
-                    <button onclick="alert('Terima kasih! Notifikasi akan dikirimkan ke email Anda.')">Langganan</button>
+                    <button
+                        onclick="alert('Terima kasih! Notifikasi akan dikirimkan ke email Anda.')">Langganan</button>
                 </div>
                 <div class="foot-contacts">
                     <?php $fc=[['M3 8 5h14l-1.68 8.39a2 2 0 01-1.98 1.61H8.68a2 2 0 01-1.97-1.67L5 8zm0 0L3.18 4H1','Jl. Pendidikan No. 123, Jakarta Selatan'],['M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A2 2 0 013.6 1.28h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6','(021) 1234-5678'],['M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 0l8 9 8-9','perpustakaan@sekolah.sch.id']];
@@ -990,6 +1010,55 @@ $quote=$quotes[date('z')%count($quotes)];
     </div>
 
     <script>
+    /* ── Dark Mode Fix ── */
+    const DM_KEY = 'libraspace_dark';
+
+    function toggleDark() {
+        const html = document.documentElement;
+        const body = document.body;
+        const btn = document.getElementById('dark-toggle');
+
+        // Cek status saat ini
+        const isCurrentlyDark = html.classList.contains('dark-mode-active') || body.classList.contains('dark');
+
+        if (!isCurrentlyDark) {
+            // Aktifkan dark mode
+            html.classList.add('dark-mode-active');
+            body.classList.add('dark');
+            localStorage.setItem(DM_KEY, '1');
+            if (btn) btn.textContent = '☀️';
+            console.log('Dark mode: ON');
+        } else {
+            // Matikan dark mode
+            html.classList.remove('dark-mode-active');
+            body.classList.remove('dark');
+            localStorage.setItem(DM_KEY, '0');
+            if (btn) btn.textContent = '🌙';
+            console.log('Dark mode: OFF');
+        }
+
+        // Force repaint
+        void html.offsetHeight;
+    }
+
+    // Initialize
+    (function initDarkMode() {
+        const saved = localStorage.getItem(DM_KEY);
+        const html = document.documentElement;
+        const body = document.body;
+        const btn = document.getElementById('dark-toggle');
+
+        if (saved === '1') {
+            html.classList.add('dark-mode-active');
+            body.classList.add('dark');
+            if (btn) btn.textContent = '☀️';
+        } else {
+            html.classList.remove('dark-mode-active');
+            body.classList.remove('dark');
+            if (btn) btn.textContent = '🌙';
+        }
+    })();
+
     /* ── NAV scroll ── */
     const nav = document.getElementById('nav');
     const topH = document.getElementById('topbar')?.offsetHeight || 36;
@@ -998,7 +1067,7 @@ $quote=$quotes[date('z')%count($quotes)];
 
     /* ── Scroll progress bar ── */
     const prog = document.getElementById('scroll-progress');
-    const fab  = document.getElementById('fab-top');
+    const fab = document.getElementById('fab-top');
     window.addEventListener('scroll', () => {
         const pct = (scrollY / (document.documentElement.scrollHeight - innerHeight)) * 100;
         prog.style.width = pct + '%';
@@ -1154,7 +1223,7 @@ $quote=$quotes[date('z')%count($quotes)];
     });
     document.querySelectorAll('.ch-card,.rat-card').forEach(el => bro.observe(el));
     </script>
-<script src="assets/js/script.js"></script>
+    <script src="assets/js/script.js"></script>
 </body>
 
 </html>

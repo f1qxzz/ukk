@@ -39,64 +39,106 @@ $page_sub   = 'Kelola denda keterlambatan pengembalian';
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Denda — Admin Perpustakaan</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Denda — Admin Perpustakaan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/table.css">
+    <link rel="stylesheet" href="../assets/css/form.css">
 </head>
+
 <body>
-<div class="app-wrap">
-  <?php include 'includes/nav.php'; ?>
-  <div class="main-area">
-    <?php include 'includes/header.php'; ?>
-    <main class="content">
-<?php if($msg): ?><div class="alert alert-<?= $msgType ?>"><?= htmlspecialchars($msg) ?></div><?php endif; ?>
+    <div class="app-wrap">
+        <?php include 'includes/nav.php'; ?>
+        <div class="main-area">
+            <?php include 'includes/header.php'; ?>
+            <main class="content">
+                <?php if($msg): ?><div class="alert alert-<?= $msgType ?>"><?= htmlspecialchars($msg) ?></div>
+                <?php endif; ?>
 
-<div class="stats-grid">
-  <div class="stat-card red"><div class="stat-value" style="color:var(--danger);font-size:1.4rem;">Rp <?= number_format($total_belum,0,',','.') ?></div><div class="stat-label">Total Denda Belum Bayar</div></div>
-</div>
+                <div class="stats-grid">
+                    <div class="stat-card red">
+                        <div class="stat-value" style="color:var(--danger);font-size:1.4rem;">Rp
+                            <?= number_format($total_belum,0,',','.') ?></div>
+                        <div class="stat-label">Total Denda Belum Bayar</div>
+                    </div>
+                </div>
 
-<div class="card">
-  <div class="card-header"><h2>Monitoring Denda Buku</h2>
-    <div class="action-buttons">
-      <a href="?f=semua"  class="btn btn-sm <?= $filter==='semua'?'btn-primary':'btn-secondary' ?>">Semua</a>
-      <a href="?f=belum"  class="btn btn-sm <?= $filter==='belum'?'btn-primary':'btn-secondary' ?>">Belum Bayar</a>
-      <a href="?f=sudah"  class="btn btn-sm <?= $filter==='sudah'?'btn-primary':'btn-secondary' ?>">Sudah Bayar</a>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Monitoring Denda Buku</h2>
+                        <div class="action-buttons">
+                            <a href="?f=semua"
+                                class="btn btn-sm <?= $filter==='semua'?'btn-primary':'btn-secondary' ?>">Semua</a>
+                            <a href="?f=belum"
+                                class="btn btn-sm <?= $filter==='belum'?'btn-primary':'btn-secondary' ?>">Belum
+                                Bayar</a>
+                            <a href="?f=sudah"
+                                class="btn btn-sm <?= $filter==='sudah'?'btn-primary':'btn-secondary' ?>">Sudah
+                                Bayar</a>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Anggota</th>
+                                    <th>Buku</th>
+                                    <th>Tgl Kembali Rencana</th>
+                                    <th>Telat (Hari)</th>
+                                    <th>Total Denda</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if($dendas->num_rows>0): while($r=$dendas->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?= $r['id_denda'] ?></td>
+                                    <td><strong><?= htmlspecialchars($r['nama_anggota']) ?></strong><br><small><?= htmlspecialchars($r['nis']) ?></small>
+                                    </td>
+                                    <td><?= htmlspecialchars($r['judul_buku']) ?></td>
+                                    <td><?= date('d/m/Y',strtotime($r['tgl_kembali_rencana'])) ?></td>
+                                    <td><?= $r['jumlah_hari'] ?> hari</td>
+                                    <td><strong>Rp <?= number_format($r['total_denda'],0,',','.') ?></strong></td>
+                                    <td><span
+                                            class="badge <?= $r['status_bayar']==='sudah'?'badge-success':'badge-danger' ?>"><?= $r['status_bayar']==='sudah'?'Lunas':'Belum' ?></span>
+                                    </td>
+                                    <td>
+                                        <?php if($r['status_bayar']==='belum'): ?>
+                                        <form method="POST" style="display:inline"
+                                            onsubmit="return confirm('Konfirmasi pembayaran denda?')">
+                                            <input type="hidden" name="id_denda" value="<?= $r['id_denda'] ?>">
+                                            <button type="submit" name="bayar"
+                                                class="btn btn-success btn-sm">Bayar</button>
+                                        </form>
+                                        <?php else: ?>
+                                        <small
+                                            class="text-muted"><?= date('d/m/Y',strtotime($r['tgl_bayar'])) ?></small>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php endwhile; else: ?>
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">Tidak ada data denda.</td>
+                                </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <script src="../assets/js/script.js"></script>
+            </main>
+        </div>
     </div>
-  </div>
-  <div class="table-responsive">
-  <table><thead><tr><th>ID</th><th>Anggota</th><th>Buku</th><th>Tgl Kembali Rencana</th><th>Telat (Hari)</th><th>Total Denda</th><th>Status</th><th>Aksi</th></tr></thead>
-  <tbody>
-  <?php if($dendas->num_rows>0): while($r=$dendas->fetch_assoc()): ?>
-  <tr>
-    <td><?= $r['id_denda'] ?></td>
-    <td><strong><?= htmlspecialchars($r['nama_anggota']) ?></strong><br><small><?= htmlspecialchars($r['nis']) ?></small></td>
-    <td><?= htmlspecialchars($r['judul_buku']) ?></td>
-    <td><?= date('d/m/Y',strtotime($r['tgl_kembali_rencana'])) ?></td>
-    <td><?= $r['jumlah_hari'] ?> hari</td>
-    <td><strong>Rp <?= number_format($r['total_denda'],0,',','.') ?></strong></td>
-    <td><span class="badge <?= $r['status_bayar']==='sudah'?'badge-success':'badge-danger' ?>"><?= $r['status_bayar']==='sudah'?'Lunas':'Belum' ?></span></td>
-    <td>
-      <?php if($r['status_bayar']==='belum'): ?>
-      <form method="POST" style="display:inline" onsubmit="return confirm('Konfirmasi pembayaran denda?')">
-        <input type="hidden" name="id_denda" value="<?= $r['id_denda'] ?>">
-        <button type="submit" name="bayar" class="btn btn-success btn-sm">Bayar</button>
-      </form>
-      <?php else: ?>
-      <small class="text-muted"><?= date('d/m/Y',strtotime($r['tgl_bayar'])) ?></small>
-      <?php endif; ?>
-    </td>
-  </tr>
-  <?php endwhile; else: ?>
-  <tr><td colspan="8" class="text-center text-muted">Tidak ada data denda.</td></tr>
-  <?php endif; ?>
-  </tbody></table></div>
-</div>
-<script src="../assets/js/script.js"></script>
-  </main>
-  </div>
-</div>
-</body></html>
+</body>
+
+</html>

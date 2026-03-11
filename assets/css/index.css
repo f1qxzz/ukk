@@ -236,65 +236,56 @@
         background: var(--blue);
     }
 
-    /* ──────────── STATUS BAR ──────────── */
-    .topbar {
-        background: linear-gradient(90deg, var(--blue3), var(--blue2), var(--blue));
-        padding: 9px 5%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 6px;
-        font-size: .72rem;
-        color: rgba(255, 255, 255, .85);
-        position: relative;
-        z-index: 902;
-    }
+.topbar{
+    background: linear-gradient(90deg,var(--blue3),var(--blue2),var(--blue));
+    padding:6px 5%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:.8rem;
+    color:rgba(255,255,255,.9);
+}
 
-    .topbar-left {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-        flex-wrap: wrap;
-    }
+.topbar-left{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
 
-    .topbar-item {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
+.topbar-item{
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
 
-    .topbar-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        flex-shrink: 0;
-    }
+.topbar-dot{
+    width:6px;
+    height:6px;
+    border-radius:50%;
+}
 
-    .dot-open {
-        background: #34d399;
-        animation: blink 2s infinite;
-    }
+.dot-open{
+    background:#34d399;
+}
 
-    .dot-closed {
-        background: #fb7185;
-    }
+.dot-closed{
+    background:#fb7185;
+}
 
-    .topbar-right {
-        display: flex;
-        gap: 14px;
-        align-items: center;
-    }
+.topbar-right{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
 
-    .topbar-right a {
-        color: rgba(255, 255, 255, .65);
-        font-weight: 500;
-        transition: color .2s;
-    }
+.topbar-right a{
+    color:rgba(255,255,255,.75);
+    transition:.2s;
+}
 
-    .topbar-right a:hover {
-        color: #fff;
-    }
+.topbar-right a:hover{
+    color:#fff;
+}
 
     /* ──────────── NAV ──────────── */
     .nav {
@@ -3443,3 +3434,204 @@
 /* Password helpers */
 .pw-hint               { font-weight: 300; text-transform: none; letter-spacing: 0; font-size: .68rem; color: var(--muted); }
 .pw-relative           { position: relative; }
+
+/* ================================================================
+   DARK MODE — diaktifkan lewat tombol dark mode toggle
+   ================================================================ */
+
+/* Dark mode toggle button */
+#dark-toggle {
+    position: fixed;
+    bottom: 88px;
+    right: 28px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #1e293b;
+    color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,.35);
+    z-index: 800;
+    border: 2px solid rgba(255,255,255,.1);
+    transition: all .3s;
+}
+#dark-toggle:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(0,0,0,.4); }
+
+/* ─── DARK MODE BASE ──────────────────────────────────────────── */
+body.dark-mode {
+    --ink: #e2e8f0;
+    --ink2: #94a3b8;
+    --bg: #0f172a;
+    --bg2: #1e293b;
+    --bg3: #0f172a;
+    --border: #1e3a5f;
+    --card: #1e293b;
+    background: #0a0f1e;
+    color: #e2e8f0;
+}
+
+body.dark-mode .nav {
+    background: rgba(15,23,42,.95) !important;
+    border-bottom-color: rgba(255,255,255,.06) !important;
+}
+body.dark-mode .nav-logo .nav-name { color: #e2e8f0; }
+body.dark-mode .nav-links a { color: rgba(255,255,255,.6); }
+body.dark-mode .nav-links a:hover { color: #fff; }
+
+body.dark-mode .topbar {
+    background: #0f172a;
+    border-bottom-color: rgba(255,255,255,.06);
+}
+
+body.dark-mode .hero { background: linear-gradient(160deg,#0f172a 0%,#1e2a45 50%,#0f172a 100%); }
+body.dark-mode .hero-h1 { color: #f1f5f9; }
+body.dark-mode .hero-desc { color: #94a3b8; }
+
+body.dark-mode .sec { background: #0a0f1e; }
+body.dark-mode .sec.alt { background: #111827; }
+
+body.dark-mode .hw {
+    background: rgba(30,41,59,.9) !important;
+    border-color: rgba(255,255,255,.08) !important;
+}
+body.dark-mode .hw-label { color: #94a3b8; }
+body.dark-mode .hw-val { color: #e2e8f0; }
+
+body.dark-mode .kat {
+    background: #1e293b !important;
+    border-color: rgba(255,255,255,.08) !important;
+}
+body.dark-mode .kat-name { color: #e2e8f0; }
+
+body.dark-mode .popbk,
+body.dark-mode .nbk,
+body.dark-mode .ulasan-card,
+body.dark-mode .lb-card,
+body.dark-mode .rat-card,
+body.dark-mode .jb-card,
+body.dark-mode .rule,
+body.dark-mode .ch-card,
+body.dark-mode .faq-item,
+body.dark-mode .kitem {
+    background: #1e293b !important;
+    border-color: rgba(255,255,255,.08) !important;
+}
+
+body.dark-mode .popbk-title,
+body.dark-mode .ulasan-name,
+body.dark-mode .lb-name,
+body.dark-mode .sec-h { color: #f1f5f9; }
+
+body.dark-mode .popbk-author,
+body.dark-mode .ulasan-buku,
+body.dark-mode .lb-kelas,
+body.dark-mode .sec-sub { color: #94a3b8; }
+
+body.dark-mode .faq-q { color: #e2e8f0; background: #1e293b; }
+body.dark-mode .faq-item.open .faq-a { background: #162032; color: #94a3b8; }
+
+body.dark-mode .info-strip { background: #111827; border-color: rgba(255,255,255,.06); }
+body.dark-mode .istrip-n { color: #f1f5f9; }
+body.dark-mode .istrip-l { color: #94a3b8; }
+
+body.dark-mode .footer { background: #070d1a; }
+body.dark-mode .foot-copy { color: rgba(255,255,255,.3); }
+
+body.dark-mode .search-box {
+    background: rgba(30,41,59,.9);
+    border-color: rgba(255,255,255,.12);
+}
+body.dark-mode .search-inp { color: #e2e8f0; background: transparent; }
+body.dark-mode .search-inp::placeholder { color: #475569; }
+
+body.dark-mode .featured-sec { background: #111827; }
+body.dark-mode .featured-title { color: #f1f5f9; }
+body.dark-mode .featured-desc { color: #94a3b8; }
+
+body.dark-mode .reading-ticker { background: linear-gradient(90deg,#050a18 0%,#0f2555 100%); }
+
+body.dark-mode .challenge { background: linear-gradient(135deg, #0f1e3a, #162847); }
+
+body.dark-mode .shelf-sec { background: #0a0f1e; }
+body.dark-mode .shelf-h { color: #f1f5f9; }
+
+body.dark-mode .jb-row { border-color: rgba(255,255,255,.05); }
+body.dark-mode .today-row { background: rgba(37,99,235,.15) !important; }
+
+body.dark-mode .map-card { background: #1e293b; border-color: rgba(255,255,255,.08); }
+body.dark-mode .kitem-h { color: #f1f5f9; }
+body.dark-mode .kitem-v { color: #94a3b8; }
+
+body.dark-mode .cta-sec { background: linear-gradient(135deg,#0f1e3a 0%,#1e3a5f 100%); }
+body.dark-mode .cta-h { color: #f1f5f9; }
+body.dark-mode .cta-sub { color: #94a3b8; }
+
+body.dark-mode .footer-bottom { background: #050a18; border-color: rgba(255,255,255,.06); }
+body.dark-mode .foot-btmr a { color: rgba(255,255,255,.4); }
+body.dark-mode .foot-links a { color: rgba(255,255,255,.45); }
+body.dark-mode .foot-links a:hover { color: rgba(255,255,255,.85); }
+
+body.dark-mode .member-banner {
+    background: linear-gradient(135deg,#1e2d4a,#1e3a5f);
+    border-color: rgba(96,165,250,.25);
+}
+body.dark-mode .mb-name { color: #f1f5f9; }
+body.dark-mode .mbstat-n { color: #f1f5f9; }
+body.dark-mode .mbstat-l { color: #94a3b8; }
+
+body.dark-mode .hero-quote-pill {
+    background: rgba(30,41,59,.85);
+    border-color: rgba(255,255,255,.1);
+}
+body.dark-mode .hero-quote-text { color: #f1f5f9; }
+body.dark-mode .hero-quote-by { color: #94a3b8; }
+
+/* ─── ENHANCED HOVER EFFECTS FOR BOOK CARDS ──────────────────── */
+.popbk {
+    cursor: pointer;
+    transform: translateY(0);
+    transition: transform .22s, box-shadow .22s;
+}
+.popbk:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(15,31,61,.12);
+}
+.nbk {
+    cursor: pointer;
+    transition: transform .22s;
+}
+.nbk:hover { transform: translateY(-3px); }
+.kat {
+    cursor: pointer;
+    transition: transform .22s, box-shadow .22s;
+}
+.kat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(15,31,61,.1);
+}
+
+/* ─── IMPROVED SEARCH DROPDOWN ───────────────────────────────── */
+.search-drop.show {
+    max-height: 380px;
+    overflow-y: auto;
+}
+.sd-item {
+    transition: background .12s;
+}
+.sd-item:hover { background: #f0f6ff; }
+
+/* ─── STATS SECTION ADDITIONAL POLISH ───────────────────────── */
+.istrip {
+    transition: transform .2s;
+}
+.istrip:hover { transform: translateY(-2px); }
+
+/* ─── SMOOTH TRANSITIONS ─────────────────────────────────────── */
+body, .nav, .hero, .sec, .footer, .topbar {
+    transition: background .3s, border-color .3s, color .3s;
+}
+
