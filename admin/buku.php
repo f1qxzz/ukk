@@ -1,513 +1,943 @@
 <?php
 require_once '../config/database.php';
 require_once '../includes/session.php';
-require_once '../includes/upload_helper.php';
 requireAdmin();
 
-$conn    = getConnection();
-$msg     = '';
-$msgType = '';
+$conn = getConnection();
 
-// ============================================================
-//  TAMBAH BUKU
-// ============================================================
-if (isset($_POST['add'])) {
-    $judul  = trim($_POST['judul_buku']);
-    $id_kat = (int)$_POST['id_kategori'];
-    $peng   = trim($_POST['pengarang']);
-    $nerbit = trim($_POST['penerbit']);
-    $tahun  = (int)$_POST['tahun_terbit'];
-    $isbn   = trim($_POST['isbn']);
-    $desk   = trim($_POST['deskripsi']);
-    $stok   = (int)$_POST['stok'];
-    $status = $stok > 0 ? 'tersedia' : 'tidak';
+// Ambil data user untuk header
+$userId = getPenggunaId();
+$userStmt = $conn->prepare("SELECT foto, nama_pengguna FROM pengguna WHERE id_pengguna = ?");
+$userStmt->bind_param("i", $userId);
+$userStmt->execute();
+$userData = $userStmt->get_result()->fetch_assoc();
+$userStmt->close();
 
-    // PERBAIKAN: Tangkap error jika file ditolak server (misal kebesaran)
-    $adaFileAdd = isset($_FILES['cover']) && $_FILES['cover']['error'] !== UPLOAD_ERR_NO_FILE;
+// Inisial untuk avatar
+$initials = '';
+foreach (explode(' ', trim($userData['nama_pengguna'] ?? getPenggunaName())) as $w) {
+    $initials .= strtoupper(mb_substr($w, 0, 1));
+    if (strlen($initials) >= 2) break;
+}
+$fotoPath = (!empty($userData['foto']) && file_exists('../' . $userData['foto'])) 
+            ? '../' . htmlspecialchars($userData['foto']) 
+            : null;
 
-    $coverPath   = null;
-    $uploadGagal = false;
-
-    if ($adaFileAdd) {
-        $coverResult = processBookCover($_FILES['cover']);
-        if (!$coverResult['ok']) {
-            $msg         = 'Upload cover gagal: ' . $coverResult['error'];
-            $msgType     = 'warning';
-            $uploadGagal = true;
-        } else {
-            $coverPath = $coverResult['path'];
-        }
-    }
-
-    if (!$uploadGagal) {
-        $s = $conn->prepare(
-            "INSERT INTO buku (judul_buku,id_kategori,pengarang,penerbit,tahun_terbit,isbn,deskripsi,stok,status,cover)
-             VALUES (?,?,?,?,?,?,?,?,?,?)"
-        );
-        $s->bind_param("sissississ",
-            $judul, $id_kat, $peng, $nerbit, $tahun, $isbn, $desk, $stok, $status, $coverPath
-        );
-        if ($s->execute()) {
-            $s->close();
-            header('Location: buku.php?notif=tambah_ok');
-            exit;
-        } else {
-            if ($coverPath) deleteBookCover($coverPath);
-            $msg     = 'Gagal menyimpan buku: ' . $conn->error;
-            $msgType = 'danger';
-        }
-        $s->close();
-    }
+// Fungsi untuk menghitung data
+function cnt($c, $q, $f = 'c') {
+    return $c->query($q)->fetch_assoc()[$f] ?? 0;
 }
 
-// ============================================================
-//  EDIT BUKU
-// ============================================================
-if (isset($_POST['edit'])) {
-    $id     = (int)$_POST['id_buku'];
-    $judul  = trim($_POST['judul_buku']);
-    $id_kat = (int)$_POST['id_kategori'];
-    $peng   = trim($_POST['pengarang']);
-    $nerbit = trim($_POST['penerbit']);
-    $tahun  = (int)$_POST['tahun_terbit'];
-    $isbn   = trim($_POST['isbn']);
-    $desk   = trim($_POST['deskripsi']);
-    $stok   = (int)$_POST['stok'];
-    $status = $_POST['status'];
+$tb = cnt($conn, "SELECT COUNT(*) c FROM buku");
+$ts = cnt($conn, "SELECT COUNT(*) c FROM buku WHERE status='tersedia'");
+$ap = cnt($conn, "SELECT COUNT(*) c FROM transaksi WHERE status_transaksi='Peminjaman'");
+$ta = cnt($conn, "SELECT COUNT(*) c FROM anggota");
+$td = cnt($conn, "SELECT COALESCE(SUM(total_denda),0) s FROM denda WHERE status_bayar='belum'", 's');
+$tl = cnt($conn, "SELECT COUNT(*) c FROM transaksi WHERE status_transaksi='Peminjaman' AND tgl_kembali_rencana < NOW()");
+$tp = cnt($conn, "SELECT COUNT(*) c FROM pengguna");
+$kh = cnt($conn, "SELECT COUNT(*) c FROM transaksi WHERE status_transaksi='Pengembalian' AND DATE(tgl_kembali_aktual) = CURDATE()");
 
-    // Ambil cover lama
-    $stmtOld = $conn->prepare("SELECT cover FROM buku WHERE id_buku=?");
-    $stmtOld->bind_param("i", $id);
-    $stmtOld->execute();
-    $stmtOld->bind_result($oldCover);
-    $stmtOld->fetch();
-    $stmtOld->close();
+$rows = $conn->query("SELECT t.*, a.nama_anggota, b.judul_buku, b.cover 
+                      FROM transaksi t 
+                      JOIN anggota a ON t.id_anggota = a.id_anggota 
+                      JOIN buku b ON t.id_buku = b.id_buku 
+                      ORDER BY t.tgl_pinjam DESC LIMIT 8");
 
-    // Deteksi file baru: termasuk error batas ukuran (UPLOAD_ERR_INI_SIZE, dll.)
-    $adaFileBaru = isset($_FILES['cover']) && $_FILES['cover']['error'] !== UPLOAD_ERR_NO_FILE;
-
-    $newCover    = $oldCover; // default: pertahankan cover lama
-    $uploadGagal = false;
-
-    if ($adaFileBaru) {
-        $coverResult = processBookCover($_FILES['cover']);
-        if (!$coverResult['ok']) {
-            $msg         = 'Upload cover gagal: ' . $coverResult['error'];
-            $msgType     = 'warning';
-            $uploadGagal = true;
-        } else {
-            // Simpan path cover baru; cover lama BELUM dihapus di sini,
-            // hapus dilakukan SETELAH database berhasil di-update.
-            $newCover = $coverResult['path'];
-        }
-    }
-
-    if (!$uploadGagal) {
-        $s = $conn->prepare(
-            "UPDATE buku SET judul_buku=?,id_kategori=?,pengarang=?,penerbit=?,
-             tahun_terbit=?,isbn=?,deskripsi=?,stok=?,status=?,cover=? WHERE id_buku=?"
-        );
-
-        // Tipe: s  i        s     s       i      s     s     i     s       s         i
-        //    judul id_kat  peng nerbit  tahun  isbn  desk  stok  status newCover  id
-        $s->bind_param(
-            "sissississi",
-            $judul, $id_kat, $peng, $nerbit,
-            $tahun, $isbn, $desk, $stok,
-            $status, $newCover, $id
-        );
-
-        try {
-            $s->execute();
-            $s->close();
-
-            // UPDATE berhasil — baru sekarang hapus cover lama (jika benar-benar diganti)
-            if ($adaFileBaru && $newCover !== $oldCover) {
-                // Jangan hapus cover "default"
-                if (!empty($oldCover) && strpos($oldCover, 'default') === false) {
-                    deleteBookCover($oldCover);
-                }
-            }
-
-            header('Location: buku.php?notif=edit_ok');
-            exit;
-
-        } catch (Exception $e) {
-            // UPDATE gagal — tampilkan error MySQL, rollback file baru yang terlanjur ter-upload
-            if ($adaFileBaru && $newCover !== $oldCover) {
-                deleteBookCover($newCover);
-            }
-            $msg     = 'Gagal memperbarui buku: ' . $e->getMessage();
-            $msgType = 'danger';
-            $s->close();
-        }
-    }
-}
-// ============================================================
-//  HAPUS BUKU
-// ============================================================
-if (isset($_POST['delete'])) {
-    $id = (int)$_POST['id_buku'];
-
-    $cekAktif = $conn->prepare("SELECT COUNT(*) FROM transaksi WHERE id_buku=? AND status_transaksi='Peminjaman'");
-    $cekAktif->bind_param("i", $id);
-    $cekAktif->execute();
-    $cekAktif->bind_result($jumlahAktif);
-    $cekAktif->fetch();
-    $cekAktif->close();
-
-    $cekRiwayat = $conn->prepare("SELECT COUNT(*) FROM transaksi WHERE id_buku=?");
-    $cekRiwayat->bind_param("i", $id);
-    $cekRiwayat->execute();
-    $cekRiwayat->bind_result($jumlahRiwayat);
-    $cekRiwayat->fetch();
-    $cekRiwayat->close();
-
-    if ($jumlahAktif > 0) {
-        $msg     = 'Buku sedang dipinjam, tidak bisa dihapus!';
-        $msgType = 'warning';
-    } elseif ($jumlahRiwayat > 0) {
-        $conn->begin_transaction();
-        try {
-            $stmtCov = $conn->prepare("SELECT cover FROM buku WHERE id_buku=?");
-            $stmtCov->bind_param("i", $id); $stmtCov->execute();
-            $stmtCov->bind_result($coverToDel); $stmtCov->fetch(); $stmtCov->close();
-
-            $d1 = $conn->prepare("DELETE FROM ulasan_buku WHERE id_buku=?");
-            $d1->bind_param("i", $id); $d1->execute(); $d1->close();
-
-            $d2 = $conn->prepare("DELETE FROM transaksi WHERE id_buku=?");
-            $d2->bind_param("i", $id); $d2->execute(); $d2->close();
-
-            $d3 = $conn->prepare("DELETE FROM buku WHERE id_buku=?");
-            $d3->bind_param("i", $id); $d3->execute(); $d3->close();
-
-            $conn->commit();
-            
-            // Perbaikan Hapus: Jangan hapus cover default
-            if (!empty($coverToDel) && strpos($coverToDel, 'default') === false) {
-                deleteBookCover($coverToDel);
-            }
-            $msg     = 'Buku dan riwayat transaksinya berhasil dihapus!';
-            $msgType = 'success';
-        } catch (Exception $e) {
-            $conn->rollback();
-            $msg     = 'Gagal menghapus buku: ' . $e->getMessage();
-            $msgType = 'danger';
-        }
-    } else {
-        $stmtCov = $conn->prepare("SELECT cover FROM buku WHERE id_buku=?");
-        $stmtCov->bind_param("i", $id); $stmtCov->execute();
-        $stmtCov->bind_result($coverToDel); $stmtCov->fetch(); $stmtCov->close();
-
-        $s = $conn->prepare("DELETE FROM buku WHERE id_buku=?");
-        $s->bind_param("i", $id);
-        if ($s->execute()) {
-            $s->close();
-            
-            // Perbaikan Hapus: Jangan hapus cover default
-            if (!empty($coverToDel) && strpos($coverToDel, 'default') === false) {
-                deleteBookCover($coverToDel);
-            }
-            header('Location: buku.php?notif=hapus_ok');
-            exit;
-        } else {
-            $msg     = 'Gagal menghapus buku!';
-            $msgType = 'danger';
-        }
-        $s->close();
-    }
-}
-
-// ── Notifikasi dari redirect ───────────────────────────────────
-if (empty($msg) && isset($_GET['notif'])) {
-    $notifMap = [
-        'tambah_ok' => ['Buku berhasil ditambahkan!',  'success'],
-        'edit_ok'   => ['Buku berhasil diperbarui!',   'success'],
-        'hapus_ok'  => ['Buku berhasil dihapus!',      'success'],
-    ];
-    if (isset($notifMap[$_GET['notif']])) {
-        [$msg, $msgType] = $notifMap[$_GET['notif']];
-    }
-}
-
-// ── Query data ────────────────────────────────────────────────
-$cats       = $conn->query("SELECT * FROM kategori ORDER BY nama_kategori");
-$search     = isset($_GET['search']) ? $_GET['search'] : '';
-$search = $conn->real_escape_string($search);
-$filter_kat = isset($_GET['kat']) ? (int)$_GET['kat'] : 0;
-
-$q = "SELECT b.*, k.nama_kategori FROM buku b
-      LEFT JOIN kategori k ON b.id_kategori=k.id_kategori WHERE 1=1";
-if ($search)     $q .= " AND (b.judul_buku LIKE '%$search%' OR b.pengarang LIKE '%$search%')";
-if ($filter_kat) $q .= " AND b.id_kategori=$filter_kat";
-$q    .= " ORDER BY b.id_buku DESC";
-$books = $conn->query($q);
-
-$editBook = null;
-if (isset($_GET['edit'])) {
-    $eid = (int)$_GET['edit'];
-    $s   = $conn->prepare("SELECT * FROM buku WHERE id_buku=?");
-    $s->bind_param("i", $eid); $s->execute();
-    $editBook = $s->get_result()->fetch_assoc();
-    $s->close();
-}
+$page_title = 'Dashboard';
+$page_sub = 'Admin Panel · Perpustakaan Digital';
 ?>
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Buku — Admin Perpustakaan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin — Perpustakaan Digital</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/admin.css">
-    <link rel="stylesheet" href="../assets/css/table.css">
-    <link rel="stylesheet" href="../assets/css/form.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-    /* =========================================================
-   DESAIN AREA UPLOAD/EDIT COVER BUKU
-   ========================================================= */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-    /* Area utama upload (Kotak putus-putus) */
-    .cover-upload-area {
+    :root {
+        --primary-50: #eef2ff;
+        --primary-100: #e0e7ff;
+        --primary-200: #c7d2fe;
+        --primary-300: #a5b4fc;
+        --primary-400: #818cf8;
+        --primary-500: #6366f1;
+        --primary-600: #4f46e5;
+        --primary-700: #4338ca;
+        --primary-800: #3730a3;
+        --primary-900: #312e81;
+
+        --neutral-50: #f9fafb;
+        --neutral-100: #f3f4f6;
+        --neutral-200: #e5e7eb;
+        --neutral-300: #d1d5db;
+        --neutral-400: #9ca3af;
+        --neutral-500: #6b7280;
+        --neutral-600: #4b5563;
+        --neutral-700: #374151;
+        --neutral-800: #1f2937;
+        --neutral-900: #111827;
+
+        --success-50: #ecfdf5;
+        --success-500: #10b981;
+        --success-600: #059669;
+
+        --warning-50: #fffbeb;
+        --warning-500: #f59e0b;
+        --warning-600: #d97706;
+
+        --danger-50: #fef2f2;
+        --danger-500: #ef4444;
+        --danger-600: #dc2626;
+
+        --info-50: #eff6ff;
+        --info-500: #3b82f6;
+
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+        --radius-sm: 0.375rem;
+        --radius-md: 0.5rem;
+        --radius-lg: 0.75rem;
+        --radius-xl: 1rem;
+        --radius-2xl: 1.5rem;
+        --radius-3xl: 2rem;
+        --radius-full: 9999px;
+
+        --transition: all 0.3s ease;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    .app-wrap {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+        width: 280px;
+        background: white;
+        box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        z-index: 10;
+    }
+
+    .sidebar-brand {
+        padding: 24px;
+        border-bottom: 1px solid var(--neutral-200);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .brand-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+    }
+
+    .brand-name {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--neutral-900);
+        line-height: 1.3;
+    }
+
+    .brand-role {
+        font-size: 0.7rem;
+        color: var(--neutral-500);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .sidebar-nav {
+        flex: 1;
+        padding: 20px 16px;
+        overflow-y: auto;
+    }
+
+    .nav-section-label {
+        display: block;
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--neutral-400);
+        margin: 20px 0 8px 12px;
+    }
+
+    .nav-section-label:first-of-type {
+        margin-top: 0;
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: var(--radius-lg);
+        color: var(--neutral-600);
+        text-decoration: none;
+        transition: var(--transition);
+        margin-bottom: 2px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .nav-link i {
+        width: 20px;
+        font-size: 1rem;
+        color: var(--neutral-400);
+        transition: var(--transition);
+    }
+
+    .nav-link:hover {
+        background: var(--primary-50);
+        color: var(--primary-600);
+    }
+
+    .nav-link:hover i {
+        color: var(--primary-500);
+    }
+
+    .nav-link.active {
+        background: var(--primary-50);
+        color: var(--primary-700);
+        font-weight: 600;
+    }
+
+    .nav-link.active i {
+        color: var(--primary-600);
+    }
+
+    .nav-link.logout {
+        margin-top: 20px;
+        border-top: 1px solid var(--neutral-200);
+        padding-top: 20px;
+        color: var(--danger-500);
+    }
+
+    .nav-link.logout i {
+        color: var(--danger-400);
+    }
+
+    .nav-link.logout:hover {
+        background: var(--danger-50);
+    }
+
+    .sidebar-foot {
+        padding: 20px 16px;
+        border-top: 1px solid var(--neutral-200);
+    }
+
+    /* ===== MAIN AREA ===== */
+    .main-area {
+        flex: 1;
+        background: var(--neutral-50);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Header */
+    .topbar {
+        background: white;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--neutral-200);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .page-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .page-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--neutral-900);
+        margin-bottom: 4px;
+    }
+
+    .page-breadcrumb {
+        font-size: 0.8rem;
+        color: var(--neutral-500);
+    }
+
+    .topbar-right {
         display: flex;
         align-items: center;
         gap: 20px;
-        padding: 20px;
-        border: 2px dashed #cbd5e1;
-        /* Warna garis putus-putus abu-abu */
-        border-radius: 12px;
-        background-color: #f8fafc;
-        transition: all 0.3s ease-in-out;
     }
 
-    /* Efek saat area di-hover */
-    .cover-upload-area:hover {
-        border-color: #3b82f6;
-        /* Berubah biru saat di-hover */
-        background-color: #eff6ff;
+    .topbar-date {
+        font-size: 0.9rem;
+        color: var(--neutral-600);
+        background: var(--neutral-100);
+        padding: 6px 12px;
+        border-radius: var(--radius-full);
     }
 
-    /* Pembungkus gambar preview */
-    .cover-preview-wrap {
-        position: relative;
-        width: 110px;
-        /* Proporsi rasio cover buku */
-        height: 150px;
-        border-radius: 8px;
+    .topbar-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 12px 4px 4px;
+        background: var(--neutral-100);
+        border-radius: var(--radius-full);
+    }
+
+    .topbar-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
         overflow: hidden;
-        cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        flex-shrink: 0;
-        background-color: #e2e8f0;
     }
 
-    /* Gambar preview di dalamnya */
-    .cover-preview-wrap img {
+    .topbar-avatar img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.3s ease;
     }
 
-    /* Efek zoom kecil saat gambar disentuh */
-    .cover-preview-wrap:hover img {
-        transform: scale(1.05);
+    .topbar-username {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--neutral-700);
     }
 
-    /* Lapisan transparan (Overlay) 'Ganti Cover' di atas gambar */
-    .overlay-hint {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(0, 0, 0, 0.65);
-        color: #ffffff;
-        font-size: 12px;
-        font-weight: 500;
-        text-align: center;
-        padding: 8px 5px;
+    .btn-logout {
+        background: var(--danger-50);
+        color: var(--danger-600);
+        border: none;
+        border-radius: var(--radius-full);
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        opacity: 0;
-        /* Disembunyikan secara default */
-        transition: opacity 0.3s ease;
-    }
-
-    /* Munculkan overlay saat gambar di-hover */
-    .cover-preview-wrap:hover .overlay-hint {
-        opacity: 1;
-    }
-
-    /* Bagian teks dan tombol di sebelah gambar */
-    .cover-upload-meta {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    /* Desain Tombol Pilih File */
-    .cover-upload-btn {
-        display: inline-flex;
         align-items: center;
         gap: 6px;
-        background-color: #ffffff;
-        border: 1px solid #cbd5e1;
-        color: #334155;
-        font-size: 14px;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .btn-logout:hover {
+        background: var(--danger-100);
+    }
+
+    /* Content */
+    .content {
+        padding: 24px;
+        overflow-y: auto;
+    }
+
+    /* Welcome Box */
+    .wb {
+        background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+        border-radius: var(--radius-xl);
+        padding: 24px;
+        margin-bottom: 24px;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .wb-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .wb-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .wb-name {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .wb-desc {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .wb-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 12px;
+    }
+
+    .wb-btn1,
+    .wb-btn2 {
+        padding: 10px 20px;
+        border-radius: var(--radius-lg);
         font-weight: 600;
-        padding: 8px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s;
-        width: fit-content;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: var(--transition);
     }
 
-    .cover-upload-btn:hover {
-        background-color: #f1f5f9;
-        border-color: #94a3b8;
+    .wb-btn1 {
+        background: white;
+        color: var(--primary-700);
     }
 
-    /* Nama file yang terpilih */
-    .cover-filename {
-        font-size: 13px;
+    .wb-btn1:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .wb-btn2 {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .wb-btn2:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 20px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--neutral-200);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: var(--transition);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-info h3 {
+        font-size: 0.85rem;
+        color: var(--neutral-500);
         font-weight: 600;
-        color: #10b981;
-        /* Warna hijau sukses */
-        display: none;
-        /* Disembunyikan sampai ada file dipilih */
-        word-break: break-all;
-        max-width: 200px;
+        margin-bottom: 4px;
     }
 
-    /* Teks panduan (Maks 2MB, format JPG, dll) */
-    .cover-upload-hint {
-        font-size: 12px;
-        color: #64748b;
-        line-height: 1.5;
+    .stat-number {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--neutral-900);
+    }
+
+    .stat-desc {
+        font-size: 0.7rem;
+        color: var(--neutral-500);
+        margin-top: 4px;
+    }
+
+    .stat-desc.success {
+        color: var(--success-600);
+    }
+
+    .stat-desc.warning {
+        color: var(--warning-600);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-icon.blue {
+        background: var(--primary-50);
+        color: var(--primary-600);
+    }
+
+    .stat-icon.red {
+        background: var(--danger-50);
+        color: var(--danger-600);
+    }
+
+    .stat-icon.green {
+        background: var(--success-50);
+        color: var(--success-600);
+    }
+
+    .stat-icon.amber {
+        background: var(--warning-50);
+        color: var(--warning-600);
+    }
+
+    /* Recent Transactions */
+    .recent-card {
+        background: white;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--neutral-200);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+
+    .recent-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--neutral-200);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .recent-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .recent-title i {
+        font-size: 1.2rem;
+        color: var(--primary-600);
+    }
+
+    .recent-title h2 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--neutral-800);
+    }
+
+    .recent-link {
+        color: var(--primary-600);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: var(--transition);
+    }
+
+    .recent-link:hover {
+        gap: 8px;
+        color: var(--primary-700);
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        padding: 0 20px 20px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead tr {
+        background: var(--neutral-50);
+    }
+
+    th {
+        padding: 12px;
+        text-align: left;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--neutral-600);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    td {
+        padding: 12px;
+        border-bottom: 1px solid var(--neutral-200);
+        color: var(--neutral-700);
+    }
+
+    .book-cover-cell {
+        width: 50px;
+    }
+
+    .cover-thumb {
+        width: 40px;
+        height: 55px;
+        object-fit: cover;
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 12px;
+        border-radius: var(--radius-full);
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-badge.success {
+        background: var(--success-50);
+        color: var(--success-600);
+    }
+
+    .status-badge.danger {
+        background: var(--danger-50);
+        color: var(--danger-600);
+    }
+
+    .status-badge.warning {
+        background: var(--warning-50);
+        color: var(--warning-600);
+    }
+
+    /* Mini Stats */
+    .mini-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .mini-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 16px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--neutral-200);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .mini-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .mini-icon.rust {
+        background: rgba(184, 74, 44, 0.1);
+        color: #b84a2c;
+    }
+
+    .mini-icon.green {
+        background: rgba(73, 102, 64, 0.1);
+        color: #496640;
+    }
+
+    .mini-icon.amber {
+        background: rgba(196, 138, 32, 0.1);
+        color: #c48a20;
+    }
+
+    .mini-info h4 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--neutral-900);
+        line-height: 1;
+    }
+
+    .mini-info p {
+        font-size: 0.75rem;
+        color: var(--neutral-500);
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .wb {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .wb-actions {
+            margin-left: 0;
+        }
     }
     </style>
 </head>
 
 <body>
     <div class="app-wrap">
-        <?php include 'includes/nav.php'; ?>
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">📚</div>
+                <div>
+                    <div class="brand-name">Perpustakaan Digital</div>
+                    <div class="brand-role">ADMINISTRATOR</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <span class="nav-section-label">UTAMA</span>
+                <a href="dashboard.php" class="nav-link active">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <span class="nav-section-label">MANAJEMEN</span>
+                <a href="pengguna.php" class="nav-link">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Pengguna</span>
+                </a>
+                <a href="anggota.php" class="nav-link">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Anggota</span>
+                </a>
+
+                <span class="nav-section-label">KOLEKSI</span>
+                <a href="kategori.php" class="nav-link">
+                    <i class="fas fa-tags"></i>
+                    <span>Kategori</span>
+                </a>
+                <a href="buku.php" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    <span>Buku</span>
+                </a>
+
+                <span class="nav-section-label">TRANSAKSI</span>
+                <a href="transaksi.php" class="nav-link">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Transaksi</span>
+                </a>
+                <a href="denda.php" class="nav-link">
+                    <i class="fas fa-coins"></i>
+                    <span>Denda</span>
+                </a>
+                <a href="laporan.php" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Laporan</span>
+                </a>
+
+                <span class="nav-section-label">AKUN</span>
+                <a href="profil.php" class="nav-link">
+                    <i class="fas fa-user"></i>
+                    <span>Profil Saya</span>
+                </a>
+                <a href="../index.php" class="nav-link">
+                    <i class="fas fa-globe"></i>
+                    <span>Beranda</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-foot">
+                <a href="logout.php" class="nav-link logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN AREA -->
         <div class="main-area">
-            <?php include 'includes/header.php'; ?>
-            <main class="content">
-
-                <?php if ($msg): ?>
-                <div class="alert alert-<?= $msgType ?>"><?= htmlspecialchars($msg) ?></div>
-                <?php endif; ?>
-
-                <div class="page-header">
-                    <div>
-                        <div class="page-header-title">Koleksi Buku</div>
-                        <div class="page-header-sub">Tambah, edit, atau hapus data buku perpustakaan</div>
+            <!-- HEADER -->
+            <header class="topbar">
+                <div class="page-info">
+                    <h1 class="page-title"><?= htmlspecialchars($page_title) ?></h1>
+                    <div class="page-breadcrumb"><?= htmlspecialchars($page_sub) ?></div>
+                </div>
+                <div class="topbar-right">
+                    <div class="topbar-date">
+                        <i class="far fa-calendar-alt"></i> <?= date('d M Y') ?>
                     </div>
-                    <button class="btn btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
-                        <svg viewBox="0 0 24 24">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
-                        Tambah Buku
-                    </button>
+                    <div class="topbar-user">
+                        <div class="topbar-avatar">
+                            <?php if ($fotoPath): ?>
+                            <img src="<?= $fotoPath ?>" alt="Foto">
+                            <?php else: ?>
+                            <?= htmlspecialchars($initials) ?>
+                            <?php endif; ?>
+                        </div>
+                        <span class="topbar-username"><?= htmlspecialchars(getPenggunaName()) ?></span>
+                    </div>
+                    <a href="logout.php" class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- CONTENT -->
+            <main class="content">
+                <!-- Welcome Box -->
+                <div class="wb">
+                    <div class="wb-avatar">
+                        <?php if ($fotoPath): ?>
+                        <img src="<?= $fotoPath ?>" alt="Foto">
+                        <?php else: ?>
+                        <?= htmlspecialchars($initials) ?>
+                        <?php endif; ?>
+                    </div>
+                    <div>
+                        <div class="wb-name">Selamat Datang, <?= htmlspecialchars(getPenggunaName()) ?></div>
+                        <div class="wb-desc">Kelola seluruh sistem perpustakaan dari satu tempat · Panel Admin</div>
+                    </div>
+                    <div class="wb-actions">
+                        <a href="buku.php" class="wb-btn1"><i class="fas fa-plus"></i> Tambah Buku</a>
+                        <a href="laporan.php" class="wb-btn2"><i class="fas fa-chart-bar"></i> Lihat Laporan</a>
+                    </div>
                 </div>
 
-                <div class="card">
-                    <form method="GET" class="filter-bar">
-                        <div class="search-wrap">
-                            <input type="text" name="search" placeholder="Cari judul atau pengarang…"
-                                value="<?= htmlspecialchars($search) ?>">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Total Buku</h3>
+                            <div class="stat-number"><?= $tb ?></div>
+                            <div class="stat-desc success"><i class="fas fa-arrow-up"></i> <?= $ts ?> tersedia</div>
                         </div>
-                        <select name="kat" class="form-control" style="width:auto">
-                            <option value="">Semua Kategori</option>
-                            <?php $cats->data_seek(0); while($c=$cats->fetch_assoc()): ?>
-                            <option value="<?= $c['id_kategori'] ?>"
-                                <?= $filter_kat==$c['id_kategori']?'selected':'' ?>>
-                                <?= htmlspecialchars($c['nama_kategori']) ?></option>
-                            <?php endwhile; ?>
-                        </select>
-                        <button type="submit" class="btn btn-ghost btn-sm">Filter</button>
-                        <?php if ($search||$filter_kat): ?>
-                        <a href="buku.php" class="btn btn-ghost btn-sm">Reset</a>
-                        <?php endif; ?>
-                    </form>
+                        <div class="stat-icon blue"><i class="fas fa-book"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Aktif Dipinjam</h3>
+                            <div class="stat-number"><?= $ap ?></div>
+                            <div class="stat-desc <?= $tl > 0 ? 'warning' : '' ?>"><?= $tl ?> terlambat</div>
+                        </div>
+                        <div class="stat-icon red"><i class="fas fa-exchange-alt"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Total Anggota</h3>
+                            <div class="stat-number"><?= $ta ?></div>
+                            <div class="stat-desc"><?= $tp ?> pengguna sistem</div>
+                        </div>
+                        <div class="stat-icon green"><i class="fas fa-users"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Denda Belum Bayar</h3>
+                            <div class="stat-number">Rp <?= number_format($td, 0, ',', '.') ?></div>
+                            <div class="stat-desc warning">perlu diselesaikan</div>
+                        </div>
+                        <div class="stat-icon amber"><i class="fas fa-coins"></i></div>
+                    </div>
+                </div>
 
-                    <div class="table-wrap">
+                <!-- Recent Transactions -->
+                <div class="recent-card">
+                    <div class="recent-header">
+                        <div class="recent-title">
+                            <i class="fas fa-history"></i>
+                            <h2>Transaksi Terbaru</h2>
+                        </div>
+                        <a href="transaksi.php" class="recent-link">Lihat Semua <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    <div class="table-responsive">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>#</th>
                                     <th>Cover</th>
-                                    <th>Judul Buku</th>
-                                    <th>Pengarang</th>
-                                    <th>Kategori</th>
-                                    <th>Tahun</th>
-                                    <th>Stok</th>
+                                    <th>Anggota</th>
+                                    <th>Buku</th>
+                                    <th>Tgl Pinjam</th>
+                                    <th>Jatuh Tempo</th>
                                     <th>Status</th>
-                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php if ($books && $books->num_rows > 0): $no=1; ?>
-                                <?php while($b=$books->fetch_assoc()): ?>
+                                <?php if ($rows && $rows->num_rows > 0): while($r = $rows->fetch_assoc()):
+                                    $late = $r['status_transaksi'] === 'Peminjaman' && strtotime($r['tgl_kembali_rencana']) < time();
+                                    if ($r['status_transaksi'] === 'Pengembalian') {
+                                        $statusClass = 'success';
+                                        $statusText = '✓ Kembali';
+                                    } elseif ($late) {
+                                        $statusClass = 'danger';
+                                        $statusText = '⚠ Terlambat';
+                                    } else {
+                                        $statusClass = 'warning';
+                                        $statusText = '⇄ Dipinjam';
+                                    }
+                                ?>
                                 <tr>
-                                    <td class="text-muted text-sm"><?= $no++ ?></td>
                                     <td class="book-cover-cell">
-                                        <?php if (!empty($b['cover']) && file_exists('../' . $b['cover'])): ?>
-                                        <img src="../<?= htmlspecialchars($b['cover']) ?>" class="cover-thumb"
-                                            alt="cover">
+                                        <?php if (!empty($r['cover']) && file_exists('../'.$r['cover'])): ?>
+                                        <img class="cover-thumb" src="../<?= htmlspecialchars($r['cover']) ?>" alt="">
                                         <?php else: ?>
-                                        <img src="../<?= DEFAULT_COVER ?>" class="cover-thumb" alt="default">
+                                        <div class="cover-thumb"
+                                            style="background: var(--neutral-100); display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-book" style="color: var(--neutral-400);"></i>
+                                        </div>
                                         <?php endif; ?>
                                     </td>
-                                    <td>
-                                        <div class="book-info-main"><?= htmlspecialchars($b['judul_buku']) ?></div>
-                                        <div class="book-info-sub"><?= htmlspecialchars($b['isbn'] ?: '—') ?></div>
-                                    </td>
-                                    <td><?= htmlspecialchars($b['pengarang']) ?></td>
-                                    <td><span
-                                            class="badge badge-muted"><?= htmlspecialchars($b['nama_kategori'] ?: '—') ?></span>
-                                    </td>
-                                    <td><?= $b['tahun_terbit'] ?></td>
-                                    <td><?= $b['stok'] ?></td>
-                                    <td>
-                                        <span
-                                            class="badge <?= $b['status']==='tersedia'?'status-tersedia':'status-terlambat' ?>">
-                                            <?= $b['status']==='tersedia' ? '● Tersedia' : '○ Habis' ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div style="display:flex;gap:6px">
-                                            <a href="?edit=<?= $b['id_buku'] ?>" class="btn btn-ghost btn-sm">Edit</a>
-                                            <form method="POST" onsubmit="return confirm('Hapus buku ini?')"
-                                                style="display:inline">
-                                                <input type="hidden" name="id_buku" value="<?= $b['id_buku'] ?>">
-                                                <button name="delete" class="btn btn-danger btn-sm">Hapus</button>
-                                            </form>
-                                        </div>
-                                    </td>
+                                    <td><span class="fw-600"><?= htmlspecialchars($r['nama_anggota']) ?></span></td>
+                                    <td><?= htmlspecialchars(mb_strimwidth($r['judul_buku'], 0, 34, '…')) ?></td>
+                                    <td><?= date('d M Y', strtotime($r['tgl_pinjam'])) ?></td>
+                                    <td><?= date('d M Y', strtotime($r['tgl_kembali_rencana'])) ?></td>
+                                    <td><span class="status-badge <?= $statusClass ?>"><?= $statusText ?></span></td>
                                 </tr>
-                                <?php endwhile; ?>
-                                <?php else: ?>
+                                <?php endwhile; else: ?>
                                 <tr>
-                                    <td colspan="9">
-                                        <div class="empty-state">
-                                            <div class="empty-state-ico">📚</div>
-                                            <div class="empty-state-title">Belum ada buku</div>
-                                            <div class="empty-state-sub">Tambahkan buku pertama ke koleksi perpustakaan.
-                                            </div>
-                                        </div>
-                                    </td>
+                                    <td colspan="6"
+                                        style="text-align: center; padding: 40px; color: var(--neutral-500);">Belum ada
+                                        transaksi</td>
                                 </tr>
                                 <?php endif; ?>
                             </tbody>
@@ -515,251 +945,33 @@ if (isset($_GET['edit'])) {
                     </div>
                 </div>
 
+                <!-- Mini Stats -->
+                <div class="mini-stats">
+                    <div class="mini-card">
+                        <div class="mini-icon rust"><i class="fas fa-book"></i></div>
+                        <div class="mini-info">
+                            <h4><?= $tb - $ts ?></h4>
+                            <p>Buku Sedang Dipinjam</p>
+                        </div>
+                    </div>
+                    <div class="mini-card">
+                        <div class="mini-icon green"><i class="fas fa-undo-alt"></i></div>
+                        <div class="mini-info">
+                            <h4><?= $kh ?></h4>
+                            <p>Pengembalian Hari Ini</p>
+                        </div>
+                    </div>
+                    <div class="mini-card">
+                        <div class="mini-icon amber"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="mini-info">
+                            <h4><?= $tl ?></h4>
+                            <p>Keterlambatan Aktif</p>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
-
-    <div id="addModal" class="modal-overlay" style="display:none"
-        onclick="if(event.target===this)this.style.display='none'">
-        <div class="modal modal-lg">
-            <div class="modal-header">
-                <div class="modal-title">Tambah Buku Baru</div>
-                <button class="modal-close"
-                    onclick="document.getElementById('addModal').style.display='none'">✕</button>
-            </div>
-            <form method="POST" enctype="multipart/form-data">
-                <div class="modal-body">
-                    <div class="form-grid">
-                        <div class="form-group form-full">
-                            <label class="form-label">Judul Buku *</label>
-                            <input name="judul_buku" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Pengarang *</label>
-                            <input name="pengarang" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Penerbit</label>
-                            <input name="penerbit" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Kategori</label>
-                            <select name="id_kategori" class="form-control">
-                                <?php $cats->data_seek(0); while($c=$cats->fetch_assoc()): ?>
-                                <option value="<?= $c['id_kategori'] ?>"><?= htmlspecialchars($c['nama_kategori']) ?>
-                                </option>
-                                <?php endwhile; ?>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Tahun Terbit</label>
-                            <input name="tahun_terbit" type="number" class="form-control" value="<?= date('Y') ?>">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">ISBN</label>
-                            <input name="isbn" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Stok *</label>
-                            <input name="stok" type="number" class="form-control" min="0" value="1" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Cover Buku</label>
-                            <div class="cover-upload-area">
-                                <div class="cover-preview-wrap"
-                                    onclick="document.getElementById('addCoverInput').click()">
-                                    <img id="addCoverPreview" src="../<?= DEFAULT_COVER ?>" alt="Preview">
-                                    <div class="overlay-hint">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                            <polyline points="17 8 12 3 7 8" />
-                                            <line x1="12" y1="3" x2="12" y2="15" />
-                                        </svg>
-                                        Pilih Cover
-                                    </div>
-                                </div>
-                                <div class="cover-upload-meta">
-                                    <button type="button" class="cover-upload-btn"
-                                        onclick="document.getElementById('addCoverInput').click()">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2.5">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                            <polyline points="17 8 12 3 7 8" />
-                                            <line x1="12" y1="3" x2="12" y2="15" />
-                                        </svg>
-                                        Pilih File
-                                    </button>
-                                    <div class="cover-filename" id="addCoverFilename"></div>
-                                    <div class="cover-upload-hint">Format: JPG atau PNG<br>Maks. 2 MB · Opsional<br>Klik
-                                        gambar untuk memilih</div>
-                                </div>
-                            </div>
-                            <input type="file" id="addCoverInput" name="cover" accept=".jpg,.jpeg,.png"
-                                style="display:none" onchange="previewCover(this,'addCoverPreview','addCoverFilename')">
-                        </div>
-                        <div class="form-group form-full">
-                            <label class="form-label">Deskripsi</label>
-                            <textarea name="deskripsi" class="form-control"></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-ghost"
-                        onclick="document.getElementById('addModal').style.display='none'">Batal</button>
-                    <button name="add" class="btn btn-primary">Simpan Buku</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <?php if ($editBook): ?>
-    <div id="editModal" class="modal-overlay" onclick="if(event.target===this)location.href='buku.php'">
-        <div class="modal modal-lg">
-            <div class="modal-header">
-                <div class="modal-title">Edit Buku</div>
-                <a href="buku.php" class="modal-close">✕</a>
-            </div>
-            <form method="POST" enctype="multipart/form-data">
-                <input type="hidden" name="id_buku" value="<?= $editBook['id_buku'] ?>">
-                <div class="modal-body">
-                    <div class="form-grid">
-                        <div class="form-group form-full">
-                            <label class="form-label">Judul Buku *</label>
-                            <input name="judul_buku" class="form-control"
-                                value="<?= htmlspecialchars($editBook['judul_buku']) ?>" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Pengarang *</label>
-                            <input name="pengarang" class="form-control"
-                                value="<?= htmlspecialchars($editBook['pengarang']) ?>" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Penerbit</label>
-                            <input name="penerbit" class="form-control"
-                                value="<?= htmlspecialchars($editBook['penerbit']) ?>">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Kategori</label>
-                            <select name="id_kategori" class="form-control">
-                                <?php $cats->data_seek(0); while($c=$cats->fetch_assoc()): ?>
-                                <option value="<?= $c['id_kategori'] ?>"
-                                    <?= $c['id_kategori']==$editBook['id_kategori']?'selected':'' ?>>
-                                    <?= htmlspecialchars($c['nama_kategori']) ?></option>
-                                <?php endwhile; ?>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Tahun Terbit</label>
-                            <input name="tahun_terbit" type="number" class="form-control"
-                                value="<?= $editBook['tahun_terbit'] ?>">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">ISBN</label>
-                            <input name="isbn" class="form-control" value="<?= htmlspecialchars($editBook['isbn']) ?>">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Stok *</label>
-                            <input name="stok" type="number" class="form-control" min="0"
-                                value="<?= $editBook['stok'] ?>" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Status</label>
-                            <select name="status" class="form-control">
-                                <option value="tersedia" <?= $editBook['status']==='tersedia'?'selected':'' ?>>Tersedia
-                                </option>
-                                <option value="tidak" <?= $editBook['status']==='tidak'?'selected':'' ?>>Tidak Tersedia
-                                </option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Cover Buku</label>
-                            <?php
-                        $editCoverSrc = (!empty($editBook['cover']) && file_exists('../' . $editBook['cover']))
-                                        ? '../' . htmlspecialchars($editBook['cover'])
-                                        : '../' . DEFAULT_COVER;
-                        ?>
-                            <div class="cover-upload-area">
-                                <div class="cover-preview-wrap"
-                                    onclick="document.getElementById('editCoverInput').click()">
-                                    <img id="editCoverPreview" src="<?= $editCoverSrc ?>" alt="Cover Saat Ini">
-                                    <div class="overlay-hint">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                            <polyline points="17 8 12 3 7 8" />
-                                            <line x1="12" y1="3" x2="12" y2="15" />
-                                        </svg>
-                                        Ganti Cover
-                                    </div>
-                                </div>
-                                <div class="cover-upload-meta">
-                                    <button type="button" class="cover-upload-btn"
-                                        onclick="document.getElementById('editCoverInput').click()">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2.5">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                            <polyline points="17 8 12 3 7 8" />
-                                            <line x1="12" y1="3" x2="12" y2="15" />
-                                        </svg>
-                                        Ganti Cover
-                                    </button>
-                                    <div class="cover-filename" id="editCoverFilename"></div>
-                                    <div class="cover-upload-hint">Format: JPG atau PNG<br>Maks. 2 MB<br>Kosongkan jika
-                                        tidak ingin mengubah</div>
-                                </div>
-                            </div>
-                            <input type="file" id="editCoverInput" name="cover" accept=".jpg,.jpeg,.png"
-                                style="display:none"
-                                onchange="previewCover(this,'editCoverPreview','editCoverFilename')">
-                        </div>
-                        <div class="form-group form-full">
-                            <label class="form-label">Deskripsi</label>
-                            <textarea name="deskripsi"
-                                class="form-control"><?= htmlspecialchars($editBook['deskripsi']) ?></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <a href="buku.php" class="btn btn-ghost">Batal</a>
-                    <button name="edit" class="btn btn-primary">Simpan Perubahan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <script>
-    document.getElementById('editModal').style.display = 'flex';
-    </script>
-    <?php endif; ?>
-
-    <script>
-    function previewCover(input, previewId, filenameId) {
-        const preview = document.getElementById(previewId);
-        const fnLabel = filenameId ? document.getElementById(filenameId) : null;
-        if (!input.files || !input.files[0]) return;
-        const file = input.files[0];
-        const allowedTypes = ['image/jpeg', 'image/png'];
-        if (!allowedTypes.includes(file.type)) {
-            alert('Hanya file JPG atau PNG yang diizinkan.');
-            input.value = '';
-            return;
-        }
-        if (file.size > 2 * 1024 * 1024) {
-            alert('Ukuran file melebihi 2 MB.');
-            input.value = '';
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            preview.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-        if (fnLabel) {
-            fnLabel.textContent = file.name;
-            fnLabel.style.display = 'block';
-        }
-    }
-    </script>
     <script src="../assets/js/script.js"></script>
 </body>
 
