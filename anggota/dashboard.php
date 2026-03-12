@@ -5,8 +5,8 @@ requireAnggota();
 $conn = getConnection();
 $id = getAnggotaId();
 
-// Ambil data anggota untuk foto profil
-$anggotaStmt = $conn->prepare("SELECT foto, nama_anggota, nis, kelas FROM anggota WHERE id_anggota = ?");
+// Ambil data anggota untuk foto profil dan informasi
+$anggotaStmt = $conn->prepare("SELECT foto, nama_anggota, nis, kelas, email FROM anggota WHERE id_anggota = ?");
 $anggotaStmt->bind_param("i", $id);
 $anggotaStmt->execute();
 $anggotaData = $anggotaStmt->get_result()->fetch_assoc();
@@ -19,6 +19,17 @@ foreach (explode(' ', trim($anggotaData['nama_anggota'] ?? '')) as $w) {
     if (strlen($initials) >= 2) break;
 }
 
+// Ambil data user untuk header
+$userStmt = $conn->prepare("SELECT foto, nama_anggota FROM anggota WHERE id_anggota = ?");
+$userStmt->bind_param("i", $id);
+$userStmt->execute();
+$userData = $userStmt->get_result()->fetch_assoc();
+$userStmt->close();
+
+$fotoPath = (!empty($userData['foto']) && file_exists('../' . $userData['foto'])) 
+            ? '../' . htmlspecialchars($userData['foto']) 
+            : null;
+
 function cnt($c, $q, $f = 'c') {
     return $c->query($q)->fetch_assoc()[$f] ?? 0;
 }
@@ -27,7 +38,11 @@ $ak = cnt($conn, "SELECT COUNT(*) c FROM transaksi WHERE id_anggota=$id AND stat
 $tt = cnt($conn, "SELECT COUNT(*) c FROM transaksi WHERE id_anggota=$id");
 $dn = cnt($conn, "SELECT COALESCE(SUM(d.total_denda),0) s FROM denda d JOIN transaksi t ON d.id_transaksi=t.id_transaksi WHERE t.id_anggota=$id AND d.status_bayar='belum'", 's');
 $ul = cnt($conn, "SELECT COUNT(*) c FROM ulasan_buku WHERE id_anggota=$id");
-$rows = $conn->query("SELECT t.*,b.judul_buku,b.pengarang,b.cover FROM transaksi t JOIN buku b ON t.id_buku=b.id_buku WHERE t.id_anggota=$id AND t.status_transaksi='Peminjaman' ORDER BY t.tgl_pinjam DESC");
+$rows = $conn->query("SELECT t.*, b.judul_buku, b.pengarang, b.cover, b.id_buku 
+                      FROM transaksi t 
+                      JOIN buku b ON t.id_buku = b.id_buku 
+                      WHERE t.id_anggota = $id AND t.status_transaksi = 'Peminjaman' 
+                      ORDER BY t.tgl_pinjam DESC");
 
 $page_title = 'Dashboard';
 $page_sub = 'Portal Anggota · Perpustakaan Digital';
@@ -37,66 +52,124 @@ $page_sub = 'Portal Anggota · Perpustakaan Digital';
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Anggota — Perpustakaan Digital</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <style>
-    /* Style untuk avatar di welcome box */
-    .wb-avatar {
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #2c4f7c 0%, #3a6ea5 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-        font-size: 1.4rem;
-        box-shadow: 0 4px 12px rgba(44, 79, 124, 0.3);
-        overflow: hidden;
-        flex-shrink: 0;
-        margin-right: 8px;
-    }
-
-    .wb-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .wb-avatar.initials {
-        font-family: 'Playfair Display', serif;
-    }
-
-    /* Menyesuaikan layout wb-anggota */
-    .wb-anggota {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-    }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/anggota_dashboard.css">
 </head>
 
 <body>
-    <div class="app-wrap">
-        <?php include 'includes/nav.php'; ?>
-        <div class="main-area">
-            <?php include 'includes/header.php'; ?>
-            <main class="content">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-                <div class="wb wb-anggota">
-                    <!-- Ganti wb-emoji dengan avatar -->
-                    <?php 
-                    $fotoPath = (!empty($anggotaData['foto']) && file_exists('../' . $anggotaData['foto'])) 
-                                ? '../' . htmlspecialchars($anggotaData['foto']) 
-                                : null;
-                    ?>
-                    <div class="wb-avatar <?= empty($fotoPath) ? 'initials' : '' ?>">
+    <div class="app-wrap">
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">📚</div>
+                <div>
+                    <div class="brand-name">Perpustakaan Digital</div>
+                    <div class="brand-role">ANGGOTA</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <span class="nav-section-label">UTAMA</span>
+                <a href="dashboard.php" class="nav-link active">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <span class="nav-section-label">KATALOG</span>
+                <a href="katalog.php" class="nav-link">
+                    <i class="fas fa-search"></i>
+                    <span>Katalog Buku</span>
+                </a>
+
+                <span class="nav-section-label">TRANSAKSI</span>
+                <a href="pinjam.php" class="nav-link">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Pinjam Buku</span>
+                </a>
+                <a href="kembali.php" class="nav-link">
+                    <i class="fas fa-undo-alt"></i>
+                    <span>Kembalikan Buku</span>
+                </a>
+                <a href="riwayat.php" class="nav-link">
+                    <i class="fas fa-history"></i>
+                    <span>Riwayat</span>
+                </a>
+
+                <span class="nav-section-label">KOMUNITAS</span>
+                <a href="ulasan.php" class="nav-link">
+                    <i class="fas fa-star"></i>
+                    <span>Ulasan Buku</span>
+                </a>
+
+                <span class="nav-section-label">AKUN</span>
+                <a href="profil.php" class="nav-link">
+                    <i class="fas fa-user"></i>
+                    <span>Profil Saya</span>
+                </a>
+                <a href="../index.php" class="nav-link">
+                    <i class="fas fa-globe"></i>
+                    <span>Beranda</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-foot">
+                <a href="logout.php" class="nav-link logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN AREA -->
+        <div class="main-area">
+            <!-- HEADER -->
+            <header class="topbar">
+                <div class="topbar-left" style="display: flex; align-items: center; gap: 16px;">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-info">
+                        <h1 class="page-title"><?= htmlspecialchars($page_title) ?></h1>
+                        <div class="page-breadcrumb"><?= htmlspecialchars($page_sub) ?></div>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="topbar-date">
+                        <i class="far fa-calendar-alt"></i>
+                        <span><?= date('d M Y') ?></span>
+                    </div>
+                    <div class="topbar-user">
+                        <div class="topbar-avatar">
+                            <?php if ($fotoPath): ?>
+                            <img src="<?= $fotoPath ?>" alt="Foto">
+                            <?php else: ?>
+                            <?= htmlspecialchars($initials) ?>
+                            <?php endif; ?>
+                        </div>
+                        <span class="topbar-username"><?= htmlspecialchars(getAnggotaName()) ?></span>
+                    </div>
+                    <a href="logout.php" class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- CONTENT -->
+            <main class="content">
+                <!-- Welcome Box -->
+                <div class="wb">
+                    <div class="wb-avatar">
                         <?php if ($fotoPath): ?>
                         <img src="<?= $fotoPath ?>" alt="Foto Profil">
                         <?php else: ?>
@@ -104,131 +177,102 @@ $page_sub = 'Portal Anggota · Perpustakaan Digital';
                         <?php endif; ?>
                     </div>
                     <div>
-                        <div class="wb-name">Selamat Datang, <?= htmlspecialchars(getAnggotaName()) ?> 🎓</div>
-                        <div class="wb-sub">NIS: <?= htmlspecialchars($_SESSION['anggota_nis'] ?? '-') ?> &nbsp;·&nbsp;
-                            Kelas: <?= htmlspecialchars($_SESSION['anggota_kelas'] ?? '-') ?></div>
+                        <div class="wb-name">Selamat Datang, <?= htmlspecialchars(getAnggotaName()) ?> 👋</div>
+                        <div class="wb-sub">
+                            <i class="fas fa-id-card"></i> NIS: <?= htmlspecialchars($_SESSION['anggota_nis'] ?? '-') ?>
+                            &nbsp;|&nbsp;
+                            <i class="fas fa-users"></i> Kelas:
+                            <?= htmlspecialchars($_SESSION['anggota_kelas'] ?? '-') ?>
+                        </div>
                     </div>
                     <div class="wb-actions">
-                        <a href="pinjam.php" class="wb-btn1">📚 Pinjam Buku</a>
-                        <a href="katalog.php" class="wb-btn2">Lihat Katalog</a>
+                        <a href="pinjam.php" class="wb-btn1"><i class="fas fa-plus-circle"></i> Pinjam Buku</a>
+                        <a href="katalog.php" class="wb-btn2"><i class="fas fa-search"></i> Lihat Katalog</a>
                     </div>
                 </div>
 
+                <!-- Stats Cards -->
                 <div class="srow">
-                    <div class="sc" style="--a:#ef4444;--ab:rgba(239,68,68,.08)">
+                    <div class="sc">
                         <div>
                             <div class="sc-l">Sedang Dipinjam</div>
                             <div class="sc-v"><?= $ak ?></div>
                             <div class="sc-s">buku aktif</div>
                         </div>
-                        <div class="sc-i">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                            </svg>
-                        </div>
+                        <div class="sc-i"><i class="fas fa-book-open"></i></div>
                     </div>
-                    <div class="sc" style="--a:var(--accent);--ab:rgba(44,79,124,.08)">
+                    <div class="sc">
                         <div>
                             <div class="sc-l">Total Pinjaman</div>
                             <div class="sc-v"><?= $tt ?></div>
                             <div class="sc-s">sepanjang masa</div>
                         </div>
-                        <div class="sc-i">
-                            <svg viewBox="0 0 24 24">
-                                <polyline points="12 8 12 12 14 14" />
-                                <path d="M3.05 11a9 9 0 1 0 .5-4" />
-                                <polyline points="3 3 3 7 7 7" />
-                            </svg>
-                        </div>
+                        <div class="sc-i"><i class="fas fa-history"></i></div>
                     </div>
-                    <div class="sc"
-                        style="--a:<?= $dn > 0 ? 'var(--rust)' : 'var(--sage)' ?>;--ab:<?= $dn > 0 ? 'rgba(184,74,44,.08)' : 'rgba(73,102,64,.08)' ?>">
+                    <div class="sc">
                         <div>
                             <div class="sc-l">Denda Belum Bayar</div>
                             <div class="sc-v" style="font-size:<?= $dn > 99999 ? '1.15rem' : '1.9rem' ?>">Rp
                                 <?= number_format($dn, 0, ',', '.') ?></div>
                             <div class="sc-s <?= $dn > 0 ? 'bad' : 'ok' ?>">
-                                <?= $dn > 0 ? 'Segera bayar ke petugas' : 'Tidak ada denda 🎉' ?></div>
+                                <?= $dn > 0 ? '<i class="fas fa-exclamation-circle"></i> Segera bayar' : '<i class="fas fa-check-circle"></i> Tidak ada denda' ?>
+                            </div>
                         </div>
-                        <div class="sc-i">
-                            <svg viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="8" x2="12" y2="12" />
-                                <line x1="12" y1="16" x2="12.01" y2="16" />
-                            </svg>
-                        </div>
+                        <div class="sc-i"><i class="fas fa-coins"></i></div>
                     </div>
-                    <div class="sc" style="--a:#f59e0b;--ab:rgba(245,158,11,.08)">
+                    <div class="sc">
                         <div>
                             <div class="sc-l">Ulasan Ditulis</div>
                             <div class="sc-v"><?= $ul ?></div>
-                            <div class="sc-s">ulasan buku</div>
+                            <div class="sc-s"><i class="fas fa-star"></i> ulasan buku</div>
                         </div>
-                        <div class="sc-i">
-                            <svg viewBox="0 0 24 24">
-                                <polygon
-                                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                            </svg>
-                        </div>
+                        <div class="sc-i"><i class="fas fa-star"></i></div>
                     </div>
                 </div>
 
+                <!-- Quick Menu & Recent Transactions -->
                 <div class="tcols">
+                    <!-- Quick Menu -->
                     <div class="qm">
-                        <div class="qm-h">Menu Cepat</div>
+                        <div class="qm-h"><i class="fas fa-bolt"></i> Menu Cepat</div>
                         <div class="qm-grid">
                             <a href="pinjam.php" class="qm-btn">
-                                <svg viewBox="0 0 24 24">
-                                    <polyline points="17 1 21 5 17 9" />
-                                    <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-                                </svg><span>Pinjam Buku</span>
+                                <i class="fas fa-plus-circle"></i>
+                                <span>Pinjam Buku</span>
                             </a>
                             <a href="kembali.php" class="qm-btn">
-                                <svg viewBox="0 0 24 24">
-                                    <polyline points="7 23 3 19 7 15" />
-                                    <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-                                </svg><span>Kembalikan</span>
+                                <i class="fas fa-undo-alt"></i>
+                                <span>Kembalikan</span>
                             </a>
                             <a href="katalog.php" class="qm-btn">
-                                <svg viewBox="0 0 24 24">
-                                    <circle cx="11" cy="11" r="8" />
-                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                                </svg><span>Katalog</span>
+                                <i class="fas fa-search"></i>
+                                <span>Katalog</span>
                             </a>
                             <a href="riwayat.php" class="qm-btn">
-                                <svg viewBox="0 0 24 24">
-                                    <polyline points="12 8 12 12 14 14" />
-                                    <path d="M3.05 11a9 9 0 1 0 .5-4" />
-                                </svg><span>Riwayat</span>
+                                <i class="fas fa-history"></i>
+                                <span>Riwayat</span>
                             </a>
                             <a href="ulasan.php" class="qm-btn">
-                                <svg viewBox="0 0 24 24">
-                                    <polygon
-                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                                </svg><span>Ulasan</span>
+                                <i class="fas fa-star"></i>
+                                <span>Ulasan</span>
                             </a>
                             <a href="profil.php" class="qm-btn">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                    <circle cx="12" cy="7" r="4" />
-                                </svg><span>Profil</span>
+                                <i class="fas fa-user"></i>
+                                <span>Profil</span>
                             </a>
                         </div>
                     </div>
 
+                    <!-- Recent Transactions -->
                     <div class="dc">
                         <div class="dc-h">
                             <div class="dc-t">
-                                <svg viewBox="0 0 24 24">
-                                    <polyline points="17 1 21 5 17 9" />
-                                    <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-                                </svg>Buku Sedang Dipinjam
+                                <i class="fas fa-book-open"></i> Buku Sedang Dipinjam
                             </div>
-                            <a href="kembali.php" class="dc-a">Kembalikan →</a>
+                            <a href="kembali.php" class="dc-a">Kembalikan <i class="fas fa-arrow-right"></i></a>
                         </div>
-                        <div style="overflow-x:auto">
-                            <table class="t">
+                        <div class="table-responsive">
+                            <table>
                                 <thead>
                                     <tr>
                                         <th>Cover</th>
@@ -245,12 +289,15 @@ $page_sub = 'Portal Anggota · Perpustakaan Digital';
                                         $sisa = (int)ceil(($due - time()) / 86400);
                                         if ($sisa < 0) {
                                             $sc = 'sl-ov';
-                                            $st = 'Terlambat ' . abs($sisa) . 'h';
+                                            $icon = 'fa-exclamation-triangle';
+                                            $st = 'Terlambat ' . abs($sisa) . ' hari';
                                         } elseif ($sisa <= 2) {
                                             $sc = 'sl-w';
+                                            $icon = 'fa-clock';
                                             $st = $sisa . ' hari lagi';
                                         } else {
                                             $sc = 'sl-ok';
+                                            $icon = 'fa-check-circle';
                                             $st = $sisa . ' hari lagi';
                                         }
                                     ?>
@@ -259,7 +306,7 @@ $page_sub = 'Portal Anggota · Perpustakaan Digital';
                                             <?php if (!empty($r['cover']) && file_exists('../' . $r['cover'])): ?>
                                             <img class="cv" src="../<?= htmlspecialchars($r['cover']) ?>" alt="">
                                             <?php else: ?>
-                                            <div class="cv-ph">📖</div>
+                                            <div class="cv-ph"><i class="fas fa-book"></i></div>
                                             <?php endif; ?>
                                         </td>
                                         <td><span
@@ -268,14 +315,19 @@ $page_sub = 'Portal Anggota · Perpustakaan Digital';
                                         <td class="text-sm"><?= htmlspecialchars($r['pengarang']) ?></td>
                                         <td><?= date('d M Y', strtotime($r['tgl_pinjam'])) ?></td>
                                         <td><?= date('d M Y', $due) ?></td>
-                                        <td><span class="sl <?= $sc ?>"><?= $st ?></span></td>
+                                        <td><span class="sl <?= $sc ?>"><i class="fas <?= $icon ?>"></i>
+                                                <?= $st ?></span></td>
                                     </tr>
                                     <?php endwhile; else: ?>
                                     <tr>
-                                        <td colspan="6" style="text-align:center;padding:48px;color:var(--muted)">
-                                            📗 Belum ada pinjaman aktif &nbsp;·&nbsp;
-                                            <a href="katalog.php" style="color:var(--rust);font-weight:600">Cari buku
-                                                →</a>
+                                        <td colspan="6"
+                                            style="text-align:center; padding:48px; color:var(--neutral-500);">
+                                            <i class="fas fa-smile"
+                                                style="font-size: 3rem; color: var(--soft-purple-light); margin-bottom: 12px;"></i>
+                                            <br>📗 Belum ada pinjaman aktif &nbsp;·&nbsp;
+                                            <a href="katalog.php"
+                                                style="color:var(--soft-purple); font-weight:600;">Cari buku <i
+                                                    class="fas fa-arrow-right"></i></a>
                                         </td>
                                     </tr>
                                     <?php endif; ?>
@@ -284,10 +336,35 @@ $page_sub = 'Portal Anggota · Perpustakaan Digital';
                         </div>
                     </div>
                 </div>
-
             </main>
         </div>
     </div>
+
+    <script>
+    // Sidebar toggle for mobile
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('show');
+        });
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('show');
+        });
+    }
+
+    // Prevent form resubmission
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+    </script>
     <script src="../assets/js/script.js"></script>
 </body>
 

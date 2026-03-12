@@ -3,8 +3,32 @@ require_once '../config/database.php';
 require_once '../includes/session.php';
 require_once '../includes/upload_helper.php';
 requirePetugas();
+
 $conn = getConnection();
 $msg = ''; $msgType = '';
+
+// Ambil data user untuk header
+$userId = getPenggunaId();
+$userStmt = $conn->prepare("SELECT foto, nama_pengguna FROM pengguna WHERE id_pengguna = ?");
+$userStmt->bind_param("i", $userId);
+$userStmt->execute();
+$userData = $userStmt->get_result()->fetch_assoc();
+$userStmt->close();
+
+// Inisial untuk avatar
+$initials = '';
+foreach (explode(' ', trim($userData['nama_pengguna'] ?? getPenggunaName())) as $w) {
+    $initials .= strtoupper(mb_substr($w, 0, 1));
+    if (strlen($initials) >= 2) break;
+}
+$fotoPath = (!empty($userData['foto']) && file_exists('../' . $userData['foto'])) 
+            ? '../' . htmlspecialchars($userData['foto']) 
+            : null;
+
+// Hitung statistik
+$totalBuku = $conn->query("SELECT COUNT(*) as total FROM buku")->fetch_assoc()['total'];
+$totalTersedia = $conn->query("SELECT COUNT(*) as total FROM buku WHERE status='tersedia'")->fetch_assoc()['total'];
+$totalKategori = $conn->query("SELECT COUNT(*) as total FROM kategori")->fetch_assoc()['total'];
 
 // ============================================================
 //  TAMBAH BUKU
@@ -18,24 +42,34 @@ if (isset($_POST['add'])) {
     $isbn   = trim($_POST['isbn']);
     $desk   = trim($_POST['deskripsi']);
     $stok   = (int)$_POST['stok'];
-    // FIX 1: Nilai enum DB adalah 'tidak', bukan 'tidak tersedia'
     $status = $stok > 0 ? 'tersedia' : 'tidak';
 
-    // FIX 2: Deteksi file baru yang benar — termasuk error batas ukuran server
     $adaFileAdd = isset($_FILES['cover']) && $_FILES['cover']['error'] !== UPLOAD_ERR_NO_FILE;
     $coverPath = null; $uploadGagal = false;
 
     if ($adaFileAdd) {
         $coverResult = processBookCover($_FILES['cover']);
-        if (!$coverResult['ok']) { $msg = 'Upload cover gagal: ' . $coverResult['error']; $msgType = 'warning'; $uploadGagal = true; }
-        else { $coverPath = $coverResult['path']; }
+        if (!$coverResult['ok']) { 
+            $msg = 'Upload cover gagal: ' . $coverResult['error']; 
+            $msgType = 'warning'; 
+            $uploadGagal = true; 
+        } else { 
+            $coverPath = $coverResult['path']; 
+        }
     }
 
     if (!$uploadGagal) {
         $s = $conn->prepare("INSERT INTO buku (judul_buku,id_kategori,pengarang,penerbit,tahun_terbit,isbn,deskripsi,stok,status,cover) VALUES (?,?,?,?,?,?,?,?,?,?)");
         $s->bind_param("sissississ", $judul, $id_kat, $peng, $nerbit, $tahun, $isbn, $desk, $stok, $status, $coverPath);
-        if ($s->execute()) { $s->close(); header('Location: buku.php?notif=tambah_ok'); exit; }
-        else { if ($coverPath) deleteBookCover($coverPath); $msg = 'Gagal menyimpan buku: ' . $conn->error; $msgType = 'danger'; }
+        if ($s->execute()) { 
+            $s->close(); 
+            header('Location: buku.php?notif=tambah_ok'); 
+            exit; 
+        } else { 
+            if ($coverPath) deleteBookCover($coverPath); 
+            $msg = 'Gagal menyimpan buku: ' . $conn->error; 
+            $msgType = 'danger'; 
+        }
         $s->close();
     }
 }
@@ -55,21 +89,19 @@ if (isset($_POST['edit'])) {
     $stok   = (int)$_POST['stok'];
     $status = $_POST['status'];
 
-    // Ambil cover lama
     $stmtOld = $conn->prepare("SELECT cover FROM buku WHERE id_buku=?");
     $stmtOld->bind_param("i", $id); $stmtOld->execute(); $stmtOld->bind_result($oldCover); $stmtOld->fetch(); $stmtOld->close();
 
-    // FIX 3: Deteksi file baru yang benar — termasuk error batas ukuran server
     $adaFileBaru = isset($_FILES['cover']) && $_FILES['cover']['error'] !== UPLOAD_ERR_NO_FILE;
     $newCover = $oldCover; $uploadGagal = false;
 
     if ($adaFileBaru) {
         $coverResult = processBookCover($_FILES['cover']);
         if (!$coverResult['ok']) {
-            $msg = 'Upload cover gagal: ' . $coverResult['error']; $msgType = 'warning'; $uploadGagal = true;
+            $msg = 'Upload cover gagal: ' . $coverResult['error']; 
+            $msgType = 'warning'; 
+            $uploadGagal = true;
         } else {
-            // FIX 4: Simpan path baru dulu; cover lama BELUM dihapus di sini.
-            // Penghapusan dilakukan SETELAH database berhasil di-update.
             $newCover = $coverResult['path'];
         }
     }
@@ -79,19 +111,13 @@ if (isset($_POST['edit'])) {
             "UPDATE buku SET judul_buku=?,id_kategori=?,pengarang=?,penerbit=?,
              tahun_terbit=?,isbn=?,deskripsi=?,stok=?,status=?,cover=? WHERE id_buku=?"
         );
-        // FIX 5: Tipe stok adalah integer (i), bukan string (s) → "sissississi"
-        // Tipe: s       i       s     s       i      s     s     i     s       s         i
-        //    judul  id_kat  peng  nerbit  tahun  isbn  desk  stok  status newCover  id
         $s->bind_param("sissississi", $judul, $id_kat, $peng, $nerbit, $tahun, $isbn, $desk, $stok, $status, $newCover, $id);
 
-        // FIX 6: Gunakan try...catch agar error MySQL tidak tersembunyi
         try {
             $s->execute();
             $s->close();
 
-            // UPDATE berhasil — baru sekarang hapus cover lama jika benar-benar diganti
             if ($adaFileBaru && $newCover !== $oldCover) {
-                // FIX 7 & 9: Jangan hapus cover "default"
                 if (!empty($oldCover) && strpos($oldCover, 'default') === false) {
                     deleteBookCover($oldCover);
                 }
@@ -101,9 +127,8 @@ if (isset($_POST['edit'])) {
             exit;
 
         } catch (Exception $e) {
-            // UPDATE gagal — tampilkan error MySQL & rollback file baru yang terlanjur ter-upload
             if ($adaFileBaru && $newCover !== $oldCover) {
-                deleteBookCover($newCover); // rollback
+                deleteBookCover($newCover);
             }
             $msg = 'Gagal memperbarui buku: ' . $e->getMessage();
             $msgType = 'danger';
@@ -119,27 +144,38 @@ if (isset($_POST['delete'])) {
     $id = (int)$_POST['id_buku'];
     $cekAktif = $conn->prepare("SELECT COUNT(*) FROM transaksi WHERE id_buku=? AND status_transaksi='Peminjaman'");
     $cekAktif->bind_param("i", $id); $cekAktif->execute(); $cekAktif->bind_result($jumlahAktif); $cekAktif->fetch(); $cekAktif->close();
-    if ($jumlahAktif > 0) { $msg = 'Buku sedang dipinjam, tidak bisa dihapus!'; $msgType = 'warning'; }
-    else {
+    if ($jumlahAktif > 0) { 
+        $msg = 'Buku sedang dipinjam, tidak bisa dihapus!'; 
+        $msgType = 'warning'; 
+    } else {
         $stmtCov = $conn->prepare("SELECT cover FROM buku WHERE id_buku=?");
         $stmtCov->bind_param("i", $id); $stmtCov->execute(); $stmtCov->bind_result($coverToDel); $stmtCov->fetch(); $stmtCov->close();
         $s = $conn->prepare("DELETE FROM buku WHERE id_buku=?");
         $s->bind_param("i", $id);
         if ($s->execute()) {
             $s->close();
-            // FIX 9: Jangan hapus cover "default"
             if (!empty($coverToDel) && strpos($coverToDel, 'default') === false) {
                 deleteBookCover($coverToDel);
             }
-            header('Location: buku.php?notif=hapus_ok'); exit;
-        } else { $msg = 'Gagal menghapus buku!'; $msgType = 'danger'; }
+            header('Location: buku.php?notif=hapus_ok'); 
+            exit;
+        } else { 
+            $msg = 'Gagal menghapus buku!'; 
+            $msgType = 'danger'; 
+        }
         $s->close();
     }
 }
 
 if (empty($msg) && isset($_GET['notif'])) {
-    $notifMap = ['tambah_ok'=>['Buku berhasil ditambahkan!','success'],'edit_ok'=>['Buku berhasil diperbarui!','success'],'hapus_ok'=>['Buku berhasil dihapus!','success']];
-    if (isset($notifMap[$_GET['notif']])) [$msg, $msgType] = $notifMap[$_GET['notif']];
+    $notifMap = [
+        'tambah_ok' => ['Buku berhasil ditambahkan!', 'success'],
+        'edit_ok' => ['Buku berhasil diperbarui!', 'success'],
+        'hapus_ok' => ['Buku berhasil dihapus!', 'success']
+    ];
+    if (isset($notifMap[$_GET['notif']])) {
+        [$msg, $msgType] = $notifMap[$_GET['notif']];
+    }
 }
 
 $cats = $conn->query("SELECT * FROM kategori ORDER BY nama_kategori");
@@ -160,192 +196,100 @@ if (isset($_GET['edit'])) {
     $editBook = $s->get_result()->fetch_assoc();
     $s->close();
 }
+
+$page_title = 'Manajemen Buku';
+$page_sub   = 'Kelola koleksi buku perpustakaan';
 ?>
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buku — Petugas Perpustakaan</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/petugas.css">
-    <link rel="stylesheet" href="../assets/css/table.css">
-    <link rel="stylesheet" href="../assets/css/form.css">
-    <style>
-    /* =========================================================
-   DESAIN AREA UPLOAD/EDIT COVER BUKU
-   ========================================================= */
-
-    /* Area utama upload (Kotak putus-putus) */
-    .cover-upload-area {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        padding: 20px;
-        border: 2px dashed #cbd5e1;
-        /* Warna garis putus-putus abu-abu */
-        border-radius: 12px;
-        background-color: #f8fafc;
-        transition: all 0.3s ease-in-out;
-    }
-
-    /* Efek saat area di-hover */
-    .cover-upload-area:hover {
-        border-color: #3b82f6;
-        /* Berubah biru saat di-hover */
-        background-color: #eff6ff;
-    }
-
-    /* Pembungkus gambar preview */
-    .cover-preview-wrap {
-        position: relative;
-        width: 110px;
-        /* Proporsi rasio cover buku */
-        height: 150px;
-        border-radius: 8px;
-        overflow: hidden;
-        cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        flex-shrink: 0;
-        background-color: #e2e8f0;
-    }
-
-    /* Gambar preview di dalamnya */
-    .cover-preview-wrap img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
-
-    /* Efek zoom kecil saat gambar disentuh */
-    .cover-preview-wrap:hover img {
-        transform: scale(1.05);
-    }
-
-    /* Lapisan transparan (Overlay) 'Ganti Cover' di atas gambar */
-    .overlay-hint {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(0, 0, 0, 0.65);
-        color: #ffffff;
-        font-size: 12px;
-        font-weight: 500;
-        text-align: center;
-        padding: 8px 5px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        opacity: 0;
-        /* Disembunyikan secara default */
-        transition: opacity 0.3s ease;
-    }
-
-    /* Munculkan overlay saat gambar di-hover */
-    .cover-preview-wrap:hover .overlay-hint {
-        opacity: 1;
-    }
-
-    /* Bagian teks dan tombol di sebelah gambar */
-    .cover-upload-meta {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    /* Desain Tombol Pilih File */
-    .cover-upload-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background-color: #ffffff;
-        border: 1px solid #cbd5e1;
-        color: #334155;
-        font-size: 14px;
-        font-weight: 600;
-        padding: 8px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s;
-        width: fit-content;
-    }
-
-    .cover-upload-btn:hover {
-        background-color: #f1f5f9;
-        border-color: #94a3b8;
-    }
-
-    /* Nama file yang terpilih */
-    .cover-filename {
-        font-size: 13px;
-        font-weight: 600;
-        color: #10b981;
-        /* Warna hijau sukses */
-        display: none;
-        /* Disembunyikan sampai ada file dipilih */
-        word-break: break-all;
-        max-width: 200px;
-    }
-
-    /* Teks panduan (Maks 2MB, format JPG, dll) */
-    .cover-upload-hint {
-        font-size: 12px;
-        color: #64748b;
-        line-height: 1.5;
-    }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/petugas_buku.css">
 </head>
 
 <body>
     <div class="app-wrap">
         <?php include 'includes/nav.php'; ?>
+
         <div class="main-area">
             <?php include 'includes/header.php'; ?>
-            <main class="content">
 
+            <main class="content">
                 <?php if ($msg): ?>
-                <div class="alert alert-<?= $msgType ?>"><?= htmlspecialchars($msg) ?></div>
+                <div class="alert alert-<?= $msgType ?>">
+                    <i
+                        class="fas <?= $msgType === 'success' ? 'fa-check-circle' : ($msgType === 'warning' ? 'fa-exclamation-triangle' : 'fa-times-circle') ?>"></i>
+                    <?= htmlspecialchars($msg) ?>
+                </div>
                 <?php endif; ?>
 
+                <!-- Page Header -->
                 <div class="page-header">
                     <div>
-                        <div class="page-header-title">Koleksi Buku</div>
-                        <div class="page-header-sub">Tambah, edit, atau hapus data buku perpustakaan</div>
+                        <h1 class="page-header-title">Manajemen Buku</h1>
+                        <p class="page-header-sub">Kelola koleksi buku perpustakaan</p>
                     </div>
-                    <button class="btn btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
-                        <svg viewBox="0 0 24 24">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg> Tambah Buku
+                    <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+                        <i class="fas fa-plus-circle"></i>
+                        Tambah Buku Baru
                     </button>
                 </div>
 
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-book"></i></div>
+                        <div class="stat-info">
+                            <h3>Total Buku</h3>
+                            <div class="stat-number"><?= $totalBuku ?></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-info">
+                            <h3>Tersedia</h3>
+                            <div class="stat-number"><?= $totalTersedia ?></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-tags"></i></div>
+                        <div class="stat-info">
+                            <h3>Kategori</h3>
+                            <div class="stat-number"><?= $totalKategori ?></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter & Table -->
                 <div class="card">
                     <form method="GET" class="filter-bar">
                         <div class="search-wrap">
-                            <input type="text" name="search" placeholder="Cari judul atau pengarang…"
+                            <i class="fas fa-search"></i>
+                            <input type="text" name="search" placeholder="Cari judul atau pengarang..."
                                 value="<?= htmlspecialchars($search) ?>">
                         </div>
-                        <select name="kat" class="form-control" style="width:auto">
+                        <select name="kat" class="form-control" style="width:200px">
                             <option value="">Semua Kategori</option>
                             <?php $cats->data_seek(0); while($c=$cats->fetch_assoc()): ?>
                             <option value="<?= $c['id_kategori'] ?>"
                                 <?= $filter_kat==$c['id_kategori']?'selected':'' ?>>
-                                <?= htmlspecialchars($c['nama_kategori']) ?></option>
+                                <?= htmlspecialchars($c['nama_kategori']) ?>
+                            </option>
                             <?php endwhile; ?>
                         </select>
-                        <button type="submit" class="btn btn-ghost btn-sm">Filter</button>
-                        <?php if ($search||$filter_kat): ?><a href="buku.php"
-                            class="btn btn-ghost btn-sm">Reset</a><?php endif; ?>
+                        <button type="submit" class="btn-ghost btn-sm"><i class="fas fa-filter"></i> Filter</button>
+                        <?php if ($search || $filter_kat): ?>
+                        <a href="buku.php" class="btn-ghost btn-sm"><i class="fas fa-times"></i> Reset</a>
+                        <?php endif; ?>
                     </form>
 
                     <div class="table-wrap">
@@ -364,8 +308,7 @@ if (isset($_GET['edit'])) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php if ($books && $books->num_rows > 0): $no=1; ?>
-                                <?php while($b=$books->fetch_assoc()): ?>
+                                <?php if ($books && $books->num_rows > 0): $no=1; while($b=$books->fetch_assoc()): ?>
                                 <tr>
                                     <td class="text-muted text-sm"><?= $no++ ?></td>
                                     <td class="book-cover-cell">
@@ -373,7 +316,10 @@ if (isset($_GET['edit'])) {
                                         <img src="../<?= htmlspecialchars($b['cover']) ?>" class="cover-thumb"
                                             alt="cover">
                                         <?php else: ?>
-                                        <img src="../<?= DEFAULT_COVER ?>" class="cover-thumb" alt="default">
+                                        <div class="cover-thumb"
+                                            style="background: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-book" style="color: var(--neutral-400);"></i>
+                                        </div>
                                         <?php endif; ?>
                                     </td>
                                     <td>
@@ -385,33 +331,40 @@ if (isset($_GET['edit'])) {
                                             class="badge badge-muted"><?= htmlspecialchars($b['nama_kategori'] ?: '—') ?></span>
                                     </td>
                                     <td><?= $b['tahun_terbit'] ?></td>
-                                    <td><?= $b['stok'] ?></td>
+                                    <td class="fw-600"><?= $b['stok'] ?></td>
                                     <td>
                                         <span
-                                            class="badge <?= $b['status']==='tersedia'?'status-tersedia':'status-terlambat' ?>">
-                                            <?= $b['status']==='tersedia' ? '● Tersedia' : '○ Habis' ?>
+                                            class="badge <?= $b['status']==='tersedia' ? 'status-tersedia' : 'status-terlambat' ?>">
+                                            <i
+                                                class="fas <?= $b['status']==='tersedia' ? 'fa-check-circle' : 'fa-times-circle' ?>"></i>
+                                            <?= $b['status']==='tersedia' ? 'Tersedia' : 'Habis' ?>
                                         </span>
                                     </td>
                                     <td>
-                                        <div style="display:flex;gap:6px">
-                                            <a href="?edit=<?= $b['id_buku'] ?>" class="btn btn-ghost btn-sm">Edit</a>
+                                        <div class="action-btns">
+                                            <a href="?edit=<?= $b['id_buku'] ?>" class="btn-action btn-edit"
+                                                title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
                                             <form method="POST" onsubmit="return confirm('Hapus buku ini?')"
                                                 style="display:inline">
                                                 <input type="hidden" name="id_buku" value="<?= $b['id_buku'] ?>">
-                                                <button name="delete" class="btn btn-danger btn-sm">Hapus</button>
+                                                <button type="submit" name="delete" class="btn-action btn-danger"
+                                                    title="Hapus">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
                                             </form>
                                         </div>
                                     </td>
                                 </tr>
-                                <?php endwhile; ?>
-                                <?php else: ?>
+                                <?php endwhile; else: ?>
                                 <tr>
                                     <td colspan="9">
                                         <div class="empty-state">
                                             <div class="empty-state-ico">📚</div>
                                             <div class="empty-state-title">Belum ada buku</div>
-                                            <div class="empty-state-sub">Tambahkan buku pertama ke koleksi perpustakaan.
-                                            </div>
+                                            <p class="empty-state-sub">Klik tombol "Tambah Buku" untuk menambahkan buku
+                                                pertama</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -424,33 +377,35 @@ if (isset($_GET['edit'])) {
         </div>
     </div>
 
-    <!-- MODAL TAMBAH -->
-    <div id="addModal" class="modal-overlay" style="display:none"
-        onclick="if(event.target===this)this.style.display='none'">
+    <!-- ADD MODAL -->
+    <div id="addModal" class="modal-overlay" onclick="if(event.target===this)this.style.display='none'">
         <div class="modal modal-lg">
             <div class="modal-header">
-                <div class="modal-title">Tambah Buku Baru</div>
-                <button class="modal-close"
-                    onclick="document.getElementById('addModal').style.display='none'">✕</button>
+                <h3 class="modal-title"><i class="fas fa-plus-circle"></i> Tambah Buku Baru</h3>
+                <button class="modal-close" onclick="document.getElementById('addModal').style.display='none'"><i
+                        class="fas fa-times"></i></button>
             </div>
             <form method="POST" enctype="multipart/form-data">
                 <div class="modal-body">
                     <div class="form-grid">
                         <div class="form-group form-full">
-                            <label class="form-label">Judul Buku *</label>
-                            <input name="judul_buku" class="form-control" required>
+                            <label class="form-label">Judul Buku <span>*</span></label>
+                            <input type="text" name="judul_buku" class="form-control" required
+                                placeholder="Masukkan judul buku">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Pengarang *</label>
-                            <input name="pengarang" class="form-control" required>
+                            <label class="form-label">Pengarang <span>*</span></label>
+                            <input type="text" name="pengarang" class="form-control" required
+                                placeholder="Nama pengarang">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Penerbit</label>
-                            <input name="penerbit" class="form-control">
+                            <input type="text" name="penerbit" class="form-control" placeholder="Nama penerbit">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Kategori</label>
                             <select name="id_kategori" class="form-control">
+                                <option value="">-- Pilih Kategori --</option>
                                 <?php $cats->data_seek(0); while($c=$cats->fetch_assoc()): ?>
                                 <option value="<?= $c['id_kategori'] ?>"><?= htmlspecialchars($c['nama_kategori']) ?>
                                 </option>
@@ -459,46 +414,37 @@ if (isset($_GET['edit'])) {
                         </div>
                         <div class="form-group">
                             <label class="form-label">Tahun Terbit</label>
-                            <input name="tahun_terbit" type="number" class="form-control" value="<?= date('Y') ?>">
+                            <input type="number" name="tahun_terbit" class="form-control" value="<?= date('Y') ?>"
+                                min="1900" max="<?= date('Y') ?>">
                         </div>
                         <div class="form-group">
                             <label class="form-label">ISBN</label>
-                            <input name="isbn" class="form-control">
+                            <input type="text" name="isbn" class="form-control" placeholder="978-602-1234-56-7">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Stok *</label>
-                            <input name="stok" type="number" class="form-control" min="0" value="1" required>
+                            <label class="form-label">Stok <span>*</span></label>
+                            <input type="number" name="stok" class="form-control" min="0" value="1" required>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group form-full">
                             <label class="form-label">Cover Buku</label>
                             <div class="cover-upload-area">
                                 <div class="cover-preview-wrap"
                                     onclick="document.getElementById('addCoverInput').click()">
-                                    <img id="addCoverPreview" src="../<?= DEFAULT_COVER ?>" alt="Preview">
+                                    <img id="addCoverPreview" src="../uploads/covers/default-cover.png" alt="Preview">
                                     <div class="overlay-hint">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                            <polyline points="17 8 12 3 7 8" />
-                                            <line x1="12" y1="3" x2="12" y2="15" />
-                                        </svg>
-                                        Pilih Cover
+                                        <i class="fas fa-camera"></i>
+                                        <span>Ganti Cover</span>
                                     </div>
                                 </div>
                                 <div class="cover-upload-meta">
                                     <button type="button" class="cover-upload-btn"
                                         onclick="document.getElementById('addCoverInput').click()">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2.5">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                            <polyline points="17 8 12 3 7 8" />
-                                            <line x1="12" y1="3" x2="12" y2="15" />
-                                        </svg>
-                                        Pilih File
+                                        <i class="fas fa-cloud-upload-alt"></i> Pilih File Cover
                                     </button>
                                     <div class="cover-filename" id="addCoverFilename"></div>
-                                    <div class="cover-upload-hint">Format: JPG atau PNG<br>Maks. 2 MB · Opsional<br>Klik
-                                        gambar untuk memilih</div>
+                                    <div class="cover-upload-hint">
+                                        <i class="fas fa-info-circle"></i> Format: JPG, PNG • Maks. 2 MB • Opsional
+                                    </div>
                                 </div>
                             </div>
                             <input type="file" id="addCoverInput" name="cover" accept=".jpg,.jpeg,.png"
@@ -506,115 +452,112 @@ if (isset($_GET['edit'])) {
                         </div>
                         <div class="form-group form-full">
                             <label class="form-label">Deskripsi</label>
-                            <textarea name="deskripsi" class="form-control"></textarea>
+                            <textarea name="deskripsi" class="form-control"
+                                placeholder="Deskripsi singkat tentang buku..."></textarea>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-ghost"
-                        onclick="document.getElementById('addModal').style.display='none'">Batal</button>
-                    <button name="add" class="btn btn-primary">Simpan Buku</button>
+                    <button type="button" class="btn-ghost"
+                        onclick="document.getElementById('addModal').style.display='none'">
+                        <i class="fas fa-times"></i> Batal
+                    </button>
+                    <button type="submit" name="add" class="btn-primary">
+                        <i class="fas fa-save"></i> Simpan Buku
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <?php if ($editBook): ?>
-    <!-- MODAL EDIT -->
-    <div id="editModal" class="modal-overlay" onclick="if(event.target===this)location.href='buku.php'">
+    <!-- EDIT MODAL -->
+    <div id="editModal" class="modal-overlay" onclick="if(event.target===this)window.location.href='buku.php'">
         <div class="modal modal-lg">
             <div class="modal-header">
-                <div class="modal-title">Edit Buku</div>
-                <a href="buku.php" class="modal-close">✕</a>
+                <h3 class="modal-title"><i class="fas fa-edit"></i> Edit Buku</h3>
+                <a href="buku.php" class="modal-close"><i class="fas fa-times"></i></a>
             </div>
             <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="id_buku" value="<?= $editBook['id_buku'] ?>">
                 <div class="modal-body">
                     <div class="form-grid">
                         <div class="form-group form-full">
-                            <label class="form-label">Judul Buku *</label>
-                            <input name="judul_buku" class="form-control"
+                            <label class="form-label">Judul Buku <span>*</span></label>
+                            <input type="text" name="judul_buku" class="form-control"
                                 value="<?= htmlspecialchars($editBook['judul_buku']) ?>" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Pengarang *</label>
-                            <input name="pengarang" class="form-control"
+                            <label class="form-label">Pengarang <span>*</span></label>
+                            <input type="text" name="pengarang" class="form-control"
                                 value="<?= htmlspecialchars($editBook['pengarang']) ?>" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Penerbit</label>
-                            <input name="penerbit" class="form-control"
+                            <input type="text" name="penerbit" class="form-control"
                                 value="<?= htmlspecialchars($editBook['penerbit']) ?>">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Kategori</label>
                             <select name="id_kategori" class="form-control">
+                                <option value="">-- Pilih Kategori --</option>
                                 <?php $cats->data_seek(0); while($c=$cats->fetch_assoc()): ?>
                                 <option value="<?= $c['id_kategori'] ?>"
                                     <?= $c['id_kategori']==$editBook['id_kategori']?'selected':'' ?>>
-                                    <?= htmlspecialchars($c['nama_kategori']) ?></option>
+                                    <?= htmlspecialchars($c['nama_kategori']) ?>
+                                </option>
                                 <?php endwhile; ?>
                             </select>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Tahun Terbit</label>
-                            <input name="tahun_terbit" type="number" class="form-control"
+                            <input type="number" name="tahun_terbit" class="form-control"
                                 value="<?= $editBook['tahun_terbit'] ?>">
                         </div>
                         <div class="form-group">
                             <label class="form-label">ISBN</label>
-                            <input name="isbn" class="form-control" value="<?= htmlspecialchars($editBook['isbn']) ?>">
+                            <input type="text" name="isbn" class="form-control"
+                                value="<?= htmlspecialchars($editBook['isbn']) ?>">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Stok *</label>
-                            <input name="stok" type="number" class="form-control" min="0"
+                            <label class="form-label">Stok <span>*</span></label>
+                            <input type="number" name="stok" class="form-control" min="0"
                                 value="<?= $editBook['stok'] ?>" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Status</label>
                             <select name="status" class="form-control">
-                                <!-- FIX 8: value harus cocok dengan enum DB: 'tersedia' dan 'tidak' -->
                                 <option value="tersedia" <?= $editBook['status']==='tersedia'?'selected':'' ?>>Tersedia
                                 </option>
                                 <option value="tidak" <?= $editBook['status']==='tidak'?'selected':'' ?>>Tidak Tersedia
                                 </option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group form-full">
                             <label class="form-label">Cover Buku</label>
                             <?php
                             $editCoverSrc = (!empty($editBook['cover']) && file_exists('../' . $editBook['cover']))
                                             ? '../' . htmlspecialchars($editBook['cover'])
-                                            : '../' . DEFAULT_COVER;
+                                            : '../uploads/covers/default-cover.png';
                             ?>
                             <div class="cover-upload-area">
                                 <div class="cover-preview-wrap"
                                     onclick="document.getElementById('editCoverInput').click()">
-                                    <img id="editCoverPreview" src="<?= $editCoverSrc ?>" alt="Cover Saat Ini">
+                                    <img id="editCoverPreview" src="<?= $editCoverSrc ?>" alt="Cover">
                                     <div class="overlay-hint">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                            <polyline points="17 8 12 3 7 8" />
-                                            <line x1="12" y1="3" x2="12" y2="15" />
-                                        </svg>
-                                        Ganti Cover
+                                        <i class="fas fa-camera"></i>
+                                        <span>Ganti Cover</span>
                                     </div>
                                 </div>
                                 <div class="cover-upload-meta">
                                     <button type="button" class="cover-upload-btn"
                                         onclick="document.getElementById('editCoverInput').click()">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2.5">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                            <polyline points="17 8 12 3 7 8" />
-                                            <line x1="12" y1="3" x2="12" y2="15" />
-                                        </svg>
-                                        Ganti Cover
+                                        <i class="fas fa-cloud-upload-alt"></i> Ganti Cover
                                     </button>
                                     <div class="cover-filename" id="editCoverFilename"></div>
-                                    <div class="cover-upload-hint">Format: JPG atau PNG<br>Maks. 2 MB<br>Kosongkan jika
-                                        tidak ingin mengubah</div>
+                                    <div class="cover-upload-hint">
+                                        <i class="fas fa-info-circle"></i> Kosongkan jika tidak ingin mengubah cover
+                                    </div>
                                 </div>
                             </div>
                             <input type="file" id="editCoverInput" name="cover" accept=".jpg,.jpeg,.png"
@@ -629,8 +572,9 @@ if (isset($_GET['edit'])) {
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <a href="buku.php" class="btn btn-ghost">Batal</a>
-                    <button name="edit" class="btn btn-primary">Simpan Perubahan</button>
+                    <a href="buku.php" class="btn-ghost"><i class="fas fa-times"></i> Batal</a>
+                    <button type="submit" name="edit" class="btn-primary"><i class="fas fa-save"></i> Simpan
+                        Perubahan</button>
                 </div>
             </form>
         </div>
@@ -645,26 +589,44 @@ if (isset($_GET['edit'])) {
         const preview = document.getElementById(previewId);
         const fnLabel = document.getElementById(filenameId);
         if (!input.files || !input.files[0]) return;
+
         const file = input.files[0];
-        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+        const allowedTypes = ['image/jpeg', 'image/png'];
+
+        if (!allowedTypes.includes(file.type)) {
             alert('Hanya file JPG atau PNG yang diizinkan.');
             input.value = '';
             return;
         }
+
         if (file.size > 2 * 1024 * 1024) {
             alert('Ukuran file melebihi 2 MB.');
             input.value = '';
             return;
         }
+
         const reader = new FileReader();
         reader.onload = (e) => {
             preview.src = e.target.result;
         };
         reader.readAsDataURL(file);
+
         if (fnLabel) {
-            fnLabel.textContent = file.name;
+            fnLabel.textContent = '📎 ' + file.name;
             fnLabel.style.display = 'block';
         }
+    }
+
+    // Tutup modal dengan ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.getElementById('addModal').style.display = 'none';
+        }
+    });
+
+    // Prevent form resubmission
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
     }
     </script>
     <script src="../assets/js/script.js"></script>

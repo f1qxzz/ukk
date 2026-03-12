@@ -2,8 +2,28 @@
 require_once '../config/database.php';
 require_once '../includes/session.php';
 requireAdmin();
+
 $conn = getConnection();
 
+// Ambil data user untuk header
+$userId = getPenggunaId();
+$userStmt = $conn->prepare("SELECT foto, nama_pengguna FROM pengguna WHERE id_pengguna = ?");
+$userStmt->bind_param("i", $userId);
+$userStmt->execute();
+$userData = $userStmt->get_result()->fetch_assoc();
+$userStmt->close();
+
+// Inisial untuk avatar
+$initials = '';
+foreach (explode(' ', trim($userData['nama_pengguna'] ?? getPenggunaName())) as $w) {
+    $initials .= strtoupper(mb_substr($w, 0, 1));
+    if (strlen($initials) >= 2) break;
+}
+$fotoPath = (!empty($userData['foto']) && file_exists('../' . $userData['foto'])) 
+            ? '../' . htmlspecialchars($userData['foto']) 
+            : null;
+
+// Statistik
 $total_buku     = $conn->query("SELECT COUNT(*) c FROM buku")->fetch_assoc()['c'];
 $buku_tersedia  = $conn->query("SELECT COUNT(*) c FROM buku WHERE status='tersedia'")->fetch_assoc()['c'];
 $total_anggota  = $conn->query("SELECT COUNT(*) c FROM anggota")->fetch_assoc()['c'];
@@ -12,11 +32,20 @@ $aktif_pinjam   = $conn->query("SELECT COUNT(*) c FROM transaksi WHERE status_tr
 $total_denda    = $conn->query("SELECT COALESCE(SUM(total_denda),0) s FROM denda")->fetch_assoc()['s'];
 $denda_belum    = $conn->query("SELECT COALESCE(SUM(total_denda),0) s FROM denda WHERE status_bayar='belum'")->fetch_assoc()['s'];
 
-$trans_all = $conn->query("SELECT t.*,a.nama_anggota,a.nis,a.kelas,b.judul_buku FROM transaksi t JOIN anggota a ON t.id_anggota=a.id_anggota JOIN buku b ON t.id_buku=b.id_buku ORDER BY t.tgl_pinjam DESC");
-$denda_all = $conn->query("SELECT d.*,a.nama_anggota,b.judul_buku FROM denda d JOIN transaksi t ON d.id_transaksi=t.id_transaksi JOIN anggota a ON t.id_anggota=a.id_anggota JOIN buku b ON t.id_buku=b.id_buku ORDER BY d.id_denda DESC");
+$trans_all = $conn->query("SELECT t.*,a.nama_anggota,a.nis,a.kelas,b.judul_buku,b.cover 
+                           FROM transaksi t 
+                           JOIN anggota a ON t.id_anggota=a.id_anggota 
+                           JOIN buku b ON t.id_buku=b.id_buku 
+                           ORDER BY t.tgl_pinjam DESC");
+$denda_all = $conn->query("SELECT d.*,a.nama_anggota,b.judul_buku,b.cover 
+                           FROM denda d 
+                           JOIN transaksi t ON d.id_transaksi=t.id_transaksi 
+                           JOIN anggota a ON t.id_anggota=a.id_anggota 
+                           JOIN buku b ON t.id_buku=b.id_buku 
+                           ORDER BY d.id_denda DESC");
 
-$page_title = 'Laporan';
-$page_sub   = 'Ringkasan data sistem perpustakaan';
+$page_title = 'Laporan Sistem';
+$page_sub   = 'Rekap data dan statistik perpustakaan';
 $no_laporan = 'RPT-' . date('Ymd') . '-001';
 $tgl_cetak  = date('d F Y');
 $jam_cetak  = date('H:i') . ' WIB';
@@ -26,597 +55,178 @@ $jam_cetak  = date('H:i') . ' WIB';
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan — Admin Perpustakaan</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <style>
-    /* ── Design tokens ── */
-    :root {
-        --ink: #1a1a2e;
-        --ink-mid: #3d3d5c;
-        --ink-light: #6b6b8a;
-        --ink-faint: #9898b0;
-        --rule: #d4d4e0;
-        --rule-dark: #a0a0c0;
-        --paper: #fafaf8;
-        --paper-alt: #f3f3f0;
-        --cream: #fffef9;
-        --accent: #1e3a5f;
-        --accent2: #c8392b;
-        --gold: #b8860b;
-        --green: #1a6b3c;
-        --serif: 'Libre Baskerville', Georgia, serif;
-        --sans: 'Source Sans 3', sans-serif;
-    }
-
-    /* ── Screen wrapper (hidden when printing) ── */
-    .screen-only {
-        display: block;
-    }
-
-    /* ── Report document shell ── */
-    .report-document {
-        background: var(--cream);
-        max-width: 900px;
-        margin: 28px auto;
-        border: 1px solid var(--rule);
-        box-shadow: 0 4px 32px rgba(30, 30, 60, .10), 0 1px 4px rgba(30, 30, 60, .06);
-        font-family: var(--sans);
-        color: var(--ink);
-        position: relative;
-    }
-
-    /* Decorative corner marks */
-    .report-document::before,
-    .report-document::after {
-        content: '';
-        position: absolute;
-        width: 18px;
-        height: 18px;
-        border-color: var(--accent);
-        border-style: solid;
-    }
-
-    .report-document::before {
-        top: 10px;
-        left: 10px;
-        border-width: 2px 0 0 2px;
-    }
-
-    .report-document::after {
-        bottom: 10px;
-        right: 10px;
-        border-width: 0 2px 2px 0;
-    }
-
-    /* ── Letterhead ── */
-    .rpt-letterhead {
-        padding: 36px 48px 0;
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 24px;
-    }
-
-    .rpt-org {
-        flex: 1;
-    }
-
-    .rpt-logo-mark {
-        width: 44px;
-        height: 44px;
-        background: var(--accent);
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-family: var(--serif);
-        font-size: 1.3rem;
-        font-weight: 700;
-        margin-bottom: 10px;
-        letter-spacing: -1px;
-    }
-
-    .rpt-org-name {
-        font-family: var(--serif);
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: var(--accent);
-        line-height: 1.2;
-    }
-
-    .rpt-org-sub {
-        font-size: .78rem;
-        color: var(--ink-light);
-        margin-top: 2px;
-        letter-spacing: .03em;
-        text-transform: uppercase;
-    }
-
-    .rpt-meta {
-        text-align: right;
-        font-size: .78rem;
-        color: var(--ink-light);
-        line-height: 1.8;
-    }
-
-    .rpt-meta strong {
-        color: var(--ink-mid);
-        font-weight: 600;
-    }
-
-    .rpt-doc-number {
-        display: inline-block;
-        background: var(--paper-alt);
-        border: 1px solid var(--rule);
-        border-radius: 3px;
-        padding: 2px 8px;
-        font-family: monospace;
-        font-size: .75rem;
-        color: var(--accent);
-        letter-spacing: .05em;
-        margin-bottom: 4px;
-    }
-
-    /* ── Title band ── */
-    .rpt-title-band {
-        margin: 20px 48px 0;
-        padding-bottom: 18px;
-        border-bottom: 2.5px solid var(--accent);
-        display: flex;
-        align-items: baseline;
-        gap: 16px;
-    }
-
-    .rpt-title-band::after {
-        content: '';
-        display: block;
-        position: absolute;
-        left: 48px;
-        height: 1px;
-        background: var(--rule);
-        width: calc(100% - 96px);
-        margin-top: 3px;
-    }
-
-    .rpt-title {
-        font-family: var(--serif);
-        font-size: 1.55rem;
-        font-weight: 700;
-        color: var(--accent);
-        letter-spacing: -.02em;
-    }
-
-    .rpt-title-sub {
-        font-size: .82rem;
-        color: var(--ink-faint);
-        font-style: italic;
-    }
-
-    /* ── Stats summary strip ── */
-    .rpt-stats {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0;
-        margin: 24px 48px;
-        border: 1px solid var(--rule);
-        border-radius: 4px;
-        overflow: hidden;
-    }
-
-    .rpt-stat {
-        padding: 18px 20px;
-        border-right: 1px solid var(--rule);
-        background: var(--paper-alt);
-        position: relative;
-    }
-
-    .rpt-stat:last-child {
-        border-right: none;
-    }
-
-    .rpt-stat-label {
-        font-size: .72rem;
-        text-transform: uppercase;
-        letter-spacing: .08em;
-        color: var(--ink-faint);
-        font-weight: 600;
-        margin-bottom: 6px;
-    }
-
-    .rpt-stat-val {
-        font-family: var(--serif);
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: var(--ink);
-        line-height: 1;
-    }
-
-    .rpt-stat-val.money {
-        font-size: 1.1rem;
-    }
-
-    .rpt-stat-sub {
-        font-size: .73rem;
-        color: var(--ink-light);
-        margin-top: 5px;
-    }
-
-    .rpt-stat-bar {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-    }
-
-    .rpt-stat:nth-child(1) .rpt-stat-bar {
-        background: var(--accent);
-    }
-
-    .rpt-stat:nth-child(2) .rpt-stat-bar {
-        background: var(--green);
-    }
-
-    .rpt-stat:nth-child(3) .rpt-stat-bar {
-        background: #e67e22;
-    }
-
-    .rpt-stat:nth-child(4) .rpt-stat-bar {
-        background: var(--accent2);
-    }
-
-    /* ── Section header ── */
-    .rpt-section {
-        margin: 0 48px 28px;
-    }
-
-    .rpt-section-head {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 12px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid var(--rule);
-    }
-
-    .rpt-section-num {
-        width: 22px;
-        height: 22px;
-        background: var(--accent);
-        color: #fff;
-        border-radius: 50%;
-        font-size: .68rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        font-family: var(--sans);
-    }
-
-    .rpt-section-title {
-        font-family: var(--serif);
-        font-size: .95rem;
-        font-weight: 700;
-        color: var(--ink);
-    }
-
-    .rpt-section-count {
-        margin-left: auto;
-        font-size: .72rem;
-        color: var(--ink-faint);
-        background: var(--paper-alt);
-        border: 1px solid var(--rule);
-        border-radius: 3px;
-        padding: 2px 7px;
-    }
-
-    /* ── Tables ── */
-    .rpt-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: .8rem;
-    }
-
-    .rpt-table thead tr {
-        background: var(--accent);
-        color: #fff;
-    }
-
-    .rpt-table thead th {
-        padding: 9px 11px;
-        text-align: left;
-        font-weight: 600;
-        letter-spacing: .04em;
-        font-size: .72rem;
-        text-transform: uppercase;
-        white-space: nowrap;
-    }
-
-    .rpt-table thead th:first-child {
-        border-radius: 0;
-    }
-
-    .rpt-table tbody tr {
-        border-bottom: 1px solid var(--rule);
-        transition: background .1s;
-    }
-
-    .rpt-table tbody tr:nth-child(even) {
-        background: var(--paper-alt);
-    }
-
-    .rpt-table tbody tr:hover {
-        background: #eef1f8;
-    }
-
-    .rpt-table tbody tr:last-child {
-        border-bottom: 2px solid var(--rule-dark);
-    }
-
-    .rpt-table td {
-        padding: 8px 11px;
-        color: var(--ink-mid);
-        vertical-align: middle;
-    }
-
-    .rpt-table td.num {
-        color: var(--ink-faint);
-        font-size: .72rem;
-        width: 28px;
-        text-align: center;
-    }
-
-    .rpt-table td.mono {
-        font-family: monospace;
-        font-size: .76rem;
-        color: var(--ink-light);
-    }
-
-    .rpt-table td.name {
-        font-weight: 600;
-        color: var(--ink);
-    }
-
-    .rpt-table td.book {
-        font-style: italic;
-        color: var(--ink-mid);
-        max-width: 200px;
-    }
-
-    .rpt-table td.money-cell {
-        font-weight: 600;
-        color: var(--accent);
-        white-space: nowrap;
-    }
-
-    /* ── Status badges ── */
-    .rpt-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 2px 8px;
-        border-radius: 2px;
-        font-size: .7rem;
-        font-weight: 600;
-        letter-spacing: .04em;
-        text-transform: uppercase;
-        border: 1px solid transparent;
-    }
-
-    .rpt-badge.kembali {
-        background: #e6f5ec;
-        color: var(--green);
-        border-color: #b2dfc2;
-    }
-
-    .rpt-badge.dipinjam {
-        background: #eef2fb;
-        color: #2255a4;
-        border-color: #b8c8ef;
-    }
-
-    .rpt-badge.terlambat {
-        background: #fdf0ee;
-        color: var(--accent2);
-        border-color: #f0c0ba;
-    }
-
-    .rpt-badge.lunas {
-        background: #e6f5ec;
-        color: var(--green);
-        border-color: #b2dfc2;
-    }
-
-    .rpt-badge.belum {
-        background: #fdf0ee;
-        color: var(--accent2);
-        border-color: #f0c0ba;
-    }
-
-    /* ── Footer ── */
-    .rpt-footer {
-        margin: 20px 48px 36px;
-        padding-top: 14px;
-        border-top: 1px solid var(--rule);
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-    }
-
-    .rpt-footer-left {
-        font-size: .72rem;
-        color: var(--ink-faint);
-        line-height: 1.7;
-    }
-
-    .rpt-signature {
-        text-align: center;
-        font-size: .75rem;
-        color: var(--ink-mid);
-    }
-
-    .rpt-signature-line {
-        width: 140px;
-        border-bottom: 1px solid var(--ink-mid);
-        margin: 36px auto 6px;
-    }
-
-    .rpt-signature-title {
-        font-size: .68rem;
-        color: var(--ink-faint);
-        text-transform: uppercase;
-        letter-spacing: .06em;
-    }
-
-    /* ── Empty state ── */
-    .rpt-empty {
-        text-align: center;
-        padding: 28px;
-        color: var(--ink-faint);
-        font-style: italic;
-        font-size: .82rem;
-    }
-
-    /* ── Print bar (screen only) ── */
-    .print-bar-wrap {
-        max-width: 900px;
-        margin: 0 auto 12px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 4px;
-    }
-
-    .print-bar-label {
-        font-size: .8rem;
-        color: var(--ink-light);
-        font-family: var(--sans);
-    }
-
-    /* ── PRINT STYLES ── */
-    @media print {
-
-        .screen-only,
-        .no-print,
-        .app-wrap>.sidebar,
-        nav,
-        header {
-            display: none !important;
-        }
-
-        body {
-            background: #fff;
-            margin: 0;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-
-        .app-wrap,
-        .main-area,
-        .content {
-            display: block !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        @page {
-            size: A4 portrait;
-            margin: 12mm 14mm;
-        }
-
-        .report-document {
-            max-width: 100%;
-            margin: 0;
-            box-shadow: none;
-            border: none;
-        }
-
-        .rpt-letterhead {
-            padding: 0 24px;
-        }
-
-        .rpt-title-band,
-        .rpt-stats,
-        .rpt-section,
-        .rpt-footer {
-            margin-left: 24px;
-            margin-right: 24px;
-        }
-
-        .rpt-table {
-            font-size: .74rem;
-        }
-
-        .rpt-table thead tr {
-            background: #1e3a5f !important;
-            -webkit-print-color-adjust: exact;
-        }
-
-        .rpt-table tbody tr:nth-child(even) {
-            background: #f5f5f3 !important;
-        }
-
-        .rpt-badge {
-            border: 1px solid #999 !important;
-            background: none !important;
-            color: #000 !important;
-        }
-
-        .rpt-stat {
-            background: #f5f5f3 !important;
-        }
-
-        .card {
-            page-break-inside: avoid;
-        }
-
-        thead {
-            display: table-header-group;
-        }
-
-        tr {
-            page-break-inside: avoid;
-        }
-    }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/admin_laporan.css">
 </head>
 
 <body>
     <div class="app-wrap">
-        <?php include 'includes/nav.php'; ?>
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">📚</div>
+                <div>
+                    <div class="brand-name">Perpustakaan Digital</div>
+                    <div class="brand-role">ADMINISTRATOR</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <span class="nav-section-label">UTAMA</span>
+                <a href="dashboard.php" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <span class="nav-section-label">MANAJEMEN</span>
+                <a href="pengguna.php" class="nav-link">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Pengguna</span>
+                </a>
+                <a href="anggota.php" class="nav-link">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Anggota</span>
+                </a>
+
+                <span class="nav-section-label">KOLEKSI</span>
+                <a href="kategori.php" class="nav-link">
+                    <i class="fas fa-tags"></i>
+                    <span>Kategori</span>
+                </a>
+                <a href="buku.php" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    <span>Buku</span>
+                </a>
+
+                <span class="nav-section-label">TRANSAKSI</span>
+                <a href="transaksi.php" class="nav-link">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Transaksi</span>
+                </a>
+                <a href="denda.php" class="nav-link">
+                    <i class="fas fa-coins"></i>
+                    <span>Denda</span>
+                </a>
+                <a href="laporan.php" class="nav-link active">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Laporan</span>
+                </a>
+
+                <span class="nav-section-label">AKUN</span>
+                <a href="profil.php" class="nav-link">
+                    <i class="fas fa-user"></i>
+                    <span>Profil Saya</span>
+                </a>
+                <a href="../index.php" class="nav-link">
+                    <i class="fas fa-globe"></i>
+                    <span>Beranda</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-foot">
+                <a href="logout.php" class="nav-link logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN AREA -->
         <div class="main-area">
-            <?php include 'includes/header.php'; ?>
+            <!-- HEADER -->
+            <header class="topbar">
+                <div class="page-info">
+                    <h1 class="page-title"><?= htmlspecialchars($page_title) ?></h1>
+                    <div class="page-breadcrumb"><?= htmlspecialchars($page_sub) ?></div>
+                </div>
+                <div class="topbar-right">
+                    <div class="topbar-date">
+                        <i class="far fa-calendar-alt"></i> <?= date('d M Y') ?>
+                    </div>
+                    <div class="topbar-user">
+                        <div class="topbar-avatar">
+                            <?php if ($fotoPath): ?>
+                            <img src="<?= $fotoPath ?>" alt="Foto">
+                            <?php else: ?>
+                            <?= htmlspecialchars($initials) ?>
+                            <?php endif; ?>
+                        </div>
+                        <span class="topbar-username"><?= htmlspecialchars(getPenggunaName()) ?></span>
+                    </div>
+                    <a href="logout.php" class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- CONTENT -->
             <main class="content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-header-title">Laporan Sistem</h1>
+                        <p class="page-header-sub">Rekap data dan statistik perpustakaan</p>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue"><i class="fas fa-book"></i></div>
+                        </div>
+                        <div class="stat-label">Total Buku</div>
+                        <div class="stat-value"><?= number_format($total_buku) ?></div>
+                        <div class="stat-sub"><?= $buku_tersedia ?> unit tersedia</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green"><i class="fas fa-users"></i></div>
+                        </div>
+                        <div class="stat-label">Anggota</div>
+                        <div class="stat-value"><?= number_format($total_anggota) ?></div>
+                        <div class="stat-sub">Terdaftar aktif</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon orange"><i class="fas fa-exchange-alt"></i></div>
+                        </div>
+                        <div class="stat-label">Transaksi</div>
+                        <div class="stat-value"><?= number_format($total_pinjam) ?></div>
+                        <div class="stat-sub"><?= $aktif_pinjam ?> sedang dipinjam</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon red"><i class="fas fa-coins"></i></div>
+                        </div>
+                        <div class="stat-label">Total Denda</div>
+                        <div class="stat-value">Rp <?= number_format($total_denda,0,',','.') ?></div>
+                        <div class="stat-sub">Belum lunas: Rp <?= number_format($denda_belum,0,',','.') ?></div>
+                    </div>
+                </div>
 
                 <!-- Print control bar (screen only) -->
-                <div class="print-bar-wrap no-print screen-only">
+                <div class="print-bar-wrap no-print">
                     <div class="print-bar-label">
-                        Pratinjau dokumen laporan &mdash; No. <strong><?= $no_laporan ?></strong>
+                        <i class="fas fa-file-pdf" style="color: var(--danger-500);"></i>
+                        Pratinjau dokumen laporan — No. <strong><?= $no_laporan ?></strong>
                     </div>
-                    <button onclick="window.print()" class="btn btn-primary" style="gap:8px">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <polyline points="6 9 6 2 18 2 18 9" />
-                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-                            <rect x="6" y="14" width="12" height="8" />
-                        </svg>
+                    <button onclick="window.print()" class="btn-primary">
+                        <i class="fas fa-print"></i>
                         Cetak / Export PDF
                     </button>
                 </div>
 
-                <!-- ═══════════════════════════════════════════
-                     REPORT DOCUMENT
-                ═══════════════════════════════════════════ -->
+                <!-- REPORT DOCUMENT -->
                 <div class="report-document">
-
                     <!-- Letterhead -->
                     <div class="rpt-letterhead">
                         <div class="rpt-org">
@@ -625,19 +235,17 @@ $jam_cetak  = date('H:i') . ' WIB';
                             <div class="rpt-org-sub">Sistem Manajemen Perpustakaan</div>
                         </div>
                         <div class="rpt-meta">
-                            <div class="rpt-doc-number"><?= $no_laporan ?></div><br>
-                            <strong>Tanggal Cetak</strong><br>
-                            <?= $tgl_cetak ?><br>
-                            <?= $jam_cetak ?><br><br>
-                            <strong>Dicetak oleh</strong><br>
-                            Administrator
+                            <div class="rpt-doc-number"><?= $no_laporan ?></div>
+                            <div><strong>Tanggal Cetak</strong><br><?= $tgl_cetak ?></div>
+                            <div><strong>Waktu</strong><br><?= $jam_cetak ?></div>
+                            <div><strong>Dicetak oleh</strong><br>Administrator</div>
                         </div>
                     </div>
 
                     <!-- Title band -->
-                    <div class="rpt-title-band" style="position:relative">
+                    <div class="rpt-title-band">
                         <div class="rpt-title">Laporan Sistem Perpustakaan</div>
-                        <div class="rpt-title-sub">Rekap data per <?= $tgl_cetak ?></div>
+                        <div class="rpt-title-sub">Periode: <?= $tgl_cetak ?></div>
                     </div>
 
                     <!-- Stats -->
@@ -663,9 +271,8 @@ $jam_cetak  = date('H:i') . ' WIB';
                         <div class="rpt-stat">
                             <div class="rpt-stat-bar"></div>
                             <div class="rpt-stat-label">Total Denda</div>
-                            <div class="rpt-stat-val money">Rp&nbsp;<?= number_format($total_denda,0,',','.') ?></div>
-                            <div class="rpt-stat-sub">belum lunas: Rp&nbsp;<?= number_format($denda_belum,0,',','.') ?>
-                            </div>
+                            <div class="rpt-stat-val money">Rp <?= number_format($total_denda,0,',','.') ?></div>
+                            <div class="rpt-stat-sub">belum lunas: Rp <?= number_format($denda_belum,0,',','.') ?></div>
                         </div>
                     </div>
 
@@ -694,15 +301,22 @@ $jam_cetak  = date('H:i') . ' WIB';
                                 <?php if ($trans_all && $trans_all->num_rows > 0): $n = 1; ?>
                                 <?php while($r = $trans_all->fetch_assoc()):
                                     $late = $r['status_transaksi'] === 'Peminjaman' && strtotime($r['tgl_kembali_rencana']) < time();
-                                    if ($r['status_transaksi'] === 'Pengembalian') { $sc = 'kembali';  $sl = '✓ Kembali'; }
-                                    elseif ($late)                                 { $sc = 'terlambat'; $sl = '⚠ Terlambat'; }
-                                    else                                           { $sc = 'dipinjam';  $sl = '● Dipinjam'; }
+                                    if ($r['status_transaksi'] === 'Pengembalian') { 
+                                        $sc = 'kembali';  
+                                        $sl = '<i class="fas fa-check-circle"></i> Kembali'; 
+                                    } elseif ($late) { 
+                                        $sc = 'terlambat'; 
+                                        $sl = '<i class="fas fa-exclamation-triangle"></i> Terlambat'; 
+                                    } else { 
+                                        $sc = 'dipinjam';  
+                                        $sl = '<i class="fas fa-book-reader"></i> Dipinjam'; 
+                                    }
                                 ?>
                                 <tr>
                                     <td class="num"><?= $n++ ?></td>
                                     <td class="name"><?= htmlspecialchars($r['nama_anggota']) ?></td>
                                     <td class="mono"><?= htmlspecialchars($r['nis']) ?></td>
-                                    <td class="text-sm"><?= htmlspecialchars($r['kelas']) ?></td>
+                                    <td><?= htmlspecialchars($r['kelas']) ?></td>
                                     <td class="book"><?= htmlspecialchars($r['judul_buku']) ?></td>
                                     <td><?= date('d/m/Y', strtotime($r['tgl_pinjam'])) ?></td>
                                     <td><?= date('d/m/Y', strtotime($r['tgl_kembali_rencana'])) ?></td>
@@ -746,13 +360,12 @@ $jam_cetak  = date('H:i') . ' WIB';
                                     <td class="name"><?= htmlspecialchars($r['nama_anggota']) ?></td>
                                     <td class="book"><?= htmlspecialchars($r['judul_buku']) ?></td>
                                     <td><?= $r['jumlah_hari'] ?> hari</td>
-                                    <td class="money-cell">Rp&nbsp;<?= number_format($r['total_denda'],0,',','.') ?>
-                                    </td>
+                                    <td class="money-cell">Rp <?= number_format($r['total_denda'],0,',','.') ?></td>
                                     <td>
-                                        <?php if ($r['status_bayar'] === 'lunas'): ?>
-                                        <span class="rpt-badge lunas">✓ Lunas</span>
+                                        <?php if ($r['status_bayar'] === 'sudah'): ?>
+                                        <span class="rpt-badge lunas"><i class="fas fa-check"></i> Lunas</span>
                                         <?php else: ?>
-                                        <span class="rpt-badge belum">✕ Belum</span>
+                                        <span class="rpt-badge belum"><i class="fas fa-times"></i> Belum</span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -769,6 +382,7 @@ $jam_cetak  = date('H:i') . ' WIB';
                     <!-- Footer / Signature -->
                     <div class="rpt-footer">
                         <div class="rpt-footer-left">
+                            <i class="fas fa-file-alt" style="color: var(--primary-500);"></i>
                             Dokumen ini digenerate otomatis oleh sistem.<br>
                             No. Dokumen: <strong><?= $no_laporan ?></strong> &nbsp;|&nbsp; <?= $tgl_cetak ?>,
                             <?= $jam_cetak ?>
@@ -779,12 +393,17 @@ $jam_cetak  = date('H:i') . ' WIB';
                             <div class="rpt-signature-title">Penanggung Jawab</div>
                         </div>
                     </div>
-
                 </div><!-- /report-document -->
-
             </main>
         </div>
     </div>
+
+    <script>
+    // Prevent form resubmission
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+    </script>
     <script src="../assets/js/script.js"></script>
 </body>
 

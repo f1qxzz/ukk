@@ -30,10 +30,10 @@ $fotoPath = (!empty($userData['foto']) && file_exists(dirname(__DIR__, 2) . '/' 
     <div class="topbar-left">
         <button class="sidebar-toggle"
             onclick="document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('show')">
-            <svg viewBox="0 0 24 24">
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
+            <svg viewBox="0 0 24 24" width="20" height="20">
+                <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" />
+                <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" />
+                <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" />
             </svg>
         </button>
         <div>
@@ -43,54 +43,169 @@ $fotoPath = (!empty($userData['foto']) && file_exists(dirname(__DIR__, 2) . '/' 
     </div>
     <div class="topbar-right">
         <div class="topbar-date">
-            <?php date_default_timezone_set('Asia/Jakarta'); echo date('d M Y'); ?>
+            <i class="far fa-calendar-alt"></i> <?= date('d M Y') ?>
         </div>
         <div class="topbar-user">
             <?php if ($fotoPath): ?>
             <div class="topbar-avatar">
-                <img src="<?= $fotoPath ?>" alt="Foto Profil"
-                    style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                <img src="<?= $fotoPath ?>" alt="Foto Profil">
             </div>
             <?php else: ?>
             <div class="topbar-avatar petugas"><?= $initials ?></div>
             <?php endif; ?>
             <span class="topbar-username"><?= htmlspecialchars(getPenggunaName()) ?></span>
         </div>
-        <a href="logout.php" class="btn btn-ghost btn-sm no-print" style="color:var(--danger)">
-            <svg viewBox="0 0 24 24"
-                style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            Logout
+        <a href="logout.php" class="btn-logout">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
         </a>
     </div>
 </header>
 
 <style>
-/* Style untuk avatar di header petugas */
+/* Header Styles */
+.topbar {
+    background: white;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--neutral-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow-sm);
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.sidebar-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--neutral-600);
+    display: none;
+    padding: 4px;
+}
+
+.sidebar-toggle svg {
+    width: 24px;
+    height: 24px;
+}
+
+@media (max-width: 768px) {
+    .sidebar-toggle {
+        display: block;
+    }
+}
+
+.page-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--neutral-900);
+    margin-bottom: 2px;
+}
+
+.page-breadcrumb {
+    font-size: 0.8rem;
+    color: var(--neutral-500);
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.topbar-date {
+    font-size: 0.9rem;
+    color: var(--neutral-600);
+    background: var(--neutral-100);
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.topbar-date i {
+    color: var(--petugas-500);
+}
+
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 12px 4px 4px;
+    background: var(--neutral-100);
+    border-radius: var(--radius-full);
+}
+
 .topbar-avatar {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    overflow: hidden;
+    background: linear-gradient(135deg, var(--petugas-500), var(--petugas-600));
     display: flex;
     align-items: center;
     justify-content: center;
+    color: white;
     font-weight: 600;
     font-size: 0.9rem;
-    margin-right: 8px;
-}
-
-.topbar-avatar.petugas {
-    background: linear-gradient(135deg, #2c4f7c 0%, #3a6ea5 100%);
-    color: white;
+    overflow: hidden;
 }
 
 .topbar-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.topbar-username {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--neutral-700);
+}
+
+.btn-logout {
+    background: var(--danger-50);
+    color: var(--danger-600);
+    border: none;
+    border-radius: var(--radius-full);
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.btn-logout:hover {
+    background: var(--danger-100);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 768px) {
+    .topbar-date span {
+        display: none;
+    }
+
+    .topbar-date i {
+        margin: 0;
+    }
+
+    .btn-logout span {
+        display: none;
+    }
+
+    .btn-logout {
+        padding: 8px;
+    }
 }
 </style>
