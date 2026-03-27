@@ -1,0 +1,87 @@
+/* ═══════════════════════════════════════════════════════════════
+   PRINT CSS — digunakan oleh halaman laporan (admin & petugas)
+   Load dengan: <link rel="stylesheet" media="print" href="...print.css">
+   ═══════════════════════════════════════════════════════════════ */
+
+@media print {
+
+    /* Hilangkan navigasi & tombol */
+    .no-print,
+    .app-wrap > .sidebar,
+    nav,
+    header {
+        display: none !important;
+    }
+
+    body {
+        background: #fff;
+        margin: 0;
+    }
+
+    .app-wrap,
+    .main-area,
+    .content {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Set kertas */
+    @page {
+        size: A4 portrait;
+        margin: 15mm;
+    }
+
+    /* Header cetak */
+    .print-header {
+        display: block !important;
+    }
+
+    /* Hapus shadow & border aneh */
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+        page-break-inside: avoid;
+    }
+
+    /* Tabel aman */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+        page-break-inside: auto;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+
+    th,
+    td {
+        border: 1px solid #000;
+        padding: 4px;
+    }
+
+    .badge {
+        border: 1px solid #000;
+        color: #000 !important;
+        background: none !important;
+    }
+
+    /* Stats grid biar gak melebar */
+    .stats-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .stat-card {
+        page-break-inside: avoid;
+    }
+}
