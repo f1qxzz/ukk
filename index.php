@@ -104,8 +104,16 @@ $quote=$quotes[date('z')%count($quotes)];
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/index.css">
 </head>
+<<<<<<< HEAD
 
 <body class="index-page">
+=======
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/index.css">
+</head>
+
+<body>
+>>>>>>> 232df348deadaaed9bb9be90eee8a73eef4ce42e
 
     <!-- Scroll Progress -->
     <div id="scroll-progress"></div>
