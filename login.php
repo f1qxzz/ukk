@@ -3,6 +3,7 @@ require_once 'config/database.php';
 require_once 'includes/session.php';
 initSession();
 
+// Redirect jika sudah login
 if (isPenggunaLoggedIn()) {
     header('Location: ' . (isAdmin() ? 'admin/dashboard.php' : 'petugas/dashboard.php'));
     exit;
@@ -15,52 +16,59 @@ if (isAnggotaLoggedIn()) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
-    $username  = trim($_POST['username']);
-    $password  = trim($_POST['password']);
-    $user_type = $_POST['user_type'];
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
     $conn = getConnection();
 
-    if ($user_type === 'admin' || $user_type === 'petugas') {
-        $stmt = $conn->prepare("SELECT * FROM pengguna WHERE username = ?");
+    $found = false;
+
+    // 1. Cek tabel pengguna (admin / petugas) — auto detect level
+    $stmt = $conn->prepare("SELECT * FROM pengguna WHERE username = ? LIMIT 1");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+
+    if ($row && $password === $row['password']) {
+        $found = true;
+        $_SESSION['pengguna_logged_in'] = true;
+        $_SESSION['pengguna_id']        = $row['id_pengguna'];
+        $_SESSION['pengguna_nama']      = $row['nama_pengguna'];
+        $_SESSION['pengguna_level']     = $row['level'];
+        $_SESSION['pengguna_username']  = $row['username'];
+
+        closeConnection($conn);
+        header('Location: ' . ($row['level'] === 'admin' ? 'admin/dashboard.php' : 'petugas/dashboard.php'));
+        exit;
+    }
+
+    // 2. Cek tabel anggota
+    if (!$found) {
+        $stmt = $conn->prepare("SELECT * FROM anggota WHERE username = ? LIMIT 1");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
+
         if ($row && $password === $row['password']) {
-            if ($user_type !== $row['level']) {
-                $error = 'Akses tidak sesuai dengan level akun!';
-            } else {
-                $_SESSION['pengguna_logged_in'] = true;
-                $_SESSION['pengguna_id']        = $row['id_pengguna'];
-                $_SESSION['pengguna_nama']      = $row['nama_pengguna'];
-                $_SESSION['pengguna_level']     = $row['level'];
-                $_SESSION['pengguna_username']  = $row['username'];
-                header('Location: ' . ($row['level'] === 'admin' ? 'admin/dashboard.php' : 'petugas/dashboard.php'));
-                exit;
-            }
-        } else {
-            $error = 'Username atau password salah!';
-        }
-    } else {
-        $stmt = $conn->prepare("SELECT * FROM anggota WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $row = $stmt->get_result()->fetch_assoc();
-        if ($row && $password === $row['password']) {
+            $found = true;
             if ($row['status'] !== 'aktif') {
                 $error = 'Akun Anda tidak aktif. Hubungi petugas.';
             } else {
                 $_SESSION['anggota_logged_in'] = true;
                 $_SESSION['anggota_id']        = $row['id_anggota'];
                 $_SESSION['anggota_nama']      = $row['nama_anggota'];
-                $_SESSION['anggota_nis']        = $row['nis'];
+                $_SESSION['anggota_nis']       = $row['nis'];
                 $_SESSION['anggota_kelas']     = $row['kelas'];
+                closeConnection($conn);
                 header('Location: anggota/dashboard.php');
                 exit;
             }
-        } else {
-            $error = 'Username atau password salah!';
         }
     }
+
+    if (!$found) {
+        $error = 'Username atau password salah!';
+    }
+
     closeConnection($conn);
 }
 
@@ -72,6 +80,7 @@ if (!$query) {
     die("Query error: " . $conn->error);
 }
 $data = $query->fetch_assoc();
+closeConnection($conn);
 
 // Quote of the day
 $quotes = [
@@ -141,11 +150,12 @@ $quote = $quotes[date('z') % count($quotes)];
                         <div class="stat-label">Masa Pinjam</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-users"></i></div>
-                        <div class="stat-value">3 Level</div>
-                        <div class="stat-label">Pengguna</div>
+                        <div class="stat-icon"><i class="fas fa-magic"></i></div>
+                        <div class="stat-value">Auto</div>
+                        <div class="stat-label">Deteksi Level</div>
                     </div>
                 </div>
+
 
                 <!-- Back to Home -->
                 <a href="index.php" class="back-link">
@@ -163,7 +173,6 @@ $quote = $quotes[date('z') % count($quotes)];
                         <i class="fas fa-user-circle"></i>
                     </div>
                     <h2 class="login-header-title">Masuk ke Akun</h2>
-                    <p class="login-header-subtitle">Gunakan username dan password terdaftar</p>
                 </div>
 
                 <!-- Alert Messages -->
@@ -183,15 +192,6 @@ $quote = $quotes[date('z') % count($quotes)];
 
                 <!-- Login Form -->
                 <form method="POST" novalidate>
-                    <div class="form-group">
-                        <label class="form-label">Masuk Sebagai</label>
-                        <select name="user_type" class="form-control">
-                            <option value="anggota">👨‍🎓 Anggota / Siswa</option>
-                            <option value="petugas">👮 Petugas Perpustakaan</option>
-                            <option value="admin">🛡️ Administrator</option>
-                        </select>
-                    </div>
-
                     <div class="form-group">
                         <label class="form-label">Username</label>
                         <div class="input-wrapper">
@@ -243,7 +243,6 @@ $quote = $quotes[date('z') % count($quotes)];
     function togglePassword() {
         const passwordInput = document.getElementById('password');
         const toggleIcon = document.getElementById('toggleIcon');
-
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text';
             toggleIcon.classList.remove('fa-eye');
@@ -255,28 +254,23 @@ $quote = $quotes[date('z') % count($quotes)];
         }
     }
 
-    // Form submission with loading animation
     document.getElementById('loginBtn')?.addEventListener('click', function(e) {
         const form = this.closest('form');
         if (form && form.checkValidity()) {
             this.classList.add('loading');
-            this.innerHTML = '<span>Memproses...</span><i class="fas fa-spinner"></i>';
+            this.innerHTML = '<span>Memproses...</span><i class="fas fa-spinner fa-spin"></i>';
         }
     });
 
-    // Prevent form resubmission
     if (window.history.replaceState) {
         window.history.replaceState(null, null, window.location.href);
     }
 
-    // Auto-hide alerts after 5 seconds
     setTimeout(() => {
         document.querySelectorAll('.alert').forEach(alert => {
             alert.style.transition = 'opacity 0.5s ease';
             alert.style.opacity = '0';
-            setTimeout(() => {
-                alert.style.display = 'none';
-            }, 500);
+            setTimeout(() => { alert.style.display = 'none'; }, 500);
         });
     }, 5000);
     </script>
