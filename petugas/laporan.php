@@ -67,7 +67,7 @@ $cssVer     = @filemtime('../assets/css/petugas_laporan.css') ?: time();
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="../assets/css/petugas/laporan.css?v=<?= $cssVer ?>">
 <style>
-/* ── Extra styles for date-filter + print ── */
+/* ── Extra styles for date-filter + UI ── */
 .filter-card {
     background: #fff;
     border-radius: 14px;
@@ -142,23 +142,6 @@ $cssVer     = @filemtime('../assets/css/petugas_laporan.css') ?: time();
     padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
 }
 
-/* ─── PRINT ─── */
-@media print {
-    .no-print, .sidebar, .topbar, header, .filter-card, .stats-grid,
-    .btn-print, .btn-filter, .btn-reset, .page-header { display: none !important; }
-    .main-area { margin-left: 0 !important; }
-    .app-wrap { display: block !important; }
-    body { background: white !important; }
-    .print-document { display: block !important; }
-    .report-table th, .report-table td { border: 1px solid #d1d5db !important; }
-    .badge-dipinjam { background: #fef3c7 !important; color: #92400e !important; }
-    .badge-kembali  { background: #d1fae5 !important; color: #065f46 !important; }
-    .badge-terlambat{ background: #fee2e2 !important; color: #991b1b !important; }
-}
-
-/* Print document (hidden on screen, visible only when printing) */
-.print-document { display: none; }
-
 /* Borrowing table card */
 .report-card {
     background: #fff;
@@ -202,26 +185,86 @@ $cssVer     = @filemtime('../assets/css/petugas_laporan.css') ?: time();
 .empty-row td { text-align: center; padding: 48px 16px; color: #9ca3af; }
 .empty-row .empty-ico { font-size: 2.5rem; margin-bottom: 10px; }
 
-/* Print header (only shows in print) */
-.print-header {
-    display: none;
-    text-align: center;
-    margin-bottom: 24px;
-}
+/* ─── PRINT MODERNIZATION ─── */
+.print-header { display: none; }
+.print-footer { display: none; }
+
 @media print {
-    .print-header { display: block; }
-    .print-footer { display: flex !important; }
-    .report-card { box-shadow: none !important; border: none !important; }
-    .report-card-header .period-badge { display: inline-flex !important; }
-    .report-table tbody tr:hover { background: white !important; }
-}
-.print-footer {
-    display: none;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-top: 40px;
-    padding-top: 20px;
-    border-top: 2px solid #374151;
+    @page { margin: 1.5cm 1.5cm; size: A4 portrait; }
+    .no-print, .sidebar, .topbar, header, .filter-card, .stats-grid, 
+    .btn-print, .btn-filter, .btn-reset, .page-header { display: none !important; }
+    
+    .main-area { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
+    .app-wrap { display: block !important; }
+    body { background: white !important; font-family: 'Inter', sans-serif !important; color: #111827 !important; }
+    
+    /* Modern Print Header */
+    .print-header { 
+        display: block !important; 
+        margin-bottom: 25px; 
+        padding-bottom: 15px;
+        border-bottom: 2px solid #111827;
+    }
+    .print-header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .ph-brand { font-size: 1.4rem; font-weight: 800; color: #111827; letter-spacing: -0.02em; line-height: 1.2; }
+    .ph-address { font-size: 0.85rem; color: #4b5563; margin-top: 4px; line-height: 1.5; }
+    .ph-doc { text-align: right; }
+    .ph-doc-title { font-size: 1.2rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #111827; margin-bottom: 5px; }
+    .ph-doc-meta { font-size: 0.8rem; color: #4b5563; margin-top: 3px; }
+    
+    .ph-summary { display: flex; justify-content: space-between; margin-top: 20px; font-size: 0.85rem; color: #111827; }
+    
+    /* Table Print Modernization */
+    .report-card { box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; }
+    .report-card-header { display: none !important; } /* Hide dashboard table header */
+    .report-table { border-collapse: collapse !important; width: 100% !important; margin-top: 10px; }
+    .report-table thead th { 
+        background: #f8fafc !important; 
+        color: #111827 !important; 
+        font-size: 0.75rem !important; 
+        font-weight: 700 !important; 
+        padding: 10px 8px !important; 
+        border-top: 1px solid #111827 !important;
+        border-bottom: 2px solid #111827 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .report-table tbody td { 
+        border: none !important;
+        border-bottom: 1px solid #e5e7eb !important; 
+        padding: 10px 8px !important; 
+        font-size: 0.85rem !important;
+        color: #374151 !important;
+        page-break-inside: avoid;
+    }
+    .report-table tbody tr:last-child td { border-bottom: 2px solid #111827 !important; }
+    .report-table tbody tr:hover { background: transparent !important; }
+    
+    /* Badge Outline Style (Better for B&W Printers) */
+    .badge-status { 
+        background: transparent !important; 
+        padding: 3px 8px !important; 
+        border: 1px solid #d1d5db !important; 
+        border-radius: 6px !important; 
+        font-weight: 600 !important;
+    }
+    .badge-dipinjam { border-color: #d97706 !important; color: #d97706 !important; }
+    .badge-kembali  { border-color: #059669 !important; color: #059669 !important; }
+    .badge-terlambat{ border-color: #dc2626 !important; color: #dc2626 !important; }
+
+    /* Modern Print Footer */
+    .print-footer { 
+        display: flex !important; 
+        justify-content: space-between; 
+        align-items: flex-end; 
+        margin-top: 40px; 
+        page-break-inside: avoid;
+    }
+    .pf-note { font-size: 0.75rem; color: #6b7280; line-height: 1.5; }
+    .pf-signature { text-align: center; width: 220px; }
+    .pf-sign-title { font-size: 0.85rem; color: #374151; margin-bottom: 60px; }
+    .pf-sign-name { font-size: 0.9rem; font-weight: 700; color: #111827; border-bottom: 1px solid #111827; padding-bottom: 4px; margin-bottom: 4px; }
+    .pf-sign-role { font-size: 0.75rem; color: #4b5563; }
 }
 </style>
 </head>
@@ -232,7 +275,6 @@ $cssVer     = @filemtime('../assets/css/petugas_laporan.css') ?: time();
 <?php include 'includes/header.php'; ?>
 
 <main class="content">
-<!-- Page Header -->
 <div class="page-header no-print">
     <div>
         <h1 class="page-header-title">Laporan Peminjaman</h1>
@@ -243,7 +285,6 @@ $cssVer     = @filemtime('../assets/css/petugas_laporan.css') ?: time();
     </button>
 </div>
 
-<!-- Stats -->
 <div class="stats-grid no-print">
     <div class="stat-card">
         <div class="stat-icon"><i class="fas fa-book"></i></div>
@@ -263,7 +304,6 @@ $cssVer     = @filemtime('../assets/css/petugas_laporan.css') ?: time();
     </div>
 </div>
 
-<!-- Date Filter -->
 <form method="GET" class="filter-card no-print">
     <div class="filter-group">
         <label class="filter-label"><i class="fas fa-calendar-alt" style="color:#6366f1"></i> Dari Tanggal</label>
@@ -278,20 +318,31 @@ $cssVer     = @filemtime('../assets/css/petugas_laporan.css') ?: time();
     <button type="button" class="btn-print" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
 </form>
 
-<!-- PRINT HEADER (only visible when printing) -->
 <div class="print-header">
-    <div style="font-size:1.3rem;font-weight:800;color:#111827;">Perpustakaan Digital</div>
-    <div style="font-size:0.85rem;color:#6b7280;margin-top:2px;">Jl. Pendidikan No. 1 · Sistem Manajemen Perpustakaan</div>
-    <div style="font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:12px 0 4px;color:#374151;border-top:2px solid #374151;padding-top:10px;">Laporan Peminjaman Buku</div>
-    <?php if ($dari || $sampai): ?>
-    <div style="font-size:0.82rem;color:#6b7280;">Periode: <?= $dari ? date('d M Y',strtotime($dari)) : '—' ?> s/d <?= $sampai ? date('d M Y',strtotime($sampai)) : 'sekarang' ?></div>
-    <?php else: ?>
-    <div style="font-size:0.82rem;color:#6b7280;">Semua Periode</div>
-    <?php endif; ?>
-    <div style="font-size:0.78rem;color:#9ca3af;margin-top:4px;">Dicetak: <?= $tgl_cetak ?>, <?= $jam_cetak ?> · <?= $total_data ?> data</div>
+    <div class="print-header-top">
+        <div>
+            <div class="ph-brand">Perpustakaan Digital</div>
+            <div class="ph-address">Jl. Pendidikan No. 1<br>Sistem Manajemen Perpustakaan</div>
+        </div>
+        <div class="ph-doc">
+            <div class="ph-doc-title">Laporan Peminjaman</div>
+            <div class="ph-doc-meta">No. Dokumen: <strong><?= $no_laporan ?></strong></div>
+            <div class="ph-doc-meta">Dicetak: <?= $tgl_cetak ?>, <?= $jam_cetak ?></div>
+        </div>
+    </div>
+    <div class="ph-summary">
+        <div>
+            <strong>Periode Laporan:</strong> 
+            <?php if ($dari || $sampai): ?>
+                <?= $dari ? date('d M Y',strtotime($dari)) : 'Awal' ?> s/d <?= $sampai ? date('d M Y',strtotime($sampai)) : 'Sekarang' ?>
+            <?php else: ?>
+                Semua Periode
+            <?php endif; ?>
+        </div>
+        <div><strong>Total Transaksi:</strong> <?= $total_data ?> data</div>
+    </div>
 </div>
 
-<!-- Report Table -->
 <div class="report-card">
     <div class="report-card-header">
         <div class="report-card-title">
@@ -353,16 +404,16 @@ $cssVer     = @filemtime('../assets/css/petugas_laporan.css') ?: time();
     </div>
 </div>
 
-<!-- Print Footer (only visible when printing) -->
 <div class="print-footer">
-    <div style="font-size:0.78rem;color:#6b7280;">
-        <div>No. Dokumen: <strong><?= $no_laporan ?></strong></div>
-        <div>Dicetak: <?= $tgl_cetak ?>, <?= $jam_cetak ?></div>
+    <div class="pf-note">
+        <strong>Catatan:</strong><br>
+        Dokumen ini merupakan hasil cetak otomatis dari Sistem Manajemen Perpustakaan.<br>
+        Informasi yang tertera sesuai dengan data pada sistem saat dicetak.
     </div>
-    <div style="text-align:center">
-        <div style="height:60px;border-bottom:1px solid #374151;width:160px;margin-bottom:6px"></div>
-        <div style="font-size:0.82rem;font-weight:700">Petugas Perpustakaan</div>
-        <div style="font-size:0.75rem;color:#6b7280">Penanggung Jawab</div>
+    <div class="pf-signature">
+        <div class="pf-sign-title">Mengetahui,</div>
+        <div class="pf-sign-name">Petugas Perpustakaan</div>
+        <div class="pf-sign-role">Penanggung Jawab Laporan</div>
     </div>
 </div>
 
