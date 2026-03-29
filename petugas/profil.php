@@ -352,7 +352,7 @@ $page_sub   = 'Kelola informasi akun';
                                     </div>
                                 </div>
                                 <div class="form-card-footer">
-                                    <button type="submit" name="change_pass" class="btn-save teal">
+                                    <button type="submit" name="change_pass" class="btn-save">
                                         <i class="fas fa-key"></i>
                                         Ubah Password
                                     </button>

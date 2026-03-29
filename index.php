@@ -7,21 +7,20 @@ $isAdmin = $isPetugas = $isAnggota = $loggedIn = false;
 $username = '';
 
 if(isset($_SESSION['pengguna_logged_in'])) {
-  $loggedIn = true; 
-  $username = $_SESSION['pengguna_username'] ?? '';
-  if($_SESSION['pengguna_level'] === 'admin') $isAdmin = true;
-  elseif($_SESSION['pengguna_level'] === 'petugas') $isPetugas = true;
+$loggedIn = true; 
+$username = $_SESSION['pengguna_username'] ?? '';
+if($_SESSION['pengguna_level'] === 'admin') $isAdmin = true;
+elseif($_SESSION['pengguna_level'] === 'petugas') $isPetugas = true;
 }
 if(isset($_SESSION['anggota_logged_in'])) {
-  $loggedIn = true; 
-  $username = $_SESSION['anggota_nama'] ?? ''; 
-  $isAnggota = true;
+$loggedIn = true; 
+$username = $_SESSION['anggota_nama'] ?? ''; 
+$isAnggota = true;
 }
 
 $conn = getConnection();
 
 // ── FUNGSI PENGAMAN QUERY PHP 8+ ──
-// Mencegah blank putih (Fatal Error) jika ada tabel/kolom yang belum ada di DB
 function safe_query($conn, $sql) {
     try {
         return $conn->query($sql);
@@ -39,6 +38,16 @@ function get_val($conn, $sql, $col = 'c') {
     return 0;
 }
 
+// ── FUNGSI PERBAIKAN PATH GAMBAR COVER (HANYA PEMBERSIHAN PATH) ──
+function get_cover($path) {
+    if (empty($path)) return false;
+    // Hapus "../" agar path gambar bisa dibaca dari folder root (index.php)
+    $clean_path = str_replace('../', '', $path);
+    // Langsung kembalikan path yang sudah dibersihkan, tanpa periksa file_exists()
+    // Karena kita asumsikan file-nya ada di server dan diakses dari root.
+    return $clean_path;
+}
+
 // ── STATS AMAN ──
 $total_buku    = get_val($conn, "SELECT COUNT(*) c FROM buku");
 $total_anggota = get_val($conn, "SELECT COUNT(*) c FROM anggota");
@@ -52,7 +61,7 @@ $buku_baru = [];
 if ($res_baru) { while($r = $res_baru->fetch_assoc()) $buku_baru[] = $r; }
 
 // ── BUKU POPULER ──
-$res_pop = safe_query($conn, "SELECT b.id_buku, b.judul_buku, b.pengarang, b.cover, b.status, b.tahun_terbit, k.nama_kategori, COUNT(t.id_transaksi) as jml_pinjam FROM buku b LEFT JOIN transaksi t ON b.id_buku=t.id_buku LEFT JOIN kategori k ON b.id_kategori=k.id_kategori GROUP BY b.id_buku ORDER BY jml_pinjam DESC, b.id_buku DESC LIMIT 6");
+$res_pop = safe_query($conn, "SELECT b.id_buku, b.judul_buku, b.pengarang, b.cover, b.status, b.tahun_terbit, b.deskripsi, b.penerbit, k.nama_kategori, COUNT(t.id_transaksi) as jml_pinjam FROM buku b LEFT JOIN transaksi t ON b.id_buku=t.id_buku LEFT JOIN kategori k ON b.id_kategori=k.id_kategori GROUP BY b.id_buku ORDER BY jml_pinjam DESC, b.id_buku DESC LIMIT 6");
 $buku_pop = []; 
 if ($res_pop) { while($r = $res_pop->fetch_assoc()) $buku_pop[] = $r; }
 
@@ -102,11 +111,11 @@ $jam_str = date('H:i');
 
 // ── QUOTES ──
 $quotes = [
-  ['Membaca adalah jendela dunia yang tidak pernah tertutup.','Pepatah Indonesia'],
-  ['Buku adalah teman terbaik yang tidak pernah mengecewakan.','Pepatah'],
-  ['Satu buku yang kamu baca bisa mengubah hidupmu selamanya.','Nelson Mandela'],
-  ['Investasi terbaik adalah investasi pada dirimu sendiri — membaca!','Benjamin Franklin'],
-  ['Perpustakaan adalah tempat di mana masa lalu dan masa depan bertemu.','A. Whitney Brown']
+['Membaca adalah jendela dunia yang tidak pernah tertutup.','Pepatah Indonesia'],
+['Buku adalah teman terbaik yang tidak pernah mengecewakan.','Pepatah'],
+['Satu buku yang kamu baca bisa mengubah hidupmu selamanya.','Nelson Mandela'],
+['Investasi terbaik adalah investasi pada dirimu sendiri — membaca!','Benjamin Franklin'],
+['Perpustakaan adalah tempat di mana masa lalu dan masa depan bertemu.','A. Whitney Brown']
 ];
 $quote = $quotes[date('z') % count($quotes)];
 ?>
@@ -115,7 +124,7 @@ $quote = $quotes[date('z') % count($quotes)];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="description" content="LibraSpace — Perpustakaan digital modern. Temukan, pinjam, dan nikmati ribuan koleksi buku pilihan secara online.">
+    <meta name="description" content="LibraSpace — Perpustakaan digital modern. Temukan, pinjam, and nikmati ribuan koleksi buku pilihan secara online.">
     <title>LibraSpace — Perpustakaan Digital Modern</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
@@ -158,8 +167,6 @@ $quote = $quotes[date('z') % count($quotes)];
         <div class="nav-links">
             <a href="#featured">Unggulan</a>
             <a href="#kategori">Kategori</a>
-            <a href="#populer">Populer</a>
-            <a href="#koleksi">Terbaru</a>
             <a href="#leaderboard">Peringkat</a>
             <a href="#kontak">Kontak</a>
         </div>
@@ -179,8 +186,8 @@ $quote = $quotes[date('z') % count($quotes)];
 
     <div class="drawer" id="mob">
         <button class="drawer-x" onclick="document.getElementById('mob').classList.remove('open')">✕</button>
-        <a href="#featured">Unggulan</a><a href="#kategori">Kategori</a><a href="#populer">Populer</a>
-        <a href="#koleksi">Terbaru</a><a href="#leaderboard">Peringkat</a><a href="#kontak">Kontak</a>
+        <a href="#featured">Unggulan</a><a href="#kategori">Kategori</a>
+        <a href="#leaderboard">Peringkat</a><a href="#kontak">Kontak</a>
         <?php if($loggedIn): ?>
             <a href="<?= $isAdmin ? 'admin/dashboard.php' : ($isPetugas ? 'petugas/dashboard.php' : 'anggota/dashboard.php') ?>" class="btn-primary" style="text-align:center; margin-top:10px;">Dashboard Utama</a>
             <a href="logout.php" style="color:var(--danger); text-align:center; margin-top:10px; display:block;">Keluar</a>
@@ -263,6 +270,10 @@ $quote = $quotes[date('z') % count($quotes)];
                 <div class="book-3d">
                     <div class="book-spine"></div>
                     <div class="book-face">
+                        <?php $hero_cov = get_cover($featured['cover'] ?? ''); if($hero_cov): ?>
+                            <img src="<?= htmlspecialchars($hero_cov) ?>" alt="<?= htmlspecialchars($featured['judul_buku'] ?? '') ?>" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;opacity:0.4;mix-blend-mode:overlay;">
+                        <?php endif; ?>
+                        
                         <div class="book-badge">⭐ Terpopuler</div>
                         <div class="book-label">Rekomendasi Minggu Ini</div>
                         <div class="book-deco-icon">📖</div>
@@ -323,8 +334,8 @@ $quote = $quotes[date('z') % count($quotes)];
                 '📅 Pinjaman Bulan Ini: ' . $pinjam_bulan_ini . ' Transaksi',
                 '🕐 Jam Buka: Senin–Jumat 07.00–16.00 WIB',
             ];
-            $ticker_str = implode(' &nbsp;·&nbsp; ', array_map(fn($t) => "<span class='ticker-item'>{$t}</span>", $ticker_items));
-            echo $ticker_str . ' &nbsp;&nbsp;&nbsp;&nbsp; ' . $ticker_str;
+            $ticker_str = implode('  ·  ', array_map(fn($t) => "<span class='ticker-item'>{$t}</span>", $ticker_items));
+            echo $ticker_str . '      ' . $ticker_str;
             ?>
         </div>
     </div>
@@ -361,8 +372,8 @@ $quote = $quotes[date('z') % count($quotes)];
     </div>
 
     <?php if($isAnggota && $anggota_data):
-      $nama_split = explode(' ', $anggota_data['nama_anggota'] ?? 'U');
-      $inits = strtoupper(mb_substr($nama_split[0] ?? 'U', 0, 1) . mb_substr($nama_split[1] ?? '', 0, 1));
+    $nama_split = explode(' ', $anggota_data['nama_anggota'] ?? 'U');
+    $inits = strtoupper(mb_substr($nama_split[0] ?? 'U', 0, 1) . mb_substr($nama_split[1] ?? '', 0, 1));
     ?>
     <div class="member-banner">
         <div class="mb-left">
@@ -412,8 +423,8 @@ $quote = $quotes[date('z') % count($quotes)];
         <p class="sec-sub" style="margin-bottom:32px">Dipilih berdasarkan popularitas dan ulasan terbaik dari anggota perpustakaan.</p>
         <div class="featured-grid reveal">
             <div class="featured-cover">
-                <?php if(!empty($featured['cover']) && file_exists($featured['cover'])): ?>
-                <img src="<?= htmlspecialchars($featured['cover']) ?>" alt="<?= htmlspecialchars($featured['judul_buku'] ?? '') ?>" class="featured-cover" style="max-height:100%;">
+                <?php $cov_f = get_cover($featured['cover'] ?? ''); if($cov_f): ?>
+                <img src="<?= htmlspecialchars($cov_f) ?>" alt="<?= htmlspecialchars($featured['judul_buku'] ?? '') ?>" class="featured-cover">
                 <?php else: ?>
                 <div class="featured-cover-bg"><div class="featured-deco">📖</div><div class="featured-star" style="color:#fff;">⭐ Pilihan</div></div>
                 <?php endif; ?>
@@ -442,39 +453,51 @@ $quote = $quotes[date('z') % count($quotes)];
     </section>
     <?php endif; ?>
 
-    <div class="shelf-sec">
-        <div class="shelf-hd">
-            <div>
-                <div class="shelf-pill">Koleksi Visual</div>
-                <h2 class="shelf-h">Rak <em class="shelf-h-em">Perpustakaan</em></h2>
-                <p class="shelf-sub">Hover untuk melihat buku. 🟢 Tersedia · 🔴 Sedang Dipinjam</p>
-            </div>
+    <section class="shelf-sec" id="koleksi-visual">
+    <div class="shelf-container reveal">
+        <div class="shelf-header">
+            <div class="shelf-pill">Koleksi Visual</div>
+            <h2 class="shelf-h">Jelajahi <em>Rak Digital</em></h2>
+            <p class="shelf-sub">Koleksi buku terbaru dengan status ketersediaan real-time.</p>
         </div>
-        <div class="shelf-track" id="shelfTrack">
+
+        <div class="shelf-grid">
             <?php
-            $sc = ['#c0392b','#2980b9','#27ae60','#8e44ad','#e67e22','#16a085','#2c3e50','#1abc9c','#d35400','#7f8c8d','#2ecc71','#3498db','#e74c3c','#9b59b6','#f39c12','#0097a7','#6d4c41','#455a64','#558b2f','#ad1457'];
-            $sh_books = $buku_baru; 
-            if(empty($sh_books)) {
-                $sh_books = [
-                    ['judul_buku'=>'Laskar Pelangi','status'=>'tersedia'], ['judul_buku'=>'Bumi Manusia','status'=>'tidak'],
-                    ['judul_buku'=>'Pemrograman PHP','status'=>'tersedia'], ['judul_buku'=>'Matematika XII','status'=>'tersedia'],
-                    ['judul_buku'=>'Fisika Dasar','status'=>'tidak'], ['judul_buku'=>'Sejarah Indonesia','status'=>'tersedia'],
-                    ['judul_buku'=>'Sang Pemimpi','status'=>'tersedia'], ['judul_buku'=>'Negeri 5 Menara','status'=>'tersedia']
-                ];
-            }
-            while(count($sh_books) < 20) { $sh_books = array_merge($sh_books, $sh_books); }
-            $heights = [140,160,148,170,138,155,144,168,142,158,136,162,150,145,165,140,158,148,170,152];
-            foreach(array_slice($sh_books, 0, 20) as $i => $b):
-              $h = $heights[$i % 20]; $col = $sc[$i % 20]; $avail = (($b['status'] ?? '') === 'tersedia');
+            // Mengambil data buku (menggunakan $buku_baru atau fallback)
+            $display_books = !empty($buku_baru) ? array_slice($buku_baru, 0, 12) : [];
+            
+            foreach($display_books as $i => $b):
+                $is_avail = (($b['status'] ?? '') === 'tersedia');
+                $cover_img = get_cover($b['cover'] ?? '');
             ?>
-            <div class="shbk reveal" title="<?= htmlspecialchars($b['judul_buku'] ?? '') ?>" onclick="location.href='<?= $isAnggota ? 'anggota/katalog.php' : 'login.php' ?>'">
-                <div class="shbk-spine" style="height:<?= $h ?>px; background:linear-gradient(90deg, <?= $col ?>cc, <?= $col ?>ff);">
-                    <?= htmlspecialchars(mb_substr($b['judul_buku'] ?? '', 0, 18)) ?>
+            <div class="book-card" onclick="location.href='<?= $isAnggota ? 'anggota/katalog.php' : 'login.php' ?>'">
+                <div class="book-status-badge <?= $is_avail ? 'stat-green' : 'stat-red' ?>">
+                    <?= $is_avail ? 'Tersedia' : 'Dipinjam' ?>
                 </div>
-                <div class="shbk-dot <?= $avail ? 'avail' : 'unavail' ?>"></div>
+
+                <div class="book-card-inner">
+                    <div class="book-cover-wrap">
+                        <?php if($cover_img): ?>
+                            <img src="<?= htmlspecialchars($cover_img) ?>" alt="<?= htmlspecialchars($b['judul_buku']) ?>" class="book-img">
+                        <?php else: ?>
+                            <div class="book-img-placeholder">
+                                <span>📖</span>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <div class="book-overlay">
+                            <div class="book-info-minimal">
+                                <h4 class="book-title-mini"><?= htmlspecialchars(mb_strimwidth($b['judul_buku'], 0, 45, '...')) ?></h4>
+                                <p class="book-author-mini"><?= htmlspecialchars($b['pengarang']) ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <?php endforeach; ?>
         </div>
+    </div>
+</section>
         <div class="shelf-floor"></div>
         <div class="shelf-floor-r"></div>
     </div>
@@ -498,7 +521,7 @@ $quote = $quotes[date('z') % count($quotes)];
                 ['nama_kategori'=>'Sains','jml'=>7], ['nama_kategori'=>'Referensi','jml'=>5]
             ];
             foreach(array_slice($kat_show, 0, 8) as $idx => $k):
-              $kn = $k['nama_kategori'] ?? 'Umum'; $d = $kd[$kn] ?? $kd['default'];
+            $kn = $k['nama_kategori'] ?? 'Umum'; $d = $kd[$kn] ?? $kd['default'];
             ?>
             <a href="<?= $isAnggota ? 'anggota/katalog.php?kategori='.($k['id_kategori']??'') : 'login.php' ?>" class="kat reveal" style="transition-delay:<?= $idx * .05 ?>s;">
                 <div class="kat-icon" style="background:<?= $d[2] ?>; color:<?= $d[1] ?>;"><?= $d[0] ?></div>
@@ -511,101 +534,6 @@ $quote = $quotes[date('z') % count($quotes)];
         </div>
     </section>
 
-    <section class="sec" id="populer">
-        <div class="sec-hd reveal">
-            <div class="sec-lft">
-                <div>
-                    <div class="sec-pill">Pilihan Pembaca</div>
-                    <h2 class="sec-h">Buku <em>Terpopuler</em></h2>
-                    <p class="sec-sub">Paling banyak dipinjam oleh anggota perpustakaan.</p>
-                </div>
-                <a href="<?= $isAnggota ? 'anggota/katalog.php' : 'login.php' ?>" class="sec-link">Lihat semua →</a>
-            </div>
-        </div>
-        <div class="pop-grid">
-            <?php
-            $pc = ['135deg,#dde8ff,#b8ccff', '135deg,#d4f0e8,#a8e0cc', '135deg,#ffe0dc,#ffbdb6', '135deg,#fff0cc,#ffd880', '135deg,#ecdeff,#d4b8ff', '135deg,#ccf0f8,#99ddf0'];
-            $pe = ['📘','📗','📕','📙','📓','📔'];
-            $books_p = !empty($buku_pop) ? $buku_pop : [
-                ['judul_buku'=>'Laskar Pelangi','pengarang'=>'Andrea Hirata','cover'=>'','status'=>'tersedia','nama_kategori'=>'Fiksi','jml_pinjam'=>24],
-                ['judul_buku'=>'Bumi Manusia','pengarang'=>'Pramoedya Ananta Toer','cover'=>'','status'=>'tidak','nama_kategori'=>'Fiksi','jml_pinjam'=>18],
-                ['judul_buku'=>'Pemrograman PHP','pengarang'=>'Rizky Abdulah','cover'=>'','status'=>'tersedia','nama_kategori'=>'Teknologi','jml_pinjam'=>15],
-                ['judul_buku'=>'Sejarah Indonesia','pengarang'=>'M.C. Ricklefs','cover'=>'','status'=>'tersedia','nama_kategori'=>'Sejarah','jml_pinjam'=>12],
-                ['judul_buku'=>'Matematika XII','pengarang'=>'Kemendikbud','cover'=>'','status'=>'tersedia','nama_kategori'=>'Pelajaran','jml_pinjam'=>10],
-                ['judul_buku'=>'Fisika Dasar','pengarang'=>'Halliday','cover'=>'','status'=>'tidak','nama_kategori'=>'Sains','jml_pinjam'=>8]
-            ];
-            $rank_cls = ['rank-1','rank-2','rank-3','rank-n','rank-n','rank-n'];
-            foreach(array_slice($books_p, 0, 6) as $i => $b):
-            ?>
-            <div class="popbk reveal" style="transition-delay:<?= $i * .08 ?>s">
-                <div class="popbk-cov" style="background:linear-gradient(<?= $pc[$i % 6] ?>)">
-                    <?php if(!empty($b['cover']) && file_exists($b['cover'])): ?>
-                        <img src="<?= htmlspecialchars($b['cover']) ?>" alt="">
-                    <?php else: ?>
-                        <?= $pe[$i % 6] ?>
-                    <?php endif; ?>
-                    <div class="popbk-rank <?= $rank_cls[$i] ?>">#<?= $i + 1 ?></div>
-                </div>
-                <div class="popbk-body">
-                    <div>
-                        <div class="popbk-title"><?= htmlspecialchars($b['judul_buku'] ?? '') ?></div>
-                        <div class="popbk-author"><?= htmlspecialchars($b['pengarang'] ?? '') ?></div>
-                    </div>
-                    <div class="popbk-foot">
-                        <span class="popbk-kat"><?= htmlspecialchars($b['nama_kategori'] ?? 'Umum') ?></span>
-                        <span class="popbk-avail <?= ($b['status'] ?? '') === 'tersedia' ? 'avail-y' : 'avail-n' ?>">
-                            <?= ($b['status'] ?? '') === 'tersedia' ? '● Tersedia' : '○ Dipinjam' ?>
-                        </span>
-                    </div>
-                    <?php if(!empty($b['jml_pinjam'])): ?>
-                    <div class="popbk-pinjam" style="padding: 0 14px 14px;">🔄 <?= $b['jml_pinjam'] ?> kali dipinjam</div>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-    </section>
-
-    <section class="sec alt" id="koleksi">
-        <div class="sec-hd reveal">
-            <div class="sec-lft">
-                <div>
-                    <div class="sec-pill">Koleksi Terbaru</div>
-                    <h2 class="sec-h">Baru <em>Ditambahkan</em></h2>
-                    <p class="sec-sub">Buku-buku yang baru masuk ke koleksi perpustakaan.</p>
-                </div>
-                <a href="<?= $isAnggota ? 'anggota/katalog.php' : 'login.php' ?>" class="sec-link">Lihat semua →</a>
-            </div>
-        </div>
-        <div class="nbk-outer reveal">
-            <div class="nbk-track">
-                <?php
-                $nc = ['135deg,#dde8ff,#b8ccff', '135deg,#d4f0e8,#a8e0cc', '135deg,#ffe0dc,#ffbdb6', '135deg,#fff0cc,#ffd880', '135deg,#ecdeff,#d4b8ff', '135deg,#ccf0f8,#99ddf0'];
-                $ne = ['📘','📗','📕','📙','📓','📔'];
-                $nb = $buku_baru; 
-                if(empty($nb)) {
-                    for($i=0; $i<8; $i++) $nb[] = ['judul_buku' => 'Judul Buku '.($i+1), 'pengarang' => 'Pengarang', 'cover' => ''];
-                }
-                $nbd = array_merge($nb, $nb);
-                foreach(array_slice($nbd, 0, 8) as $i => $b): $ci = $i % 6; ?>
-                <div class="nbk">
-                    <div class="nbk-cov" style="background:linear-gradient(<?= $nc[$ci] ?>)">
-                        <?php if(!empty($b['cover']) && file_exists($b['cover'])): ?>
-                            <img src="<?= htmlspecialchars($b['cover']) ?>" alt="">
-                        <?php else: ?>
-                            <?= $ne[$ci] ?>
-                        <?php endif; ?>
-                    </div>
-                    <div class="nbk-info">
-                        <?php if($i < count($buku_baru) && count($buku_baru) > 0): ?><span class="nbk-new">Baru</span><?php endif; ?>
-                        <div class="nbk-title"><?= htmlspecialchars($b['judul_buku'] ?? '') ?></div>
-                        <div class="nbk-auth"><?= htmlspecialchars($b['pengarang'] ?? '') ?></div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    </section>
 
     <section class="challenge sec">
         <div class="challenge-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:32px;">
@@ -643,12 +571,12 @@ $quote = $quotes[date('z') % count($quotes)];
                     $target = 200; $done = max($total_kembali, 0);
                     $pct_done = min(100, round($done / $target * 100));
                     $targets = [
-                      ['Buku Terbaca Komunitas', $done, $target, 'linear-gradient(90deg,#2563eb,#60a5fa)'],
-                      ['Anggota Aktif Bergabung', $total_anggota, 50, 'linear-gradient(90deg,#059669,#34d399)'],
-                      ['Ulasan Ditulis', $total_ulasan, 100, 'linear-gradient(90deg,#d97706,#fbbf24)'],
+                    ['Buku Terbaca Komunitas', $done, $target, 'linear-gradient(90deg,#2563eb,#60a5fa)'],
+                    ['Anggota Aktif Bergabung', $total_anggota, 50, 'linear-gradient(90deg,#059669,#34d399)'],
+                    ['Ulasan Ditulis', $total_ulasan, 100, 'linear-gradient(90deg,#d97706,#fbbf24)'],
                     ];
                     foreach($targets as $t):
-                      $pct = min(100, round(($t[1] / max($t[2], 1)) * 100));
+                    $pct = min(100, round(($t[1] / max($t[2], 1)) * 100));
                     ?>
                     <div class="ch-prog-row" style="margin-top:16px;">
                         <div class="ch-prog-head" style="display:flex; justify-content:space-between; margin-bottom:5px;">
@@ -697,10 +625,10 @@ $quote = $quotes[date('z') % count($quotes)];
                         <div class="lb-empty" style="padding:20px;text-align:center;">Belum ada data pinjaman</div>
                     <?php else: 
                         foreach($lb_show as $ri => $lb):
-                          $rc = $ri < 3 ? $medal_cls[$ri] : 'other';
-                          $medals = $ri < 3 ? ['🥇','🥈','🥉'][$ri] : ('#' . ($ri + 1));
-                          $nm_split = explode(' ', $lb['nama_anggota'] ?? 'User');
-                          $lbinit = strtoupper(mb_substr($nm_split[0] ?? 'U', 0, 1) . mb_substr($nm_split[1] ?? '', 0, 1));
+                        $rc = $ri < 3 ? $medal_cls[$ri] : 'other';
+                        $medals = $ri < 3 ? ['🥇','🥈','🥉'][$ri] : ('#' . ($ri + 1));
+                        $nm_split = explode(' ', $lb['nama_anggota'] ?? 'User');
+                        $lbinit = strtoupper(mb_substr($nm_split[0] ?? 'U', 0, 1) . mb_substr($nm_split[1] ?? '', 0, 1));
                     ?>
                     <div class="lb-row">
                         <div class="lb-rank <?= $rc ?>"><?= $medals ?></div>
@@ -743,8 +671,8 @@ $quote = $quotes[date('z') % count($quotes)];
                         ?>
                         <div class="rat-bars">
                             <?php for($st=5; $st>=1; $st--):
-                              $cnt = $rd[$st] ?? 0; 
-                              $pct = $mx > 0 ? round($cnt / $mx * 100) : 0;
+                            $cnt = $rd[$st] ?? 0; 
+                            $pct = $mx > 0 ? round($cnt / $mx * 100) : 0;
                             ?>
                             <div class="rbar">
                                 <div class="rbar-lbl"><?= $st ?></div>
@@ -760,8 +688,8 @@ $quote = $quotes[date('z') % count($quotes)];
                 <?php if(!empty($ulasan_arr)): ?>
                 <div class="rat-ulasan">
                     <?php foreach(array_slice($ulasan_arr, 0, 3) as $u):
-                      $u_nm_split = explode(' ', $u['nama_anggota'] ?? 'User');
-                      $uinit = strtoupper(mb_substr($u_nm_split[0] ?? 'U', 0, 1) . mb_substr($u_nm_split[1] ?? '', 0, 1));
+                    $u_nm_split = explode(' ', $u['nama_anggota'] ?? 'User');
+                    $uinit = strtoupper(mb_substr($u_nm_split[0] ?? 'U', 0, 1) . mb_substr($u_nm_split[1] ?? '', 0, 1));
                     ?>
                     <div class="rat-ul-item" style="display:flex; align-items:flex-start; gap:10px; border-top:1px solid rgba(168,85,247,.1); padding-top:12px; margin-top:12px;">
                         <div style="flex:1;">
@@ -791,18 +719,18 @@ $quote = $quotes[date('z') % count($quotes)];
         <div class="ulasan-grid">
             <?php
             $uls = !empty($ulasan_arr) ? $ulasan_arr : [
-              ['nama_anggota'=>'Budi Santoso','judul_buku'=>'Laskar Pelangi','rating'=>5,'ulasan'=>'Sistem peminjaman sangat mudah dan cepat! Bisa akses katalog dari rumah.'],
-              ['nama_anggota'=>'Siti Rahayu','judul_buku'=>'Bumi Manusia','rating'=>5,'ulasan'=>'Pengingat jatuh tempo sangat membantu. Tidak pernah terlambat lagi setelah pakai LibraSpace!'],
-              ['nama_anggota'=>'Andi Pratama','judul_buku'=>'Pemrograman PHP','rating'=>4,'ulasan'=>'Interface yang intuitif dan modern. Fitur kategori memudahkan pencarian buku.'],
-              ['nama_anggota'=>'Dewi Lestari','judul_buku'=>'Fisika Dasar','rating'=>5,'ulasan'=>'Tampilan web yang cantik dan informatif. Info ketersediaan buku real-time sangat berguna!'],
-              ['nama_anggota'=>'Reza Pahlawan','judul_buku'=>'Sejarah Indonesia','rating'=>4,'ulasan'=>'Fitur riwayat peminjaman membantu saya melacak semua buku yang pernah dibaca. Keren!'],
-              ['nama_anggota'=>'Nurul Hidayah','judul_buku'=>'Matematika XII','rating'=>5,'ulasan'=>'Proses daftar hingga bisa pinjam buku sangat cepat. Perpustakaan digital terbaik!'],
+            ['nama_anggota'=>'Budi Santoso','judul_buku'=>'Laskar Pelangi','rating'=>5,'ulasan'=>'Sistem peminjaman sangat mudah dan cepat! Bisa akses katalog dari rumah.'],
+            ['nama_anggota'=>'Siti Rahayu','judul_buku'=>'Bumi Manusia','rating'=>5,'ulasan'=>'Pengingat jatuh tempo sangat membantu. Tidak pernah terlambat lagi setelah pakai LibraSpace!'],
+            ['nama_anggota'=>'Andi Pratama','judul_buku'=>'Pemrograman PHP','rating'=>4,'ulasan'=>'Interface yang intuitif dan modern. Fitur kategori memudahkan pencarian buku.'],
+            ['nama_anggota'=>'Dewi Lestari','judul_buku'=>'Fisika Dasar','rating'=>5,'ulasan'=>'Tampilan web yang cantik dan informatif. Info ketersediaan buku real-time sangat berguna!'],
+            ['nama_anggota'=>'Reza Pahlawan','judul_buku'=>'Sejarah Indonesia','rating'=>4,'ulasan'=>'Fitur riwayat peminjaman membantu saya melacak semua buku yang pernah dibaca. Keren!'],
+            ['nama_anggota'=>'Nurul Hidayah','judul_buku'=>'Matematika XII','rating'=>5,'ulasan'=>'Proses daftar hingga bisa pinjam buku sangat cepat. Perpustakaan digital terbaik!'],
             ];
             foreach(array_slice($uls, 0, 6) as $idx => $u):
-              $stars = $u['rating'] ?? 5;
-              $nm = $u['nama_anggota'] ?? 'User';
-              $nm_split = explode(' ', $nm);
-              $init = strtoupper(mb_substr($nm_split[0] ?? 'U', 0, 1) . mb_substr($nm_split[1] ?? '', 0, 1));
+            $stars = $u['rating'] ?? 5;
+            $nm = $u['nama_anggota'] ?? 'User';
+            $nm_split = explode(' ', $nm);
+            $init = strtoupper(mb_substr($nm_split[0] ?? 'U', 0, 1) . mb_substr($nm_split[1] ?? '', 0, 1));
             ?>
             <div class="ulasan-card reveal" style="transition-delay:<?= $idx * .07 ?>s">
                 <div class="ulasan-stars"><?php for($s=1; $s<=5; $s++) echo '<span>'.($s<=$stars ? '★' : '☆').'</span>'; ?></div>
@@ -843,7 +771,7 @@ $quote = $quotes[date('z') % count($quotes)];
                     $hari_id = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
                     $hr = $hari_id[max(0, $hari - 1)];
                     foreach($jadwal as $j):
-                      $isT = ($j[0] === $hr);
+                    $isT = ($j[0] === $hr);
                     ?>
                     <div class="jb-row" style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--c-border); <?= $isT ? 'font-weight:700; color:var(--c-purple);' : '' ?>">
                         <span><?= $j[0] ?><?= $isT ? ' (Hari Ini)' : '' ?></span>
@@ -855,10 +783,10 @@ $quote = $quotes[date('z') % count($quotes)];
             <div class="rules-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
                 <?php 
                 $rules = [
-                  ['📋','var(--c-purple-pale)','Masa Pinjam 7 Hari','Buku dikembalikan dalam 7 hari kalender sejak tanggal peminjaman.'],
-                  ['💰','rgba(236,72,153,.15)','Denda Rp 1.000/Hari','Keterlambatan dikenakan denda per hari per buku yang terlambat.'],
-                  ['📖','rgba(16,185,129,.15)','Maks. 3 Buku','Setiap anggota hanya boleh meminjam 3 buku secara bersamaan.'],
-                  ['🚫','rgba(245,158,11,.15)','Jaga Kondisi Buku','Buku rusak atau hilang wajib diganti oleh peminjam.']
+                ['📋','var(--c-purple-pale)','Masa Pinjam 7 Hari','Buku dikembalikan dalam 7 hari kalender sejak tanggal peminjaman.'],
+                ['💰','rgba(236,72,153,.15)','Denda Rp 1.000/Hari','Keterlambatan dikenakan denda per hari per buku yang terlambat.'],
+                ['📖','rgba(16,185,129,.15)','Maks. 3 Buku','Setiap anggota hanya boleh meminjam 3 buku secara bersamaan.'],
+                ['🚫','rgba(245,158,11,.15)','Jaga Kondisi Buku','Buku rusak atau hilang wajib diganti oleh peminjam.']
                 ];
                 foreach($rules as $r): ?>
                 <div class="rule reveal" style="background:var(--c-surface); padding:20px; border-radius:var(--c-radius); border:1px solid var(--c-border); display:flex; gap:14px; align-items:flex-start;">
@@ -881,12 +809,12 @@ $quote = $quotes[date('z') % count($quotes)];
         </div>
         <div class="faq-wrap" style="max-width:720px; margin:0 auto;">
             <?php $faqs = [
-              ['Bagaimana cara mendaftar sebagai anggota perpustakaan?','Klik tombol "Daftar Gratis" di halaman utama, isi formulir dengan NIS, nama lengkap, kelas, username, dan password. Setelah mendaftar, akun langsung aktif dan siap digunakan untuk meminjam buku.'],
-              ['Berapa lama masa peminjaman buku?','Masa peminjaman adalah 7 hari kalender terhitung dari tanggal pinjam. Lewat dari batas waktu tersebut, akan dikenakan denda Rp 1.000 per hari per buku.'],
-              ['Berapa buku yang boleh dipinjam sekaligus?','Setiap anggota dapat meminjam maksimal 3 buku sekaligus. Peminjaman buku baru bisa dilakukan setelah salah satu buku dikembalikan.'],
-              ['Bagaimana cara mengembalikan buku?','Login ke akun kamu, masuk ke menu "Kembalikan Buku", pilih buku yang ingin dikembalikan, lalu bawa buku ke perpustakaan. Petugas akan memproses pengembalian dan memperbarui status di sistem.'],
-              ['Bagaimana cara membayar denda keterlambatan?','Denda dibayarkan langsung ke petugas perpustakaan saat pengembalian buku. Jumlah denda otomatis dihitung oleh sistem, dan kamu akan mendapat struk pembayaran dari petugas.'],
-              ['Apakah saya bisa memberikan ulasan untuk buku yang dipinjam?','Ya! Setelah mengembalikan buku, kamu bisa memberikan rating bintang 1–5 dan menulis ulasan. Ulasanmu akan membantu anggota lain menemukan buku yang tepat.'],
+            ['Bagaimana cara mendaftar sebagai anggota perpustakaan?','Klik tombol "Daftar Gratis" di halaman utama, isi formulir dengan NIS, nama lengkap, kelas, username, dan password. Setelah mendaftar, akun langsung aktif dan siap digunakan untuk meminjam buku.'],
+            ['Berapa lama masa peminjaman buku?','Masa peminjaman adalah 7 hari kalender terhitung dari tanggal pinjam. Lewat dari batas waktu tersebut, akan dikenakan denda Rp 1.000 per hari per buku.'],
+            ['Berapa buku yang boleh dipinjam sekaligus?','Setiap anggota dapat meminjam maksimal 3 buku sekaligus. Peminjaman buku baru bisa dilakukan setelah salah satu buku dikembalikan.'],
+            ['Bagaimana cara mengembalikan buku?','Login ke akun kamu, masuk ke menu "Kembalikan Buku", pilih buku yang ingin dikembalikan, lalu bawa buku ke perpustakaan. Petugas akan memproses pengembalian dan memperbarui status di sistem.'],
+            ['Bagaimana cara membayar denda keterlambatan?','Denda dibayarkan langsung ke petugas perpustakaan saat pengembalian buku. Jumlah denda otomatis dihitung oleh sistem, dan kamu akan mendapat struk pembayaran dari petugas.'],
+            ['Apakah saya bisa memberikan ulasan untuk buku yang dipinjam?','Ya! Setelah mengembalikan buku, kamu bisa memberikan rating bintang 1–5 dan menulis ulasan. Ulasanmu akan membantu anggota lain menemukan buku yang tepat.'],
             ];
             foreach($faqs as $i => $f): ?>
             <div class="faq-item reveal" onclick="toggleFaq(this)">
@@ -930,7 +858,7 @@ $quote = $quotes[date('z') % count($quotes)];
                     <div style="font-size:3rem; margin-bottom:16px;">🗺️</div>
                     <div style="font-weight:700; color:var(--c-text); margin-bottom:8px;">Peta Lokasi Perpustakaan</div>
                     <div style="font-size:.85rem; margin-bottom:20px;">Anda dapat mengunjungi kami secara langsung di area sekolah.</div>
-                    <a href="https://maps.google.com/?q=Jakarta+Selatan" target="_blank" class="btn-primary" style="text-decoration:none;">Buka di Google Maps →</a>
+                    <a href="http://maps.google.com/?q=Jl. Pendidikan No. 123, Jakarta Selatan" target="_blank" class="btn-primary" style="text-decoration:none;">Buka di Google Maps →</a>
                 </div>
             </div>
         </div>
@@ -1054,7 +982,6 @@ $quote = $quotes[date('z') % count($quotes)];
         }
     }));
 
-    /* SINKRONISASI CLASS ANIMASI (.reveal.show) */
     const ro = new IntersectionObserver(es => {
         es.forEach(el => {
             if (el.isIntersecting) {
@@ -1068,8 +995,8 @@ $quote = $quotes[date('z') % count($quotes)];
     document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
 
     function animCount(el) {
-        const raw = el.textContent.replace(/[^\d]/g, '');
-        const target = parseInt(raw) || 0;
+        // Ambil angka target langsung dari atribut data-count
+        const target = parseInt(el.getAttribute('data-count')) || parseInt(el.dataset.count) || 0; 
         if (!target) return;
         let c = 0;
         const step = Math.max(1, Math.ceil(target / 50));
@@ -1079,6 +1006,7 @@ $quote = $quotes[date('z') % count($quotes)];
             if (c >= target) clearInterval(iv);
         }, 28);
     }
+    
     const cro = new IntersectionObserver(es => {
         es.forEach(el => {
             if (el.isIntersecting) {
@@ -1087,6 +1015,7 @@ $quote = $quotes[date('z') % count($quotes)];
             }
         });
     }, { threshold: .5 });
+    
     document.querySelectorAll('[data-count]').forEach(el => {
         el.dataset.sfx = el.textContent.replace(/\d/g, '').trim();
         el.textContent = '0' + el.dataset.sfx;
@@ -1127,12 +1056,12 @@ $quote = $quotes[date('z') % count($quotes)];
                         }
                         drop.innerHTML = data.map((b, i) => `
             <div class="sd-item" onclick="location.href='${catUrl}'" style="display:flex; gap:12px; padding:12px 16px; cursor:pointer; border-bottom:1px solid var(--c-border);">
-              <div class="sd-ph" style="width:40px; height:54px; border-radius:6px; background:linear-gradient(${cov[i%5]}); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">${em[i%5]}</div>
-              <div class="sd-info" style="flex:1;">
+            <div class="sd-ph" style="width:40px; height:54px; border-radius:6px; background:linear-gradient(${cov[i%5]}); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">${em[i%5]}</div>
+            <div class="sd-info" style="flex:1;">
                 <div class="sd-title" style="font-weight:700; font-size:.85rem; color:var(--c-text); margin-bottom:4px;">${b.judul_buku||''}</div>
                 <div class="sd-meta" style="font-size:.72rem; color:var(--c-gray);">${b.pengarang||''} · ${b.nama_kategori||'Umum'}</div>
-              </div>
-              <span class="sd-badge" style="font-size:.65rem; font-weight:700; padding:4px 8px; border-radius:100px; height:fit-content; background:${b.status==='tersedia'?'#dcfce7':'#fee2e2'}; color:${b.status==='tersedia'?'#166534':'#991b1b'};">${b.status==='tersedia'?'Tersedia':'Dipinjam'}</span>
+            </div>
+            <span class="sd-badge" style="font-size:.65rem; font-weight:700; padding:4px 8px; border-radius:100px; height:fit-content; background:${b.status==='tersedia'?'#dcfce7':'#fee2e2'}; color:${b.status==='tersedia'?'#166534':'#991b1b'};">${b.status==='tersedia'?'Tersedia':'Dipinjam'}</span>
             </div>`).join('');
                     }).catch(() => drop.classList.remove('show'));
             }, 300);
@@ -1158,7 +1087,7 @@ $quote = $quotes[date('z') % count($quotes)];
         if (inp) {
             inp.value = val;
             inp.dispatchEvent(new Event('input'));
-            inp.focus();
+            inp.focus();x
         }
     }
 

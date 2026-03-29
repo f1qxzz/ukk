@@ -22,19 +22,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
 
     $found = false;
 
-    // 1. Cek tabel pengguna (admin / petugas) — auto detect level
+    // 1. Cek tabel pengguna (admin / petugas)
     $stmt = $conn->prepare("SELECT * FROM pengguna WHERE username = ? LIMIT 1");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
 
-    if ($row && $password === $row['password']) {
+    // FIX: Gunakan password_verify untuk password yang di-hash, atau === untuk akun lama (teks biasa)
+    if ($row && (password_verify($password, $row['password']) || $password === $row['password'])) {
         $found = true;
         $_SESSION['pengguna_logged_in'] = true;
         $_SESSION['pengguna_id']        = $row['id_pengguna'];
         $_SESSION['pengguna_nama']      = $row['nama_pengguna'];
         $_SESSION['pengguna_level']     = $row['level'];
         $_SESSION['pengguna_username']  = $row['username'];
+
+        // (Opsional tapi disarankan) Jika login pakai password teks biasa, otomatis update ke Hash
+        if ($password === $row['password'] && !password_verify($password, $row['password'])) {
+            $newHash = password_hash($password, PASSWORD_DEFAULT);
+            $updateStmt = $conn->prepare("UPDATE pengguna SET password = ? WHERE id_pengguna = ?");
+            $updateStmt->bind_param("si", $newHash, $row['id_pengguna']);
+            $updateStmt->execute();
+            $updateStmt->close();
+        }
 
         closeConnection($conn);
         header('Location: ' . ($row['level'] === 'admin' ? 'admin/dashboard.php' : 'petugas/dashboard.php'));
@@ -48,7 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
 
-        if ($row && $password === $row['password']) {
+        // FIX: Terapkan hal yang sama untuk tabel anggota
+        if ($row && (password_verify($password, $row['password']) || $password === $row['password'])) {
             $found = true;
             if ($row['status'] !== 'aktif') {
                 $error = 'Akun Anda tidak aktif. Hubungi petugas.';
@@ -58,6 +69,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                 $_SESSION['anggota_nama']      = $row['nama_anggota'];
                 $_SESSION['anggota_nis']       = $row['nis'];
                 $_SESSION['anggota_kelas']     = $row['kelas'];
+
+                // Update hash juga untuk anggota jika masih teks biasa
+                if ($password === $row['password'] && !password_verify($password, $row['password'])) {
+                    $newHash = password_hash($password, PASSWORD_DEFAULT);
+                    $updateStmt = $conn->prepare("UPDATE anggota SET password = ? WHERE id_anggota = ?");
+                    $updateStmt->bind_param("si", $newHash, $row['id_anggota']);
+                    $updateStmt->execute();
+                    $updateStmt->close();
+                }
+
                 closeConnection($conn);
                 header('Location: anggota/dashboard.php');
                 exit;
@@ -110,7 +131,6 @@ $quote = $quotes[date('z') % count($quotes)];
 
 <body>
     <div class="login-container">
-        <!-- Left Panel -->
         <div class="login-left">
             <div class="login-left-content">
                 <div class="login-icon">
@@ -127,7 +147,6 @@ $quote = $quotes[date('z') % count($quotes)];
                     buku secara efisien.
                 </p>
 
-                <!-- Quote of the Day -->
                 <div class="quote-box">
                     <div class="quote-text">
                         "<?= htmlspecialchars($quote[0]) ?>"
@@ -137,7 +156,6 @@ $quote = $quotes[date('z') % count($quotes)];
                     </div>
                 </div>
 
-                <!-- Stats Grid -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-book"></i></div>
@@ -156,8 +174,6 @@ $quote = $quotes[date('z') % count($quotes)];
                     </div>
                 </div>
 
-
-                <!-- Back to Home -->
                 <a href="index.php" class="back-link">
                     <i class="fas fa-arrow-left"></i>
                     Kembali ke Beranda
@@ -165,7 +181,6 @@ $quote = $quotes[date('z') % count($quotes)];
             </div>
         </div>
 
-        <!-- Right Panel -->
         <div class="login-right">
             <div class="login-box">
                 <div class="login-header">
@@ -175,7 +190,6 @@ $quote = $quotes[date('z') % count($quotes)];
                     <h2 class="login-header-title">Masuk ke Akun</h2>
                 </div>
 
-                <!-- Alert Messages -->
                 <?php if ($error): ?>
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-circle"></i>
@@ -190,7 +204,6 @@ $quote = $quotes[date('z') % count($quotes)];
                 </div>
                 <?php endif; ?>
 
-                <!-- Login Form -->
                 <form method="POST" novalidate>
                     <div class="form-group">
                         <label class="form-label">Username</label>

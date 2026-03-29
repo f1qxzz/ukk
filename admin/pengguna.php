@@ -35,7 +35,9 @@ if (isset($_POST['add'])) {
     $u = trim($_POST['username']);
     $n = trim($_POST['nama_pengguna']);
     $e = trim($_POST['email']);
-    $lv = $_POST['level'];
+    
+    // FIX: Paksa level menjadi petugas agar admin tidak bisa membuat admin baru
+    $lv = 'petugas'; 
     $p = password_hash($_POST['password'], PASSWORD_DEFAULT);
     
     $stmt = $conn->prepare("SELECT id_pengguna FROM pengguna WHERE username=?");
@@ -50,7 +52,7 @@ if (isset($_POST['add'])) {
         $stmt = $conn->prepare("INSERT INTO pengguna(username, password, nama_pengguna, email, level) VALUES(?, ?, ?, ?, ?)");
         $stmt->bind_param("sssss", $u, $p, $n, $e, $lv);
         if ($stmt->execute()) {
-            $msg = 'Pengguna berhasil ditambahkan!';
+            $msg = 'Petugas berhasil ditambahkan!';
             $msgType = 'success';
         } else {
             $msg = 'Gagal: ' . $conn->error;
@@ -136,7 +138,6 @@ $page_sub = 'Kelola akun admin dan petugas';
 
 <body>
     <div class="app-wrap">
-        <!-- SIDEBAR -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <div class="brand-icon">📚</div>
@@ -206,9 +207,7 @@ $page_sub = 'Kelola akun admin dan petugas';
             </div>
         </aside>
 
-        <!-- MAIN AREA -->
         <div class="main-area">
-            <!-- HEADER -->
             <header class="topbar">
                 <div class="page-info">
                     <h1 class="page-title"><?= htmlspecialchars($page_title) ?></h1>
@@ -235,7 +234,6 @@ $page_sub = 'Kelola akun admin dan petugas';
                 </div>
             </header>
 
-            <!-- CONTENT -->
             <main class="content">
                 <?php if ($msg): ?>
                 <div class="alert alert-<?= $msgType ?>">
@@ -245,7 +243,6 @@ $page_sub = 'Kelola akun admin dan petugas';
                 </div>
                 <?php endif; ?>
 
-                <!-- Page Header -->
                 <div class="page-header">
                     <div>
                         <h1 class="page-header-title">Manajemen Pengguna</h1>
@@ -253,11 +250,10 @@ $page_sub = 'Kelola akun admin dan petugas';
                     </div>
                     <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
                         <i class="fas fa-plus"></i>
-                        Tambah Pengguna Baru
+                        Tambah Petugas Baru
                     </button>
                 </div>
 
-                <!-- Stats Cards -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon blue"><i class="fas fa-users"></i></div>
@@ -282,7 +278,6 @@ $page_sub = 'Kelola akun admin dan petugas';
                     </div>
                 </div>
 
-                <!-- Users Table -->
                 <div class="card">
                     <div class="table-wrap">
                         <table>
@@ -354,12 +349,11 @@ $page_sub = 'Kelola akun admin dan petugas';
         </div>
     </div>
 
-    <!-- ADD MODAL -->
     <div id="addModal" class="modal-overlay" onclick="if(event.target===this)this.style.display='none'">
         <div class="modal">
             <div class="modal-header">
                 <h3 class="modal-title"><i class="fas fa-user-plus"
-                        style="color: var(--primary-500); margin-right: 8px;"></i>Tambah Pengguna Baru</h3>
+                        style="color: var(--primary-500); margin-right: 8px;"></i>Tambah Petugas Baru</h3>
                 <button class="modal-close" onclick="document.getElementById('addModal').style.display='none'"><i
                         class="fas fa-times"></i></button>
             </div>
@@ -388,10 +382,8 @@ $page_sub = 'Kelola akun admin dan petugas';
                         </div>
                         <div class="form-group">
                             <label class="form-label">Level <span style="color: var(--danger-500);">*</span></label>
-                            <select name="level" class="form-control">
-                                <option value="petugas">👤 Petugas</option>
-                                <option value="admin">👑 Admin</option>
-                            </select>
+                            <input type="text" class="form-control" value="👤 Petugas" readonly 
+                                style="background: var(--neutral-100); cursor: not-allowed;">
                         </div>
                     </div>
                 </div>
@@ -401,7 +393,7 @@ $page_sub = 'Kelola akun admin dan petugas';
                         <i class="fas fa-times"></i> Batal
                     </button>
                     <button type="submit" name="add" class="btn-primary">
-                        <i class="fas fa-save"></i> Simpan Pengguna
+                        <i class="fas fa-save"></i> Simpan Petugas
                     </button>
                 </div>
             </form>
@@ -409,7 +401,6 @@ $page_sub = 'Kelola akun admin dan petugas';
     </div>
 
     <?php if ($editUser): ?>
-    <!-- EDIT MODAL -->
     <div id="editModal" class="modal-overlay" onclick="if(event.target===this)window.location.href='pengguna.php'">
         <div class="modal">
             <div class="modal-header">
@@ -463,7 +454,6 @@ $page_sub = 'Kelola akun admin dan petugas';
     </script>
     <?php endif; ?>
 
-    <!-- RESET PASSWORD MODAL -->
     <div id="resetModal" class="modal-overlay" onclick="if(event.target===this)this.style.display='none'">
         <div class="modal" style="max-width: 400px;">
             <div class="modal-header">

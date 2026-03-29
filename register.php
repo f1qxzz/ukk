@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
                             <label class="form-label">Email</label>
                             <div class="input-wrapper">
                                 <i class="fas fa-envelope input-icon"></i>
-                                <input type="email" name="email" class="form-control" placeholder="email@gmail.com"
+                                <input type="email" name="email" class="form-control" placeholder="email@sekolah.com"
                                     value="<?= htmlspecialchars($old['email'] ?? '') ?>">
                             </div>
                         </div>
