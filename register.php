@@ -49,40 +49,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
 ?>
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar Anggota — Perpustakaan Digital</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/register.css">
 </head>
-
-<body>
+<body class="page-transition">
     <div class="register-container">
-        <!-- Left Panel -->
         <div class="register-left">
             <div class="register-left-content">
                 <div class="register-icon">
                     <i class="fas fa-user-plus"></i>
                 </div>
-
                 <h1 class="register-title-large">
                     Bergabung dengan<br>
                     <span>Perpustakaan Digital</span>
                 </h1>
-
                 <p class="register-description">
-                    Daftar sebagai anggota dan nikmati kemudahan mengakses ribuan koleksi buku dari mana saja, kapan
-                    saja.
+                    Daftar sebagai anggota dan nikmati kemudahan mengakses ribuan koleksi buku dari mana saja, kapan saja.
                 </p>
 
-                <!-- Benefits List -->
                 <ul class="benefits-list">
                     <li class="benefit-item">
                         <div class="benefit-icon"><i class="fas fa-book"></i></div>
@@ -106,7 +97,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
                     </li>
                 </ul>
 
-                <!-- Back to Home -->
                 <a href="index.php" class="back-link">
                     <i class="fas fa-arrow-left"></i>
                     Kembali ke Beranda
@@ -114,7 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
             </div>
         </div>
 
-        <!-- Right Panel -->
         <div class="register-right">
             <div class="register-box">
                 <div class="register-header">
@@ -125,7 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
                     <p class="register-header-subtitle">Isi data diri Anda untuk mendaftar sebagai anggota</p>
                 </div>
 
-                <!-- Alert Messages -->
                 <?php if ($error): ?>
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-circle"></i>
@@ -133,7 +121,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
                 </div>
                 <?php endif; ?>
 
-                <!-- Registration Form -->
                 <form method="POST" novalidate>
                     <div class="form-row">
                         <div class="form-group">
@@ -197,7 +184,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
                             </button>
                         </div>
 
-                        <!-- Password Strength Indicator -->
                         <div class="password-strength">
                             <div class="strength-bar" id="bar1"></div>
                             <div class="strength-bar" id="bar2"></div>
@@ -295,7 +281,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
     if (window.history.replaceState) {
         window.history.replaceState(null, null, window.location.href);
     }
+
+    // Page Exit Transition Link
+    document.querySelectorAll('a:not([target="_blank"])').forEach(link => {
+        link.addEventListener('click', e => {
+            if(link.hostname === window.location.hostname && !link.hash) {
+                e.preventDefault();
+                const href = link.href;
+                document.body.classList.replace('page-transition', 'page-exit');
+                setTimeout(() => window.location.href = href, 350); 
+            }
+        });
+    });
     </script>
 </body>
-
 </html>

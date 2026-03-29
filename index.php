@@ -165,7 +165,6 @@ $quote = $quotes[date('z') % count($quotes)];
             <div class="nav-name">Libra<span>Space</span></div>
         </a>
         <div class="nav-links">
-            <a href="#featured">Unggulan</a>
             <a href="#kategori">Kategori</a>
             <a href="#leaderboard">Peringkat</a>
             <a href="#kontak">Kontak</a>
@@ -264,25 +263,33 @@ $quote = $quotes[date('z') % count($quotes)];
             </div>
         </div>
 
-        <div class="hero-right">
-            <?php if($featured): ?>
-            <div class="featured-book-3d" onclick="location.href='<?= $isAnggota ? 'anggota/katalog.php' : 'login.php' ?>'">
-                <div class="book-3d">
-                    <div class="book-spine"></div>
-                    <div class="book-face">
-                        <?php $hero_cov = get_cover($featured['cover'] ?? ''); if($hero_cov): ?>
-                            <img src="<?= htmlspecialchars($hero_cov) ?>" alt="<?= htmlspecialchars($featured['judul_buku'] ?? '') ?>" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;opacity:0.4;mix-blend-mode:overlay;">
-                        <?php endif; ?>
-                        
-                        <div class="book-badge">⭐ Terpopuler</div>
+      <div class="hero-right">
+    <?php if($featured): ?>
+    <div class="featured-book-3d" onclick="location.href='<?= $isAnggota ? 'anggota/katalog.php' : 'login.php' ?>'">
+        <div class="book-3d">
+            <div class="book-spine"></div>
+            
+            <div class="book-face">
+                <?php $hero_cov = get_cover($featured['cover'] ?? ''); if($hero_cov): ?>
+                    <img src="<?= htmlspecialchars($hero_cov) ?>" alt="<?= htmlspecialchars($featured['judul_buku'] ?? '') ?>" class="hero-book-cover">
+                <?php endif; ?>
+                
+                <div class="book-face-overlay">
+                    <div class="book-badge">
+                        <i class="fas fa-star"></i> Terpopuler
+                    </div>
+                    
+                    <div class="book-content-bottom">
                         <div class="book-label">Rekomendasi Minggu Ini</div>
-                        <div class="book-deco-icon">📖</div>
                         <div class="book-title"><?= htmlspecialchars(mb_strimwidth($featured['judul_buku'] ?? 'Judul Buku', 0, 40, '…')) ?></div>
                         <div class="book-author"><?= htmlspecialchars($featured['pengarang'] ?? 'Pengarang') ?></div>
                     </div>
                 </div>
             </div>
-            <?php endif; ?>
+        </div>
+    </div>
+    <?php endif; ?> 
+</div>
             
             <div class="hero-widgets">
                 <div class="hw hw1">
@@ -896,7 +903,6 @@ $quote = $quotes[date('z') % count($quotes)];
             <div>
                 <div class="foot-col-title" style="font-weight:700; color:white; margin-bottom:15px;">Informasi</div>
                 <div class="foot-links" style="display:flex; flex-direction:column; gap:8px;">
-                    <a href="#featured" style="color:rgba(255,255,255,0.7); font-size:0.85rem; text-decoration:none;">Buku Unggulan</a>
                     <a href="#kategori" style="color:rgba(255,255,255,0.7); font-size:0.85rem; text-decoration:none;">Kategori</a>
                     <a href="#kontak" style="color:rgba(255,255,255,0.7); font-size:0.85rem; text-decoration:none;">Kontak</a>
                     <a href="setup.php" style="color:rgba(255,255,255,0.7); font-size:0.85rem; text-decoration:none;">Setup Database</a>

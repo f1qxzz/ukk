@@ -1,50 +1,54 @@
 /* ═══════════════════════════════════════════════════════════════
-   PERPUSTAKAAN DIGITAL — MODERN ADMIN DESIGN SYSTEM v2.0
-   Deep Navy + White + Soft Gray | DM Sans + Playfair Display
+   PERPUSTAKAAN DIGITAL — MODERN ADMIN DESIGN SYSTEM (Coffee Theme)
    ═══════════════════════════════════════════════════════════════ */
 
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap");
-
-/* ─── TOKENS ─────────────────────────────────────────────────── */
 :root {
-  --navy: #0f1f3d;
-  --navy-2: #162847;
-  --navy-3: #1e3460;
-  --navy-light: #2a4a7f;
-  --accent: #3b82f6;
-  --accent-2: #2563eb;
-  --accent-soft: rgba(59, 130, 246, 0.12);
+  --navy: #561C24;       /* Primary Maroon */
+  --navy-2: #3A1016;     /* Darker Maroon */
+  --navy-3: #6D2932;     /* Secondary Maroon */
+  --navy-light: #8E3B46; /* Lighter Maroon */
+  
+  --accent: #561C24;
+  --accent-2: #6D2932;
+  --accent-soft: rgba(86, 28, 36, 0.08);
+  
   --success: #10b981;
   --success-soft: #d1fae5;
   --warning: #f59e0b;
   --warning-soft: #fef3c7;
   --danger: #ef4444;
   --danger-soft: #fee2e2;
-  --info: #6366f1;
-  --info-soft: #ede9fe;
+  --info: #C7B7A3;       /* Beige Info */
+  --info-soft: rgba(199, 183, 163, 0.2);
+  
   --white: #ffffff;
-  --gray-50: #f8fafc;
-  --gray-100: #f1f5f9;
-  --gray-200: #e2e8f0;
-  --gray-300: #cbd5e1;
-  --gray-400: #94a3b8;
-  --gray-500: #64748b;
-  --gray-600: #475569;
-  --gray-700: #334155;
-  --gray-800: #1e293b;
+  --gray-50: #FDFBF7;    /* Cream Sangat Terang */
+  --gray-100: #F5EFE6;   /* Cream Background */
+  --gray-200: #E8D8C4;   /* Beige Light / Border */
+  --gray-300: #C7B7A3;   /* Beige */
+  --gray-400: #9A8A8D;
+  --gray-500: #6D5A5E;
+  --gray-600: #4A3A3D;
+  --gray-700: #2C1A1D;   /* Teks Utama */
+  --gray-800: #1A1213;   /* Teks Heading */
+  
   --sidebar-w: 260px;
   --topbar-h: 64px;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-lg: 16px;
-  --sh-xs: 0 1px 3px rgba(15, 31, 61, 0.06), 0 1px 2px rgba(15, 31, 61, 0.04);
-  --sh-sm: 0 4px 12px rgba(15, 31, 61, 0.08);
-  --sh-md: 0 8px 24px rgba(15, 31, 61, 0.1);
-  --sh-lg: 0 16px 48px rgba(15, 31, 61, 0.14);
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur: 200ms;
+  
+  /* Lebih rounded seperti aplikasi modern */
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-lg: 24px;
+  
+  /* Shadow yang lebih halus */
+  --sh-xs: 0 4px 12px rgba(86, 28, 36, 0.04);
+  --sh-sm: 0 8px 24px rgba(86, 28, 36, 0.08);
+  --sh-md: 0 12px 32px rgba(86, 28, 36, 0.12);
+  --sh-lg: 0 20px 48px rgba(86, 28, 36, 0.15);
+  
+  --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --dur: 300ms;
 }
-
 /* ─── RESET ─────────────────────────────────────────────────── */
 *,
 *::before,
@@ -2330,4 +2334,47 @@ TEXT
 
 .text-sm {
   font-size: 13px;
+}
+
+/* ── HOVER EFFECT CARD MODERN ────────────────────────────────── */
+.book-card, .card, .kat, .popbk, .nbk, .ulasan-card, .kat-card {
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) ease !important;
+}
+.book-card:hover, .card:hover, .kat:hover, .popbk:hover, .nbk:hover, .ulasan-card:hover, .kat-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--sh-md, var(--c-shadow-lg)) !important;
+}
+
+/* ── SMOOTH PAGE TRANSITION ──────────────────────────────────── */
+.page-transition {
+  animation: pageFadeIn 0.5s var(--ease) forwards;
+}
+.page-exit {
+  animation: pageFadeOut 0.4s var(--ease) forwards;
+}
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(15px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes pageFadeOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-15px) scale(0.99); }
+}
+
+/* ── SKELETON LOADING SHIMMER ────────────────────────────────── */
+.skeleton {
+  /* Menggunakan warna abu-abu soft yang dinamis */
+  background: linear-gradient(90deg, var(--gray-100, var(--c-surface2)) 25%, var(--gray-200, var(--c-border)) 50%, var(--gray-100, var(--c-surface2)) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 8px;
+  color: transparent !important;
+  pointer-events: none;
+}
+.skeleton * {
+  visibility: hidden;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }

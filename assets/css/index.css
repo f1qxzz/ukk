@@ -4,79 +4,86 @@
    Dark mode: body.index-page.dark
    ================================================================ */
 
+/* ================================================================
+   PERPUSTAKAAN DIGITAL — index.css (Coffee Theme · Modern SaaS)
+   ================================================================ */
+
 /* ── TOKENS LIGHT ────────────────────────────────────────────── */
 body.index-page {
-  --c-bg:          #faf5ff;
-  --c-bg2:         #f5f0ff;
-  --c-bg3:         #fdf2f8;
-  --c-surface:     #ffffff;
-  --c-surface2:    #f8f5ff;
-  --c-border:      rgba(168,85,247,.15);
-  --c-purple:      #7c3aed;
-  --c-purple-mid:  #a855f7;
-  --c-purple-soft: #c4b5fd;
-  --c-purple-pale: #ede9fe;
-  --c-pink:        #ec4899;
-  --c-pink-pale:   #fce7f3;
-  --c-lavender:    #818cf8;
-  --c-text:        #1e1b4b;
-  --c-text2:       #4338ca;
-  --c-gray:        #6b7280;
-  --c-gray2:       #9ca3af;
+  --c-bg:          #E8D8C4; /* Cream Background */
+  --c-bg2:         #E3D1BB;
+  --c-bg3:         #F5EFE6;
+  --c-surface:     #FDFBF7; /* Putih/Beige Bersih untuk Card */
+  --c-surface2:    #F5EFE6;
+  --c-border:      rgba(86, 28, 36, 0.12);
+  
+  /* Mapping warna lama ke palet Coffee */
+  --c-purple:      #561C24; /* Maroon Primary */
+  --c-purple-mid:  #6D2932; /* Maroon Secondary */
+  --c-purple-soft: #C7B7A3; /* Beige Neutral */
+  --c-purple-pale: rgba(199, 183, 163, 0.3);
+  --c-pink:        #6D2932;
+  --c-pink-pale:   rgba(109, 41, 50, 0.1);
+  --c-lavender:    #C7B7A3;
+  
+  --c-text:        #2C1A1D; /* Coklat Sangat Gelap */
+  --c-text2:       #561C24;
+  --c-gray:        #6D5A5E;
+  --c-gray2:       #9A8A8D;
   --c-green:       #059669;
   --c-rose:        #e11d48;
   --c-amber:       #d97706;
-  --c-shadow:      0 4px 24px rgba(124,58,237,.10);
-  --c-shadow-lg:   0 12px 40px rgba(124,58,237,.15);
-  --c-radius:      14px;
-  --c-radius-lg:   20px;
-  --c-grad:        linear-gradient(135deg,#a855f7,#ec4899);
-  --c-grad-text:   linear-gradient(135deg,#7c3aed,#ec4899);
-  --c-grad-bg:     linear-gradient(135deg,#faf5ff 0%,#f5f0ff 40%,#fdf2f8 70%,#f0f4ff 100%);
-  --c-tr:          all .25s cubic-bezier(.4,0,.2,1);
+  
+  /* Shadow & Radius Modern */
+  --c-shadow:      0 8px 24px rgba(86, 28, 36, 0.06);
+  --c-shadow-lg:   0 16px 40px rgba(86, 28, 36, 0.12);
+  --c-radius:      16px;
+  --c-radius-lg:   24px;
+  
+  --c-grad:        linear-gradient(135deg, #561C24, #6D2932);
+  --c-grad-text:   linear-gradient(135deg, #561C24, #6D2932);
+  --c-grad-bg:     linear-gradient(135deg, #E8D8C4 0%, #F5EFE6 50%, #FDFBF7 100%);
+  --c-tr:          all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
-  /* override style.css tokens */
-  --accent:        #a855f7 !important;
-  --accent-2:      #7c3aed !important;
-  --accent-soft:   rgba(168,85,247,.12) !important;
+  /* Override style.css tokens */
+  --accent:        #561C24 !important;
+  --accent-2:      #6D2932 !important;
+  --accent-soft:   rgba(86, 28, 36, 0.12) !important;
 
   background: var(--c-bg) !important;
   color: var(--c-text) !important;
-  font-family: 'Sora', 'DM Sans', system-ui, sans-serif !important;
+  font-family: 'DM Sans', system-ui, sans-serif !important;
   min-height: 100vh;
 }
 
 /* ── TOKENS DARK ─────────────────────────────────────────────── */
 body.index-page.dark {
-  --c-bg:          #0f0b1e;
-  --c-bg2:         #160d2a;
-  --c-bg3:         #1a0d2e;
-  --c-surface:     #1e1535;
-  --c-surface2:    #251a3d;
-  --c-border:      rgba(168,85,247,.22);
-  --c-purple:      #c4b5fd;
-  --c-purple-mid:  #a78bfa;
-  --c-purple-soft: #7c3aed;
-  --c-purple-pale: rgba(124,58,237,.2);
-  --c-pink:        #f9a8d4;
-  --c-pink-pale:   rgba(236,72,153,.15);
-  --c-lavender:    #a5b4fc;
-  --c-text:        #f0ebff;
-  --c-text2:       #c4b5fd;
-  --c-gray:        #a0a3b1;
-  --c-gray2:       #6b6e7e;
-  --c-green:       #34d399;
-  --c-rose:        #fb7185;
-  --c-amber:       #fbbf24;
-  --c-shadow:      0 4px 24px rgba(0,0,0,.4);
-  --c-shadow-lg:   0 12px 40px rgba(0,0,0,.5);
-  --c-grad:        linear-gradient(135deg,#7c3aed,#db2777);
-  --c-grad-text:   linear-gradient(135deg,#c4b5fd,#f9a8d4);
-  --c-grad-bg:     linear-gradient(135deg,#0f0b1e 0%,#160d2a 40%,#1a0d2e 70%,#110a1d 100%);
-  background: var(--c-bg) !important;
-  color: var(--c-text) !important;
+  --c-bg:          #1A1213;
+  --c-bg2:         #24191A;
+  --c-bg3:         #2C1F20;
+  --c-surface:     #2C1F20;
+  --c-surface2:    #38282A;
+  --c-border:      rgba(199, 183, 163, 0.15);
+  
+  --c-purple:      #C7B7A3;
+  --c-purple-mid:  #E8D8C4;
+  --c-purple-soft: #6D2932;
+  --c-purple-pale: rgba(109, 41, 50, 0.3);
+  --c-pink:        #C7B7A3;
+  --c-pink-pale:   rgba(199, 183, 163, 0.15);
+  --c-lavender:    #E8D8C4;
+  
+  --c-text:        #FDFBF7;
+  --c-text2:       #E8D8C4;
+  --c-gray:        #A89A9C;
+  --c-gray2:       #807072;
+  
+  --c-shadow:      0 8px 24px rgba(0, 0, 0, 0.3);
+  --c-shadow-lg:   0 16px 40px rgba(0, 0, 0, 0.5);
+  --c-grad:        linear-gradient(135deg, #6D2932, #561C24);
+  --c-grad-text:   linear-gradient(135deg, #C7B7A3, #E8D8C4);
+  --c-grad-bg:     linear-gradient(135deg, #1A1213 0%, #24191A 50%, #150E0F 100%);
 }
-
 /* ── SCROLL PROGRESS ─────────────────────────────────────────── */
 #scroll-progress {
   position:fixed;top:0;left:0;height:3px;width:0%;
@@ -1061,4 +1068,175 @@ body.index-page ::-webkit-scrollbar-thumb{background:#c4b5fd;border-radius:10px;
   body.index-page .pop-grid { grid-template-columns: 1fr; }
   body.index-page .kat-grid { grid-template-columns: repeat(2, 1fr); }
   body.index-page .topbar { display: none; }
+}
+
+/* ── HOVER EFFECT CARD MODERN ────────────────────────────────── */
+.book-card, .card, .kat, .popbk, .nbk, .ulasan-card, .kat-card {
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) ease !important;
+}
+.book-card:hover, .card:hover, .kat:hover, .popbk:hover, .nbk:hover, .ulasan-card:hover, .kat-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--sh-md, var(--c-shadow-lg)) !important;
+}
+
+/* ── SMOOTH PAGE TRANSITION ──────────────────────────────────── */
+.page-transition {
+  animation: pageFadeIn 0.5s var(--ease) forwards;
+}
+.page-exit {
+  animation: pageFadeOut 0.4s var(--ease) forwards;
+}
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(15px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes pageFadeOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-15px) scale(0.99); }
+}
+
+/* ── SKELETON LOADING SHIMMER ────────────────────────────────── */
+.skeleton {
+  /* Menggunakan warna abu-abu soft yang dinamis */
+  background: linear-gradient(90deg, var(--gray-100, var(--c-surface2)) 25%, var(--gray-200, var(--c-border)) 50%, var(--gray-100, var(--c-surface2)) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 8px;
+  color: transparent !important;
+  pointer-events: none;
+}
+.skeleton * {
+  visibility: hidden;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ================================================================
+   HERO 3D BOOK (COFFEE THEME - FULL COVER)
+   ================================================================ */
+
+.featured-book-3d {
+    cursor: pointer;
+    perspective: 1000px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.book-3d {
+    position: relative;
+    width: 250px;
+    height: 360px;
+    transform-style: preserve-3d;
+    transform: rotateY(-25deg) rotateX(5deg);
+    transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: -15px 20px 30px rgba(86, 28, 36, 0.15); /* Bayangan Maroon Soft */
+}
+
+.featured-book-3d:hover .book-3d {
+    transform: rotateY(-15deg) rotateX(2deg) translateY(-10px);
+    box-shadow: -20px 30px 40px rgba(86, 28, 36, 0.25);
+}
+
+/* Punggung Buku (Warna Maroon) */
+.book-spine {
+    position: absolute;
+    width: 45px;
+    height: 100%;
+    background: linear-gradient(to right, var(--c-primary), var(--c-secondary));
+    transform: rotateY(-90deg) translateZ(22.5px);
+    transform-origin: left;
+    border-radius: 8px 0 0 8px;
+    border-left: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 4px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Sampul Depan */
+.book-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: var(--c-surface);
+    border-radius: 4px 12px 12px 4px;
+    overflow: hidden;
+    transform: translateZ(22.5px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Gambar Cover Full */
+.hero-book-cover {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+
+/* Overlay Gelap di Bagian Bawah agar teks terbaca */
+.book-face-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    /* Gradasi dari transparan di atas, ke maroon gelap di bawah */
+    background: linear-gradient(180deg, rgba(37, 10, 14, 0.05) 0%, rgba(37, 10, 14, 0.95) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+/* Badge Bintang (Kiri Atas) */
+.book-badge {
+    background: rgba(199, 183, 163, 0.95); /* Warna Beige */
+    color: var(--c-primary); /* Teks Maroon */
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: fit-content;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(4px);
+}
+
+.book-badge i {
+    color: #D97706; /* Emas untuk bintang */
+}
+
+/* Konten Teks Bawah */
+.book-content-bottom {
+    text-align: left;
+}
+
+.book-label {
+    font-size: 0.7rem;
+    color: var(--c-accent); /* Beige Terang */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+
+.book-face .book-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.3;
+    margin-bottom: 6px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.book-face .book-author {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
 }

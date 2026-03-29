@@ -28,7 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
 
-    // FIX: Gunakan password_verify untuk password yang di-hash, atau === untuk akun lama (teks biasa)
     if ($row && (password_verify($password, $row['password']) || $password === $row['password'])) {
         $found = true;
         $_SESSION['pengguna_logged_in'] = true;
@@ -37,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
         $_SESSION['pengguna_level']     = $row['level'];
         $_SESSION['pengguna_username']  = $row['username'];
 
-        // (Opsional tapi disarankan) Jika login pakai password teks biasa, otomatis update ke Hash
         if ($password === $row['password'] && !password_verify($password, $row['password'])) {
             $newHash = password_hash($password, PASSWORD_DEFAULT);
             $updateStmt = $conn->prepare("UPDATE pengguna SET password = ? WHERE id_pengguna = ?");
@@ -58,7 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
 
-        // FIX: Terapkan hal yang sama untuk tabel anggota
         if ($row && (password_verify($password, $row['password']) || $password === $row['password'])) {
             $found = true;
             if ($row['status'] !== 'aktif') {
@@ -70,7 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                 $_SESSION['anggota_nis']       = $row['nis'];
                 $_SESSION['anggota_kelas']     = $row['kelas'];
 
-                // Update hash juga untuk anggota jika masih teks biasa
                 if ($password === $row['password'] && !password_verify($password, $row['password'])) {
                     $newHash = password_hash($password, PASSWORD_DEFAULT);
                     $updateStmt = $conn->prepare("UPDATE anggota SET password = ? WHERE id_anggota = ?");
@@ -89,7 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     if (!$found) {
         $error = 'Username atau password salah!';
     }
-
     closeConnection($conn);
 }
 
@@ -103,7 +98,6 @@ if (!$query) {
 $data = $query->fetch_assoc();
 closeConnection($conn);
 
-// Quote of the day
 $quotes = [
     ['Membaca adalah jendela dunia yang tidak pernah tertutup.', 'Pepatah Indonesia'],
     ['Buku adalah teman terbaik yang tidak pernah mengecewakan.', 'Pepatah'],
@@ -115,38 +109,31 @@ $quote = $quotes[date('z') % count($quotes)];
 ?>
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Masuk — Perpustakaan Digital</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/login.css">
+    <link rel="stylesheet" href="assets/css/login.css?v=<?= time(); ?>">
 </head>
-
-<body>
+<body class="page-transition">
     <div class="login-container">
         <div class="login-left">
             <div class="login-left-content">
                 <div class="login-icon">
                     <i class="fas fa-book-open"></i>
                 </div>
-
                 <h1 class="login-title-large">
                     Selamat Datang di<br>
                     <span>Perpustakaan Digital</span>
                 </h1>
-
                 <p class="login-description">
                     Platform manajemen perpustakaan modern untuk mengelola koleksi, anggota, dan transaksi peminjaman
                     buku secara efisien.
                 </p>
-
                 <div class="quote-box">
                     <div class="quote-text">
                         "<?= htmlspecialchars($quote[0]) ?>"
@@ -155,7 +142,6 @@ $quote = $quotes[date('z') % count($quotes)];
                         <?= htmlspecialchars($quote[1]) ?>
                     </div>
                 </div>
-
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-book"></i></div>
@@ -173,7 +159,6 @@ $quote = $quotes[date('z') % count($quotes)];
                         <div class="stat-label">Deteksi Level</div>
                     </div>
                 </div>
-
                 <a href="index.php" class="back-link">
                     <i class="fas fa-arrow-left"></i>
                     Kembali ke Beranda
@@ -286,7 +271,18 @@ $quote = $quotes[date('z') % count($quotes)];
             setTimeout(() => { alert.style.display = 'none'; }, 500);
         });
     }, 5000);
+
+    // Page Exit Transition Link
+    document.querySelectorAll('a:not([target="_blank"])').forEach(link => {
+        link.addEventListener('click', e => {
+            if(link.hostname === window.location.hostname && !link.hash) {
+                e.preventDefault();
+                const href = link.href;
+                document.body.classList.replace('page-transition', 'page-exit');
+                setTimeout(() => window.location.href = href, 350); 
+            }
+        });
+    });
     </script>
 </body>
-
 </html>
