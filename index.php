@@ -216,7 +216,7 @@ $quote = $quotes[date('z') % count($quotes)];
 
             <h1 class="hero-h1">
                 Temukan Buku<br>
-                <em>Favoritmu</em> &<br>
+                <em>Favoritmu</em><br>
                 <span class="grad">Perluas Wawasanmu</span>
             </h1>
 
