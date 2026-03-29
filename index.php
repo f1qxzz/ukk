@@ -478,8 +478,8 @@ $quote = $quotes[date('z') % count($quotes)];
                 $cover_img = get_cover($b['cover'] ?? '');
             ?>
             <div class="book-card" onclick="location.href='<?= $isAnggota ? 'anggota/katalog.php' : 'login.php' ?>'">
-                <div class="book-status-badge <?= $is_avail ? 'stat-green' : 'stat-red' ?>">
-                    <?= $is_avail ? 'Tersedia' : 'Dipinjam' ?>
+                <div class="book-status-badge <?= $is_avail ? '' : '' ?>">
+                    <?= $is_avail ? '' : '' ?>
                 </div>
 
                 <div class="book-card-inner">
