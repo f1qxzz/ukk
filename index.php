@@ -383,24 +383,6 @@ $quote = $quotes[date('z') % count($quotes)];
         </div>
     </section>
 
-    <div class="reading-ticker">
-        <div class="ticker-inner">
-            <?php
-            $ticker_items = [
-                '📚 ' . $total_buku . ' Koleksi Buku Tersedia',
-                '✅ ' . $buku_tersedia . ' Buku Siap Dipinjam',
-                '👥 ' . $total_anggota . ' Anggota Terdaftar',
-                '🔄 ' . $total_pinjam . ' Sedang Dipinjam',
-                '⭐ Rating ' . number_format($avg_rating > 0 ? $avg_rating : 4.5, 1) . '/5.0 dari ' . $total_ulasan . ' Ulasan',
-                '📅 Pinjaman Bulan Ini: ' . $pinjam_bulan_ini . ' Transaksi',
-                '🕐 Jam Buka: Senin–Jumat 07.00–16.00 WIB',
-            ];
-            $ticker_str = implode('  ·  ', array_map(fn($t) => "<span class='ticker-item'>{$t}</span>", $ticker_items));
-            echo $ticker_str . '      ' . $ticker_str;
-            ?>
-        </div>
-    </div>
-
     <div class="info-strip">
         <div class="istrip reveal">
             <div class="istrip-ico">📚</div>
@@ -430,45 +412,7 @@ $quote = $quotes[date('z') % count($quotes)];
                 <div class="istrip-l">Anggota Aktif</div>
             </div>
         </div>
-    </div>
-
-    <?php if ($isAnggota && $anggota_data):
-        $nama_split = explode(' ', $anggota_data['nama_anggota'] ?? 'U');
-        $inits = strtoupper(mb_substr($nama_split[0] ?? 'U', 0, 1) . mb_substr($nama_split[1] ?? '', 0, 1));
-        ?>
-        <div class="member-banner">
-            <div class="mb-left">
-                <div class="mb-av"><?= htmlspecialchars($inits) ?></div>
-                <div>
-                    <div class="mb-greet">Selamat datang kembali</div>
-                    <div class="mb-name"><?= htmlspecialchars($anggota_data['nama_anggota'] ?? 'Anggota') ?></div>
-                    <div class="mb-sub">NIS <?= htmlspecialchars($anggota_data['nis'] ?? '-') ?> · Kelas
-                        <?= htmlspecialchars($anggota_data['kelas'] ?? '-') ?></div>
-                </div>
             </div>
-            <div class="mb-stats">
-                <div class="mbstat">
-                    <div class="mbstat-n"><?= $anggota_data['aktif_pinjam'] ?? 0 ?></div>
-                    <div class="mbstat-l">Dipinjam</div>
-                </div>
-                <div class="mbstat">
-                    <div class="mbstat-n"><?= $anggota_data['total_pinjam'] ?? 0 ?></div>
-                    <div class="mbstat-l">Total Pinjam</div>
-                </div>
-                <div class="mbstat">
-                    <div class="mbstat-n" style="<?= ($anggota_data['denda'] ?? 0) > 0 ? 'color:#fb7185' : '' ?>">
-                        <?= ($anggota_data['denda'] ?? 0) > 0 ? 'Rp' . number_format($anggota_data['denda'], 0, ',', '.') : 'Nihil' ?>
-                    </div>
-                    <div class="mbstat-l">Denda</div>
-                </div>
-            </div>
-            <div class="mb-btns">
-                <a href="anggota/katalog.php" class="mb-btn mb-btn-solid">📚 Katalog</a>
-                <a href="anggota/pinjam.php" class="mb-btn">Pinjam Buku</a>
-                <a href="anggota/dashboard.php" class="mb-btn">Dashboard →</a>
-            </div>
-        </div>
-    <?php endif; ?>
 
     <?php if (($isAdmin || $isPetugas) && $jatuh_tempo > 0): ?>
         <div class="alert-jt">
