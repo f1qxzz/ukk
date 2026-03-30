@@ -161,14 +161,22 @@
         font-size: 0.875rem;
     }
 
-    .nav-link i {
-        width: 20px;
-        font-size: 1rem;
-        color: #d8b4fe;
-        transition: all 0.2s ease;
-        flex-shrink: 0;
-    }
-
+.nav-link i,
+.nav-link svg {
+    width: 20px;
+    height: 20px;
+    font-size: 1rem;
+    color: #d8b4fe;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    
+    /* Tambahan wajib untuk SVG outline */
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
     .nav-link:hover {
         background: #faf5ff;
         color: #7c3aed;

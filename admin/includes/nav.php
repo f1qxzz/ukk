@@ -12,8 +12,8 @@ $cp = basename($_SERVER['PHP_SELF']);
   </div>
   <nav class="sidebar-nav">
     <span class="nav-section-label">Utama</span>
-    <a href="dashboard.php" class="nav-link <?= $cp==='dashboard.php'?'active':'' ?>">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+   <a href="dashboard.php" class="nav-link <?= $cp==='dashboard.php'?'active':'' ?>">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       Dashboard
     </a>
     <span class="nav-section-label">Manajemen</span>

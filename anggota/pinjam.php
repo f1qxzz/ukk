@@ -41,19 +41,19 @@ if (isset($_POST['pinjam'])) {
         $msg = 'Buku sedang tidak tersedia!'; 
         $msgType = 'warning'; 
     } else {
-        // Cek apakah anggota sudah pinjam buku ini
-        $dupl = $conn->query("SELECT id_transaksi FROM transaksi WHERE id_anggota=$id AND id_buku=$id_buku AND status_transaksi='Peminjaman'")->num_rows;
+        // Cek apakah anggota sudah pinjam atau pending buku ini
+        $dupl = $conn->query("SELECT id_transaksi FROM transaksi WHERE id_anggota=$id AND id_buku=$id_buku AND status_transaksi IN ('Pending','Dipinjam')")->num_rows;
         if ($dupl > 0) { 
-            $msg = 'Anda sudah meminjam buku ini!'; 
+            $msg = 'Anda sudah meminjam atau sedang menunggu persetujuan untuk buku ini!'; 
             $msgType = 'warning'; 
         } else {
             $tgl_pinjam = date('Y-m-d H:i:s');
             $tgl_kembali = date('Y-m-d H:i:s', strtotime('+7 days'));
-            $s = $conn->prepare("INSERT INTO transaksi(id_anggota, id_buku, tgl_pinjam, tgl_kembali_rencana, status_transaksi) VALUES(?, ?, ?, ?, 'Peminjaman')");
+            $s = $conn->prepare("INSERT INTO transaksi(id_anggota, id_buku, tgl_pinjam, tgl_kembali_rencana, status_transaksi) VALUES(?, ?, ?, ?, 'Pending')");
             $s->bind_param("iiss", $id, $id_buku, $tgl_pinjam, $tgl_kembali);
             if ($s->execute()) {
-                $conn->query("UPDATE buku SET stok = stok - 1, status = IF(stok - 1 > 0, 'tersedia', 'tidak') WHERE id_buku = $id_buku");
-                $msg = 'Permintaan peminjaman berhasil! Buku akan siap diambil.'; 
+                // Stok TIDAK dikurangi saat pending — dikurangi saat admin menyetujui
+                $msg = 'Permintaan peminjaman berhasil dikirim! Menunggu persetujuan Admin/Petugas.'; 
                 $msgType = 'success';
             } else { 
                 $msg = 'Gagal: ' . $conn->error; 
@@ -67,7 +67,9 @@ if (isset($_POST['pinjam'])) {
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 $search = $conn->real_escape_string($search);
 $filter_kat = isset($_GET['kat']) ? (int)$_GET['kat'] : 0;
-$q = "SELECT b.*, k.nama_kategori FROM buku b LEFT JOIN kategori k ON b.id_kategori = k.id_kategori WHERE 1=1";
+$q = "SELECT b.*, k.nama_kategori,
+      (SELECT COUNT(*) FROM transaksi t WHERE t.id_buku=b.id_buku AND t.id_anggota=$id AND t.status_transaksi IN ('Pending','Dipinjam')) AS sudah_pinjam
+      FROM buku b LEFT JOIN kategori k ON b.id_kategori = k.id_kategori WHERE 1=1";
 if ($search) $q .= " AND (b.judul_buku LIKE '%$search%' OR b.pengarang LIKE '%$search%')";
 if ($filter_kat) $q .= " AND b.id_kategori = $filter_kat";
 $q .= " ORDER BY b.judul_buku";
@@ -279,12 +281,16 @@ $page_sub   = 'Pilih buku yang ingin dipinjam';
                                             </span>
                                         </td>
                                         <td>
-                                            <?php if ($r['status'] === 'tersedia'): ?>
+                                            <?php if ($r['sudah_pinjam'] > 0): ?>
+                                            <span class="badge badge-warning">
+                                                <i class="fas fa-clock"></i> Menunggu / Dipinjam
+                                            </span>
+                                            <?php elseif ($r['status'] === 'tersedia'): ?>
                                             <form method="POST"
-                                                onsubmit="return confirm('Yakin ingin meminjam buku &quot;<?= htmlspecialchars(addslashes($r['judul_buku'])) ?>&quot;?')">
+                                                onsubmit="return confirm('Yakin ingin meminjam buku &quot;<?= htmlspecialchars(addslashes($r['judul_buku'])) ?>&quot;? Permintaan akan menunggu persetujuan Admin/Petugas.')">
                                                 <input type="hidden" name="id_buku" value="<?= $r['id_buku'] ?>">
                                                 <button type="submit" name="pinjam" class="btn-primary btn-sm">
-                                                    <i class="fas fa-book"></i> Pinjam
+                                                    <i class="fas fa-book"></i> Ajukan Pinjam
                                                 </button>
                                             </form>
                                             <?php else: ?>

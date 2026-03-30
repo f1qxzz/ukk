@@ -109,105 +109,11 @@ $page_sub   = 'Kelola data anggota perpustakaan';
 
 <body>
     <div class="app-wrap">
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <div class="brand-icon">📚</div>
-                <div>
-                    <div class="brand-name">Perpustakaan Digital</div>
-                    <div class="brand-role">ADMINISTRATOR</div>
-                </div>
-            </div>
+        <?php include 'includes/nav.php'; ?>
 
-            <nav class="sidebar-nav">
-                <span class="nav-section-label">UTAMA</span>
-                <a href="dashboard.php" class="nav-link">
-                    <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
-                </a>
-
-                <span class="nav-section-label">MANAJEMEN</span>
-                <a href="pengguna.php" class="nav-link">
-                    <i class="fas fa-users-cog"></i>
-                    <span>Pengguna</span>
-                </a>
-                <a href="anggota.php" class="nav-link active">
-                    <i class="fas fa-user-graduate"></i>
-                    <span>Anggota</span>
-                </a>
-
-                <span class="nav-section-label">KOLEKSI</span>
-                <a href="kategori.php" class="nav-link">
-                    <i class="fas fa-tags"></i>
-                    <span>Kategori</span>
-                </a>
-                <a href="buku.php" class="nav-link">
-                    <i class="fas fa-book"></i>
-                    <span>Buku</span>
-                </a>
-
-                <span class="nav-section-label">TRANSAKSI</span>
-                <a href="transaksi.php" class="nav-link">
-                    <i class="fas fa-exchange-alt"></i>
-                    <span>Transaksi</span>
-                </a>
-                <a href="denda.php" class="nav-link">
-                    <i class="fas fa-coins"></i>
-                    <span>Denda</span>
-                </a>
-                <a href="laporan.php" class="nav-link">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Laporan</span>
-                </a>
-
-                <span class="nav-section-label">AKUN</span>
-                <a href="profil.php" class="nav-link">
-                    <i class="fas fa-user"></i>
-                    <span>Profil Saya</span>
-                </a>
-                <a href="../index.php" class="nav-link">
-                    <i class="fas fa-globe"></i>
-                    <span>Beranda</span>
-                </a>
-            </nav>
-
-            <div class="sidebar-foot">
-                <a href="logout.php" class="nav-link logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- MAIN AREA -->
         <div class="main-area">
-            <!-- HEADER -->
-            <header class="topbar">
-                <div class="page-info">
-                    <h1 class="page-title"><?= htmlspecialchars($page_title) ?></h1>
-                    <div class="page-breadcrumb"><?= htmlspecialchars($page_sub) ?></div>
-                </div>
-                <div class="topbar-right">
-                    <div class="topbar-date">
-                        <i class="far fa-calendar-alt"></i> <?= date('d M Y') ?>
-                    </div>
-                    <div class="topbar-user">
-                        <div class="topbar-avatar">
-                            <?php if ($fotoPath): ?>
-                            <img src="<?= $fotoPath ?>" alt="Foto">
-                            <?php else: ?>
-                            <?= htmlspecialchars($initials) ?>
-                            <?php endif; ?>
-                        </div>
-                        <span class="topbar-username"><?= htmlspecialchars(getPenggunaName()) ?></span>
-                    </div>
-                    <a href="logout.php" class="btn-logout">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </a>
-                </div>
-            </header>
-
+            <?php include 'includes/header.php'; ?>
+            
             <!-- CONTENT -->
             <main class="content">
                 <?php if ($msg): ?>

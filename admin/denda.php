@@ -107,77 +107,11 @@ $page_sub   = 'Kelola denda keterlambatan pengembalian';
 </head>
 
 <body>
-    <div class="app-wrap">
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <div class="brand-icon">📚</div>
-                <div>
-                    <div class="brand-name">Perpustakaan Digital</div>
-                    <div class="brand-role">ADMINISTRATOR</div>
-                </div>
-            </div>
+<div class="app-wrap">
+        <?php include 'includes/nav.php'; ?>
 
-            <nav class="sidebar-nav">
-                <span class="nav-section-label">UTAMA</span>
-                <a href="dashboard.php" class="nav-link">
-                    <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
-                </a>
-
-                <span class="nav-section-label">MANAJEMEN</span>
-                <a href="pengguna.php" class="nav-link">
-                    <i class="fas fa-users-cog"></i>
-                    <span>Pengguna</span>
-                </a>
-                <a href="anggota.php" class="nav-link">
-                    <i class="fas fa-user-graduate"></i>
-                    <span>Anggota</span>
-                </a>
-
-                <span class="nav-section-label">KOLEKSI</span>
-                <a href="kategori.php" class="nav-link">
-                    <i class="fas fa-tags"></i>
-                    <span>Kategori</span>
-                </a>
-                <a href="buku.php" class="nav-link">
-                    <i class="fas fa-book"></i>
-                    <span>Buku</span>
-                </a>
-
-                <span class="nav-section-label">TRANSAKSI</span>
-                <a href="transaksi.php" class="nav-link">
-                    <i class="fas fa-exchange-alt"></i>
-                    <span>Transaksi</span>
-                </a>
-                <a href="denda.php" class="nav-link active">
-                    <i class="fas fa-coins"></i>
-                    <span>Denda</span>
-                </a>
-                <a href="laporan.php" class="nav-link">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Laporan</span>
-                </a>
-
-                <span class="nav-section-label">AKUN</span>
-                <a href="profil.php" class="nav-link">
-                    <i class="fas fa-user"></i>
-                    <span>Profil Saya</span>
-                </a>
-                <a href="../index.php" class="nav-link">
-                    <i class="fas fa-globe"></i>
-                    <span>Beranda</span>
-                </a>
-            </nav>
-
-            <div class="sidebar-foot">
-                <a href="logout.php" class="nav-link logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </a>
-            </div>
-        </aside>
-
+        <div class="main-area">
+            <?php include 'includes/header.php'; ?>
         <!-- MAIN AREA -->
         <div class="main-area">
             <!-- HEADER -->

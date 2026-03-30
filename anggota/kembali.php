@@ -32,14 +32,14 @@ $fotoPath = (!empty($userData['foto']) && file_exists('../' . $userData['foto'])
 
 if (isset($_POST['kembalikan'])) {
     $id_trans = (int)$_POST['id_transaksi'];
-    // Validasi milik anggota ini
-    $chk = $conn->query("SELECT * FROM transaksi WHERE id_transaksi=$id_trans AND id_anggota=$id AND status_transaksi='Peminjaman'")->fetch_assoc();
+    // Validasi milik anggota ini dan status Dipinjam (sudah disetujui admin)
+    $chk = $conn->query("SELECT * FROM transaksi WHERE id_transaksi=$id_trans AND id_anggota=$id AND status_transaksi='Dipinjam'")->fetch_assoc();
     if (!$chk) { 
-        $msg = 'Transaksi tidak valid!'; 
+        $msg = 'Transaksi tidak valid atau belum disetujui oleh Admin/Petugas!'; 
         $msgType = 'danger'; 
     } else {
         $now = date('Y-m-d H:i:s');
-        $conn->query("UPDATE transaksi SET status_transaksi='Pengembalian', tgl_kembali_aktual='$now' WHERE id_transaksi=$id_trans");
+        $conn->query("UPDATE transaksi SET status_transaksi='Dikembalikan', tgl_kembali_aktual='$now' WHERE id_transaksi=$id_trans");
         $conn->query("UPDATE buku SET stok = stok + 1, status = 'tersedia' WHERE id_buku={$chk['id_buku']}");
         // Hitung denda
         if (strtotime($now) > strtotime($chk['tgl_kembali_rencana'])) {
@@ -58,7 +58,7 @@ if (isset($_POST['kembalikan'])) {
 $aktif = $conn->query("SELECT t.*, b.judul_buku, b.pengarang, b.cover 
                        FROM transaksi t 
                        JOIN buku b ON t.id_buku = b.id_buku 
-                       WHERE t.id_anggota = $id AND t.status_transaksi = 'Peminjaman' 
+                       WHERE t.id_anggota = $id AND t.status_transaksi IN ('Pending','Dipinjam') 
                        ORDER BY t.tgl_kembali_rencana");
 
 $page_title = 'Kembalikan Buku';
@@ -204,7 +204,7 @@ $page_sub   = 'Kembalikan buku yang sudah selesai dibaca';
 
                 <div class="card">
                     <div class="card-header">
-                        <h2><i class="fas fa-undo-alt"></i> Daftar Buku yang Sedang Dipinjam</h2>
+                        <h2><i class="fas fa-undo-alt"></i> Daftar Buku Dipinjam &amp; Menunggu Persetujuan</h2>
                     </div>
                     <div class="table-responsive">
                         <table>
@@ -214,6 +214,7 @@ $page_sub   = 'Kembalikan buku yang sudah selesai dibaca';
                                     <th>Buku</th>
                                     <th>Tgl Pinjam</th>
                                     <th>Jatuh Tempo</th>
+                                    <th>Status</th>
                                     <th>Sisa Waktu</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -222,6 +223,7 @@ $page_sub   = 'Kembalikan buku yang sudah selesai dibaca';
                                 <?php if ($aktif && $aktif->num_rows > 0): while($r = $aktif->fetch_assoc()):
                                     $sisa = floor((strtotime($r['tgl_kembali_rencana']) - time()) / 86400);
                                     $late = $sisa < 0;
+                                    $isPending = $r['status_transaksi'] === 'Pending';
                                 ?>
                                 <tr>
                                     <td class="book-cover-cell">
@@ -241,7 +243,22 @@ $page_sub   = 'Kembalikan buku yang sudah selesai dibaca';
                                     <td><?= date('d/m/Y', strtotime($r['tgl_pinjam'])) ?></td>
                                     <td><?= date('d/m/Y', strtotime($r['tgl_kembali_rencana'])) ?></td>
                                     <td>
-                                        <?php if ($late):
+                                        <?php if ($isPending): ?>
+                                        <span class="badge badge-warning">
+                                            <i class="fas fa-hourglass-half"></i> Menunggu Persetujuan
+                                        </span>
+                                        <?php else: ?>
+                                        <span class="badge badge-success">
+                                            <i class="fas fa-check-circle"></i> Dipinjam
+                                        </span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($isPending): ?>
+                                        <span class="badge" style="background:#e2e8f0;color:#64748b;">
+                                            <i class="fas fa-clock"></i> Menunggu admin
+                                        </span>
+                                        <?php elseif ($late):
                                             $d = abs($sisa);
                                             $denda_est = $d * DENDA_PER_HARI;
                                         ?>
@@ -264,6 +281,11 @@ $page_sub   = 'Kembalikan buku yang sudah selesai dibaca';
                                         <?php endif; ?>
                                     </td>
                                     <td>
+                                        <?php if ($isPending): ?>
+                                        <span class="text-muted" style="font-size:0.85em;">
+                                            <i class="fas fa-info-circle"></i> Belum bisa dikembalikan
+                                        </span>
+                                        <?php else: ?>
                                         <form method="POST"
                                             onsubmit="return confirm('Yakin ingin mengembalikan buku &quot;<?= htmlspecialchars(addslashes($r['judul_buku'])) ?>&quot;?')">
                                             <input type="hidden" name="id_transaksi" value="<?= $r['id_transaksi'] ?>">
@@ -271,11 +293,12 @@ $page_sub   = 'Kembalikan buku yang sudah selesai dibaca';
                                                 <i class="fas fa-undo-alt"></i> Kembalikan
                                             </button>
                                         </form>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                                 <?php endwhile; else: ?>
                                 <tr>
-                                    <td colspan="6">
+                                    <td colspan="7">
                                         <div class="empty-state">
                                             <div class="empty-state-ico">📚</div>
                                             <div class="empty-state-title">Tidak ada buku yang perlu dikembalikan</div>

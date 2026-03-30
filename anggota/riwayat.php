@@ -226,7 +226,7 @@ $page_sub   = 'Lihat semua aktivitas peminjaman Anda';
                             </thead>
                             <tbody>
                                 <?php if ($trans && $trans->num_rows > 0): $no = 1; while($r = $trans->fetch_assoc()): 
-                                    $late = strtotime($r['tgl_kembali_rencana']) < time() && $r['status_transaksi'] === 'Peminjaman';
+                                    $late = strtotime($r['tgl_kembali_rencana']) < time() && $r['status_transaksi'] === 'Dipinjam';
                                 ?>
                                 <tr>
                                     <td class="book-cover-cell">
@@ -253,17 +253,21 @@ $page_sub   = 'Lihat semua aktivitas peminjaman Anda';
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <?php if ($r['status_transaksi'] === 'Pengembalian'): ?>
+                                        <?php if ($r['status_transaksi'] === 'Dikembalikan'): ?>
                                         <span class="badge badge-success">
                                             <i class="fas fa-check-circle"></i> Dikembalikan
+                                        </span>
+                                        <?php elseif ($r['status_transaksi'] === 'Pending'): ?>
+                                        <span class="badge badge-warning">
+                                            <i class="fas fa-hourglass-half"></i> Menunggu Persetujuan
                                         </span>
                                         <?php elseif ($late): ?>
                                         <span class="badge badge-danger">
                                             <i class="fas fa-exclamation-triangle"></i> Terlambat
                                         </span>
                                         <?php else: ?>
-                                        <span class="badge badge-warning">
-                                            <i class="fas fa-clock"></i> Dipinjam
+                                        <span class="badge" style="background:rgba(59,130,246,0.15);color:#2563eb;">
+                                            <i class="fas fa-book-open"></i> Dipinjam
                                         </span>
                                         <?php endif; ?>
                                     </td>

@@ -4,6 +4,39 @@ require_once '../includes/session.php';
 requirePetugas();
 $conn = getConnection();
 
+// ── Quick Action: Setujui / Tolak permintaan dari dashboard ──────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi_cepat'])) {
+    $aksi    = $_POST['aksi_cepat'];           // 'setujui' | 'tolak'
+    $id_t    = (int)($_POST['id_transaksi'] ?? 0);
+    if ($id_t > 0) {
+        // Verifikasi transaksi masih Pending agar tidak bisa diproses ulang
+        $chk = $conn->prepare("SELECT status_transaksi FROM transaksi WHERE id_transaksi = ?");
+        $chk->bind_param("i", $id_t);
+        $chk->execute();
+        $row = $chk->get_result()->fetch_assoc();
+        $chk->close();
+        if ($row && $row['status_transaksi'] === 'Pending') {
+            if ($aksi === 'setujui') {
+                $upd = $conn->prepare("UPDATE transaksi SET status_transaksi='Peminjaman' WHERE id_transaksi = ?");
+            } else {
+                $upd = $conn->prepare("UPDATE transaksi SET status_transaksi='Ditolak' WHERE id_transaksi = ?");
+                // Kembalikan stok buku jika ditolak
+                $t_row = $conn->query("SELECT id_buku FROM transaksi WHERE id_transaksi=$id_t")->fetch_assoc();
+                if ($t_row) {
+                    $conn->query("UPDATE buku SET stok=stok+1, status='tersedia' WHERE id_buku={$t_row['id_buku']}");
+                }
+            }
+            $upd->bind_param("i", $id_t);
+            $upd->execute();
+            $upd->close();
+        }
+    }
+    // PRG – hindari resubmit saat refresh
+    header('Location: dashboard.php');
+    exit;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Ambil data pengguna untuk foto profil
 $userId = getPenggunaId();
 $userStmt = $conn->prepare("SELECT foto, nama_pengguna FROM pengguna WHERE id_pengguna = ?");
@@ -34,6 +67,19 @@ $tl = cnt($conn, "SELECT COUNT(*) c FROM transaksi WHERE status_transaksi='Pemin
 $td = cnt($conn, "SELECT COALESCE(SUM(total_denda),0) s FROM denda WHERE status_bayar='belum'", 's');
 $kh = cnt($conn, "SELECT COUNT(*) c FROM transaksi WHERE status_transaksi='Pengembalian' AND DATE(tgl_kembali_aktual) = CURDATE()");
 
+// ── Permintaan Pending untuk quick-action table ──────────────────────────────
+$pending_rows = $conn->query(
+    "SELECT t.*, a.nama_anggota, a.nis, b.judul_buku, b.stok AS stok_buku
+     FROM transaksi t
+     JOIN anggota a ON t.id_anggota = a.id_anggota
+     JOIN buku b ON t.id_buku = b.id_buku
+     WHERE t.status_transaksi = 'Pending'
+     ORDER BY t.tgl_pinjam DESC
+     LIMIT 20"
+);
+$jml_pending = $pending_rows ? $pending_rows->num_rows : 0;
+// ─────────────────────────────────────────────────────────────────────────────
+
 $rows = $conn->query("SELECT t.*, a.nama_anggota, a.nis, b.judul_buku, b.cover 
                       FROM transaksi t 
                       JOIN anggota a ON t.id_anggota = a.id_anggota 
@@ -58,6 +104,14 @@ $page_sub = 'Panel Petugas · Perpustakaan Digital';
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/petugas/dashboard.css?v=<?= @filemtime('../assets/css/petugas/dashboard.css')?:time() ?>">
+    <style>
+        /* Badge pending untuk tabel quick-action dashboard */
+        .bd.status-pending {
+            background: rgba(245,158,11,0.12);
+            color: #b45309;
+            border: 1px solid rgba(245,158,11,0.35);
+        }
+    </style>
 </head>
 
 <body>
@@ -126,6 +180,90 @@ $page_sub = 'Panel Petugas · Perpustakaan Digital';
                     </div>
                 </div>
 
+                <!-- ── Permintaan Menunggu Persetujuan (Quick Action) ────── -->
+                <?php if ($jml_pending > 0): ?>
+                <div class="dc" style="border-left: 4px solid #f59e0b;">
+                    <div class="dc-h">
+                        <div class="dc-t">
+                            <i class="fas fa-hourglass-half" style="color:#f59e0b;"></i>
+                            Permintaan Menunggu Persetujuan
+                            <span style="display:inline-flex;align-items:center;justify-content:center;
+                                         background:#f59e0b;color:#fff;border-radius:999px;
+                                         font-size:0.72rem;font-weight:700;min-width:20px;height:20px;
+                                         padding:0 6px;margin-left:8px;"><?= $jml_pending ?></span>
+                        </div>
+                        <a href="transaksi.php?status=Pending" class="dc-a">
+                            Lihat Semua <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Anggota</th>
+                                    <th>NIS</th>
+                                    <th>Buku (Stok)</th>
+                                    <th>Tgl Pinjam</th>
+                                    <th>Rencana Kembali</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $pending_rows->data_seek(0); while($pr = $pending_rows->fetch_assoc()): ?>
+                                <tr>
+                                    <td><span class="fw"><?= htmlspecialchars($pr['nama_anggota']) ?></span></td>
+                                    <td class="text-sm"><?= htmlspecialchars($pr['nis']) ?></td>
+                                    <td>
+                                        <?= htmlspecialchars(mb_strimwidth($pr['judul_buku'], 0, 28, '…')) ?>
+                                        <span style="color:var(--neutral-500);font-size:0.78rem;">
+                                            (Stok: <?= (int)$pr['stok_buku'] ?>)
+                                        </span>
+                                    </td>
+                                    <td><?= date('d M Y', strtotime($pr['tgl_pinjam'])) ?></td>
+                                    <td><?= date('d M Y', strtotime($pr['tgl_kembali_rencana'])) ?></td>
+                                    <td>
+                                        <span class="bd" style="background:rgba(245,158,11,0.12);color:#b45309;border:1px solid rgba(245,158,11,0.35);">
+                                            <i class="fas fa-clock"></i> Pending
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <!-- Tombol Setujui -->
+                                        <form method="POST" style="display:inline;"
+                                              onsubmit="return confirm('Setujui peminjaman ini?')">
+                                            <input type="hidden" name="aksi_cepat"    value="setujui">
+                                            <input type="hidden" name="id_transaksi" value="<?= $pr['id_transaksi'] ?>">
+                                            <button type="submit"
+                                                style="display:inline-flex;align-items:center;gap:5px;
+                                                       padding:5px 12px;border-radius:6px;border:1.5px solid #16a34a;
+                                                       background:#f0fdf4;color:#15803d;font-size:0.8rem;
+                                                       font-weight:600;cursor:pointer;white-space:nowrap;">
+                                                <i class="fas fa-check"></i> Setujui
+                                            </button>
+                                        </form>
+                                        <!-- Tombol Tolak -->
+                                        <form method="POST" style="display:inline;margin-left:4px;"
+                                              onsubmit="return confirm('Tolak permintaan ini?')">
+                                            <input type="hidden" name="aksi_cepat"    value="tolak">
+                                            <input type="hidden" name="id_transaksi" value="<?= $pr['id_transaksi'] ?>">
+                                            <button type="submit"
+                                                style="display:inline-flex;align-items:center;gap:5px;
+                                                       padding:5px 12px;border-radius:6px;border:1.5px solid #dc2626;
+                                                       background:#fff5f5;color:#dc2626;font-size:0.8rem;
+                                                       font-weight:600;cursor:pointer;white-space:nowrap;">
+                                                <i class="fas fa-times"></i> Tolak
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <?php endif; ?>
+                <!-- ──────────────────────────────────────────────────────── -->
+
                 <!-- Recent Transactions -->
                 <div class="dc">
                     <div class="dc-h">
@@ -187,32 +325,6 @@ $page_sub = 'Panel Petugas · Perpustakaan Digital';
                         </table>
                     </div>
                 </div>
-
-                <!-- Mini Stats -->
-                <div class="ms">
-                    <div class="ms-c">
-                        <div class="ms-ico" style="background:rgba(155,140,156,0.15); color: var(--soft-purple);">📚
-                        </div>
-                        <div>
-                            <div class="ms-v"><?= $tb - $ts ?></div>
-                            <div class="ms-l">Buku Di Tangan Anggota</div>
-                        </div>
-                    </div>
-                    <div class="ms-c">
-                        <div class="ms-ico" style="background:rgba(86,179,134,0.15); color: #3e8b63;">↩️</div>
-                        <div>
-                            <div class="ms-v"><?= $kh ?></div>
-                            <div class="ms-l">Dikembalikan Hari Ini</div>
-                        </div>
-                    </div>
-                    <div class="ms-c">
-                        <div class="ms-ico" style="background:rgba(229,122,143,0.15); color: var(--danger-600);">⚠️
-                        </div>
-                        <div>
-                            <div class="ms-v"><?= $tl ?></div>
-                            <div class="ms-l">Keterlambatan Aktif</div>
-                        </div>
-                    </div>
                 </div>
             </main>
         </div>

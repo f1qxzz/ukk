@@ -34,14 +34,14 @@ function cnt($c, $q, $f = 'c') {
     return $c->query($q)->fetch_assoc()[$f] ?? 0;
 }
 
-$ak = cnt($conn, "SELECT COUNT(*) c FROM transaksi WHERE id_anggota=$id AND status_transaksi='Peminjaman'");
+$ak = cnt($conn, "SELECT COUNT(*) c FROM transaksi WHERE id_anggota=$id AND status_transaksi IN ('Pending','Dipinjam')");
 $tt = cnt($conn, "SELECT COUNT(*) c FROM transaksi WHERE id_anggota=$id");
 $dn = cnt($conn, "SELECT COALESCE(SUM(d.total_denda),0) s FROM denda d JOIN transaksi t ON d.id_transaksi=t.id_transaksi WHERE t.id_anggota=$id AND d.status_bayar='belum'", 's');
 $ul = cnt($conn, "SELECT COUNT(*) c FROM ulasan_buku WHERE id_anggota=$id");
 $rows = $conn->query("SELECT t.*, b.judul_buku, b.pengarang, b.cover, b.id_buku 
                       FROM transaksi t 
                       JOIN buku b ON t.id_buku = b.id_buku 
-                      WHERE t.id_anggota = $id AND t.status_transaksi = 'Peminjaman' 
+                      WHERE t.id_anggota = $id AND t.status_transaksi IN ('Pending','Dipinjam') 
                       ORDER BY t.tgl_pinjam DESC");
 
 $page_title = 'Dashboard';
@@ -195,7 +195,7 @@ $page_sub = 'Portal Anggota · Perpustakaan Digital';
                 <div class="srow">
                     <div class="sc">
                         <div>
-                            <div class="sc-l">Sedang Dipinjam</div>
+                            <div class="sc-l">Aktif / Pending</div>
                             <div class="sc-v"><?= $ak ?></div>
                             <div class="sc-s">buku aktif</div>
                         </div>
@@ -267,9 +267,9 @@ $page_sub = 'Portal Anggota · Perpustakaan Digital';
                     <div class="dc">
                         <div class="dc-h">
                             <div class="dc-t">
-                                <i class="fas fa-book-open"></i> Buku Sedang Dipinjam
+                                <i class="fas fa-book-open"></i> Buku Dipinjam &amp; Menunggu Persetujuan
                             </div>
-                            <a href="kembali.php" class="dc-a">Kembalikan <i class="fas fa-arrow-right"></i></a>
+                            <a href="kembali.php" class="dc-a">Lihat Detail <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="table-responsive">
                             <table>
@@ -280,6 +280,7 @@ $page_sub = 'Portal Anggota · Perpustakaan Digital';
                                         <th>Pengarang</th>
                                         <th>Tgl Pinjam</th>
                                         <th>Jatuh Tempo</th>
+                                        <th>Status</th>
                                         <th>Sisa</th>
                                     </tr>
                                 </thead>
@@ -287,7 +288,12 @@ $page_sub = 'Portal Anggota · Perpustakaan Digital';
                                     <?php if ($rows && $rows->num_rows > 0): while ($r = $rows->fetch_assoc()):
                                         $due = strtotime($r['tgl_kembali_rencana']);
                                         $sisa = (int)ceil(($due - time()) / 86400);
-                                        if ($sisa < 0) {
+                                        $isPending = $r['status_transaksi'] === 'Pending';
+                                        if ($isPending) {
+                                            $sc = 'sl-w';
+                                            $icon = 'fa-hourglass-half';
+                                            $st = 'Menunggu persetujuan';
+                                        } elseif ($sisa < 0) {
                                             $sc = 'sl-ov';
                                             $icon = 'fa-exclamation-triangle';
                                             $st = 'Terlambat ' . abs($sisa) . ' hari';
@@ -314,13 +320,24 @@ $page_sub = 'Portal Anggota · Perpustakaan Digital';
                                         </td>
                                         <td class="text-sm"><?= htmlspecialchars($r['pengarang']) ?></td>
                                         <td><?= date('d M Y', strtotime($r['tgl_pinjam'])) ?></td>
-                                        <td><?= date('d M Y', $due) ?></td>
+                                        <td><?= $isPending ? '<span class="text-muted">—</span>' : date('d M Y', $due) ?></td>
+                                        <td>
+                                            <?php if ($isPending): ?>
+                                            <span class="badge badge-warning" style="font-size:0.78em;">
+                                                <i class="fas fa-hourglass-half"></i> Pending
+                                            </span>
+                                            <?php else: ?>
+                                            <span class="badge" style="background:rgba(59,130,246,0.15);color:#2563eb;font-size:0.78em;">
+                                                <i class="fas fa-book-open"></i> Dipinjam
+                                            </span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td><span class="sl <?= $sc ?>"><i class="fas <?= $icon ?>"></i>
                                                 <?= $st ?></span></td>
                                     </tr>
                                     <?php endwhile; else: ?>
                                     <tr>
-                                        <td colspan="6"
+                                        <td colspan="7"
                                             style="text-align:center; padding:48px; color:var(--neutral-500);">
                                             <i class="fas fa-smile"
                                                 style="font-size: 3rem; color: var(--soft-purple-light); margin-bottom: 12px;"></i>
