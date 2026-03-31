@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Anggota — Perpustakaan Digital</title>
+    <title>Daftar Anggota — Aetheria Library</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
                 </div>
                 <h1 class="register-title-large">
                     Bergabung dengan<br>
-                    <span>Perpustakaan Digital</span>
+                    <span>Aetheria Library</span>
                 </h1>
                 <p class="register-description">
                     Daftar sebagai anggota dan nikmati kemudahan mengakses ribuan koleksi buku dari mana saja, kapan saja.
@@ -212,8 +212,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
                 </div>
 
                 <p class="footer-text">
-                    © <?= date('Y') ?> Perpustakaan Digital · Daftar gratis untuk semua siswa terdaftar
+                    © <?= date('Y') ?> Aetheria Library · Daftar gratis untuk semua siswa terdaftar
                 </p>
+                <div class="credit" style="font-size:0.7rem; color:rgba(255,255,255,0.4); text-align:right;">
+                    <p>Developed by: <strong>@f1qxzz_</strong></p>
+                    <p>Inspired by: <strong>@ndyaghni_</strong></p>
+                    <p>© 2026 Aetheria Library Project</p>
+                </div>
             </div>
         </div>
     </div>

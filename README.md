@@ -1,8 +1,8 @@
-# 📚 Perpustakaan Digital
+# 📚 Aetheria Library
 
 ## 📖 Project Overview
 
-**Perpustakaan Digital** adalah aplikasi web PHP Native untuk mengelola operasional perpustakaan: katalogisasi buku, manajemen anggota, peminjaman, pengembalian, dan denda otomatis.
+**Aetheria Library** adalah aplikasi web PHP Native untuk mengelola operasional perpustakaan: katalogisasi buku, manajemen anggota, peminjaman, pengembalian, dan denda otomatis.
 
 ### 🔍 Masalah yang Diselesaikan
 - ❌ Pengelolaan peminjaman manual → ✅ Sistem digital terintegrasi
@@ -430,34 +430,6 @@ Admin click "Tolak"
 
 ---
 
-## 🔌 API
-
-### GET /api_search.php
-
-AJAX endpoint untuk book search.
-
-**Request:**
-```
-GET /api_search.php?q=harry&limit=10
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "results": [
-    {
-      "id_buku": 1,
-      "judul_buku": "Harry Potter",
-      "pengarang": "J.K. Rowling",
-      "cover": "uploads/cover/book1.jpg"
-    }
-  ]
-}
-```
-
----
-
 ## 🧪 Testing
 
 Checklist manual testing:
@@ -559,5 +531,5 @@ Checklist manual testing:
 
 ### 📜 License
 
-MIT License © 2024 Perpustakaan Digital
+MIT License © 2026 Aetheria Library
 

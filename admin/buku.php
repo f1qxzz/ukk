@@ -131,7 +131,7 @@ if (isset($_GET['edit'])) {
 }
 
 $page_title='Manajemen Buku';
-$page_sub='Kelola koleksi buku perpustakaan';
+$page_sub='Kelola koleksi buku Aetheria Library';
 $cssVer=@filemtime('../assets/css/admin_buku.css')?:time();
 ?>
 <!DOCTYPE html>
@@ -139,7 +139,7 @@ $cssVer=@filemtime('../assets/css/admin_buku.css')?:time();
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Buku — Admin Perpustakaan</title>
+<title>Buku — Admin Aetheria Library</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -165,7 +165,7 @@ $cssVer=@filemtime('../assets/css/admin_buku.css')?:time();
         <div class="page-header">
             <div>
                 <h1 class="page-header-title">Manajemen Buku</h1>
-                <p class="page-header-sub">Kelola koleksi buku perpustakaan</p>
+                <p class="page-header-sub">Kelola koleksi buku Aetheria Library</p>
             </div>
             <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
                 <i class="fas fa-plus-circle"></i> Tambah Buku Baru

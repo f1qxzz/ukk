@@ -138,7 +138,7 @@ $quotes = [
     ['Buku adalah teman terbaik yang tidak pernah mengecewakan.', 'Pepatah'],
     ['Satu buku yang kamu baca bisa mengubah hidupmu selamanya.', 'Nelson Mandela'],
     ['Investasi terbaik adalah investasi pada dirimu sendiri — membaca!', 'Benjamin Franklin'],
-    ['Perpustakaan adalah tempat di mana masa lalu dan masa depan bertemu.', 'A. Whitney Brown']
+    ['Perpustakaan adalah tempat di mana masa lalu dan masa depan bertemu dengan Aetheria Library.', 'A. Whitney Brown']
 ];
 $quote = $quotes[date('z') % count($quotes)];
 ?>
@@ -149,17 +149,18 @@ $quote = $quotes[date('z') % count($quotes)];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="description"
-        content="LibraSpace — Perpustakaan digital modern. Temukan, pinjam, and nikmati ribuan koleksi buku pilihan secara online.">
-    <title>LibraSpace — Perpustakaan Digital Modern</title>
+        content="Aetheria Library — Platform penyedia layanan perpustakaan digital terpadu. Temukan, pinjam, dan nikmati ribuan koleksi buku pilihan secara online.">
+    <title>Aetheria Library — Platform Penyedia Layanan Perpustakaan</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
         rel="stylesheet">
     <script>
         (function () {
-            try { if (localStorage.getItem('libraspace_dark') === '1') document.documentElement.classList.add('dark-mode-active'); } catch (e) { }
+            try { if (localStorage.getItem('aetheria_library_dark') === '1') document.documentElement.classList.add('dark-mode-active'); } catch (e) { }
         })();
     </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/index.css">
 </head>
@@ -174,7 +175,7 @@ $quote = $quotes[date('z') % count($quotes)];
         <div class="topbar-left">
             <div class="topbar-item">
                 <div class="topbar-dot <?= $buka ? 'dot-open' : 'dot-closed' ?>"></div>
-                <span><?= $buka ? 'Perpustakaan Buka' : 'Perpustakaan Tutup' ?> · <?= $jam_str ?> WIB</span>
+                <span><?= $buka ? 'Aetheria Library Buka' : 'Aetheria Library Tutup' ?> · <?= $jam_str ?> WIB</span>
             </div>
             <div class="topbar-item">📚 <?= $buku_tersedia ?> buku tersedia dari <?= $total_buku ?> koleksi</div>
             <?php if ($jatuh_tempo > 0 && ($isAdmin || $isPetugas)): ?>
@@ -189,7 +190,7 @@ $quote = $quotes[date('z') % count($quotes)];
     <nav class="nav" id="nav">
         <a href="index.php" class="nav-logo">
             <div class="nav-icon">📖</div>
-            <div class="nav-name">Libra<span>Space</span></div>
+            <div class="nav-name">Aetheria-<span>Library</span></div>
         </a>
         <div class="nav-links">
             <a href="#kategori">Kategori</a>
@@ -238,7 +239,7 @@ $quote = $quotes[date('z') % count($quotes)];
         </div>
 
         <div class="hero-left">
-            <div class="hero-tag"><span class="hero-dot"></span>Perpustakaan Digital Modern</div>
+            <div class="hero-tag"><span class="hero-dot"></span>Aetheria Library — Platform Perpustakaan</div>
             <br>
             <div class="hero-quote-pill">
                 <div class="hero-quote-ico">💬</div>
@@ -254,7 +255,7 @@ $quote = $quotes[date('z') % count($quotes)];
                 <span class="grad">Perluas Wawasanmu</span>
             </h1>
 
-            <p class="hero-desc">Platform perpustakaan sekolah terlengkap. Cari, pinjam, dan kelola buku dengan mudah —
+            <p class="hero-desc">Aetheria Library adalah platform terlengkap untuk manajemen perpustakaan. Cari, pinjam, dan kelola buku dengan mudah —
                 akses 24/7 dari mana saja.</p>
 
             <div class="search-wrap">
@@ -362,7 +363,7 @@ $quote = $quotes[date('z') % count($quotes)];
                 <div class="hw-row">
                     <div class="hw-ico" style="color: #f59e0b;">🕐</div>
                     <div>
-                        <div class="hw-label">Status Perpustakaan</div>
+                        <div class="hw-label">Status Aetheria Library</div>
                         <div class="hw-val" style="color:<?= $buka ? 'var(--c-green)' : 'var(--c-rose)' ?>">
                             <?= $buka ? 'Sedang Buka 🟢' : 'Tutup 🔴' ?></div>
                         <div class="hw-sub">Jam operasional 07.00–16.00</div>
@@ -455,7 +456,7 @@ $quote = $quotes[date('z') % count($quotes)];
                     </div>
 
                     <div class="featured-desc">
-                        <?= htmlspecialchars(mb_strimwidth($featured['deskripsi'] ?? 'Salah satu koleksi terbaik perpustakaan yang paling banyak dipinjam oleh anggota. Buku ini sangat direkomendasikan untuk memperkaya wawasan.', 0, 220, '…')) ?>
+                        <?= htmlspecialchars(mb_strimwidth($featured['deskripsi'] ?? 'Salah satu koleksi terbaik Aetheria Library yang paling banyak dipinjam oleh anggota. Buku ini sangat direkomendasikan untuk memperkaya wawasan.', 0, 220, '…')) ?>
                     </div>
 
                     <div class="featured-meta">
@@ -573,7 +574,7 @@ $quote = $quotes[date('z') % count($quotes)];
             <div>
                 <div class="sec-pill">Komunitas</div>
                 <h2 class="sec-h">Reading <em>Challenge</em></h2>
-                <p class="sec-sub">Target membaca komunitas perpustakaan tahun ini. Bergabung dan raih pencapaianmu!</p>
+                <p class="sec-sub">Target membaca komunitas Aetheria Library tahun ini. Bergabung dan raih pencapaianmu!</p>
                 <div class="challenge-stats"
                     style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:24px;">
                     <div class="cstat reveal">
@@ -774,11 +775,11 @@ $quote = $quotes[date('z') % count($quotes)];
             <?php
             $uls = !empty($ulasan_arr) ? $ulasan_arr : [
                 ['nama_anggota' => 'Budi Santoso', 'judul_buku' => 'Laskar Pelangi', 'rating' => 5, 'ulasan' => 'Sistem peminjaman sangat mudah dan cepat! Bisa akses katalog dari rumah.'],
-                ['nama_anggota' => 'Siti Rahayu', 'judul_buku' => 'Bumi Manusia', 'rating' => 5, 'ulasan' => 'Pengingat jatuh tempo sangat membantu. Tidak pernah terlambat lagi setelah pakai LibraSpace!'],
+                ['nama_anggota' => 'Siti Rahayu', 'judul_buku' => 'Bumi Manusia', 'rating' => 5, 'ulasan' => 'Pengingat jatuh tempo sangat membantu. Tidak pernah terlambat lagi setelah pakai Aetheria Library!'],
                 ['nama_anggota' => 'Andi Pratama', 'judul_buku' => 'Pemrograman PHP', 'rating' => 4, 'ulasan' => 'Interface yang intuitif dan modern. Fitur kategori memudahkan pencarian buku.'],
                 ['nama_anggota' => 'Dewi Lestari', 'judul_buku' => 'Fisika Dasar', 'rating' => 5, 'ulasan' => 'Tampilan web yang cantik dan informatif. Info ketersediaan buku real-time sangat berguna!'],
                 ['nama_anggota' => 'Reza Pahlawan', 'judul_buku' => 'Sejarah Indonesia', 'rating' => 4, 'ulasan' => 'Fitur riwayat peminjaman membantu saya melacak semua buku yang pernah dibaca. Keren!'],
-                ['nama_anggota' => 'Nurul Hidayah', 'judul_buku' => 'Matematika XII', 'rating' => 5, 'ulasan' => 'Proses daftar hingga bisa pinjam buku sangat cepat. Perpustakaan digital terbaik!'],
+                ['nama_anggota' => 'Nurul Hidayah', 'judul_buku' => 'Matematika XII', 'rating' => 5, 'ulasan' => 'Proses daftar hingga bisa pinjam buku sangat cepat. Aetheria Library adalah platform terbaik!'],
             ];
             foreach (array_slice($uls, 0, 6) as $idx => $u):
                 $stars = $u['rating'] ?? 5;
@@ -884,11 +885,11 @@ $quote = $quotes[date('z') % count($quotes)];
         </div>
         <div class="faq-wrap" style="max-width:720px; margin:0 auto;">
             <?php $faqs = [
-                ['Bagaimana cara mendaftar sebagai anggota perpustakaan?', 'Klik tombol "Daftar Gratis" di halaman utama, isi formulir dengan NIS, nama lengkap, kelas, username, dan password. Setelah mendaftar, akun langsung aktif dan siap digunakan untuk meminjam buku.'],
+                ['Bagaimana cara mendaftar sebagai anggota Aetheria Library?', 'Klik tombol "Daftar Gratis" di halaman utama, isi formulir dengan NIS, nama lengkap, kelas, username, dan password. Setelah mendaftar, akun langsung aktif dan siap digunakan untuk meminjam buku.'],
                 ['Berapa lama masa peminjaman buku?', 'Masa peminjaman adalah 7 hari kalender terhitung dari tanggal pinjam. Lewat dari batas waktu tersebut, akan dikenakan denda Rp 1.000 per hari per buku.'],
                 ['Berapa buku yang boleh dipinjam sekaligus?', 'Setiap anggota dapat meminjam maksimal 3 buku sekaligus. Peminjaman buku baru bisa dilakukan setelah salah satu buku dikembalikan.'],
-                ['Bagaimana cara mengembalikan buku?', 'Login ke akun kamu, masuk ke menu "Kembalikan Buku", pilih buku yang ingin dikembalikan, lalu bawa buku ke perpustakaan. Petugas akan memproses pengembalian dan memperbarui status di sistem.'],
-                ['Bagaimana cara membayar denda keterlambatan?', 'Denda dibayarkan langsung ke petugas perpustakaan saat pengembalian buku. Jumlah denda otomatis dihitung oleh sistem, dan kamu akan mendapat struk pembayaran dari petugas.'],
+                ['Bagaimana cara mengembalikan buku?', 'Login ke akun kamu, masuk ke menu "Kembalikan Buku", pilih buku yang ingin dikembalikan, lalu bawa ke Aetheria Library. Petugas akan memproses pengembalian dan memperbarui status di sistem.'],
+                ['Bagaimana cara membayar denda keterlambatan?', 'Denda dibayarkan langsung ke petugas Aetheria Library saat pengembalian buku. Jumlah denda otomatis dihitung oleh sistem, dan kamu akan mendapat struk pembayaran dari petugas.'],
                 ['Apakah saya bisa memberikan ulasan untuk buku yang dipinjam?', 'Ya! Setelah mengembalikan buku, kamu bisa memberikan rating bintang 1–5 dan menulis ulasan. Ulasanmu akan membantu anggota lain menemukan buku yang tepat.'],
             ];
             foreach ($faqs as $i => $f): ?>
@@ -918,7 +919,7 @@ $quote = $quotes[date('z') % count($quotes)];
                 <?php $ks = [
                     ['📍', 'var(--c-purple-pale)', 'Alamat', 'Jl. Mayor Kusmanto, Gedung B Lt.2<br>Klaten Jawa Tengah'],
                     ['📞', 'rgba(16,185,129,.15)', 'Telepon', '(021) 1234-5678<br>Senin–Jumat · 07.00–16.00 WIB'],
-                    ['✉️', 'rgba(245,158,11,.15)', 'Email', 'perpustakaan@sekolah.sch.id<br>Respon dalam 1×24 jam'],
+                    ['✉️', 'rgba(245,158,11,.15)', 'Email', 'info@aetherialibrary.sch.id<br>Respon dalam 1×24 jam'],
                     ['💬', 'rgba(236,72,153,.15)', 'WhatsApp', '+62 812-3456-7890<br>Chat langsung dengan petugas']
                 ];
                 foreach ($ks as $k): ?>
@@ -941,7 +942,7 @@ $quote = $quotes[date('z') % count($quotes)];
                 <div class="map-card"
                     style="height:100%; min-height:300px; background:var(--c-surface); border:1px solid var(--c-border); border-radius:var(--c-radius); display:flex; flex-direction:column; justify-content:center; align-items:center; color:var(--c-gray); text-align:center; padding:32px;">
                     <div style="font-size:3rem; margin-bottom:16px;">🗺️</div>
-                    <div style="font-weight:700; color:var(--c-text); margin-bottom:8px;">Peta Lokasi Perpustakaan</div>
+                    <div style="font-weight:700; color:var(--c-text); margin-bottom:8px;">Lokasi Aetheria Library</div>
                     <div style="font-size:.85rem; margin-bottom:20px;">Anda dapat mengunjungi kami secara langsung di
                         area sekolah.</div>
                     <a href="https://maps.app.goo.gl/zkJ2xQZe5J3rhHga8" target="_blank" class="btn-primary"
@@ -954,7 +955,7 @@ $quote = $quotes[date('z') % count($quotes)];
     <div class="cta-sec reveal">
         <div>
             <h2 class="cta-h">Siap Mulai Petualangan Membacamu?</h2>
-            <p class="cta-sub">Bergabung sekarang dan nikmati akses ke seluruh koleksi buku perpustakaan.<br>Gratis
+            <p class="cta-sub">Bergabung sekarang dan nikmati akses ke seluruh koleksi buku di Aetheria Library.<br>Gratis
                 untuk semua siswa terdaftar.</p>
         </div>
         <div class="cta-btns">
@@ -974,7 +975,7 @@ $quote = $quotes[date('z') % count($quotes)];
                     <div class="foot-brand" style="font-weight:800; color:white;">Libra<span>Space</span></div>
                 </div>
                 <p class="foot-desc" style="font-size:0.85rem; color:rgba(255,255,255,0.7); line-height:1.6;">Platform
-                    perpustakaan digital modern untuk sekolah. Memudahkan pengelolaan koleksi, peminjaman, dan
+                    platform terpadu Aetheria Library untuk sekolah. Memudahkan pengelolaan koleksi, peminjaman, dan
                     pengembalian buku secara efisien dan transparan.</p>
             </div>
             <div>
@@ -1028,13 +1029,18 @@ $quote = $quotes[date('z') % count($quotes)];
         </div>
         <div class="footer-bottom"
             style="margin-top:40px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-            <p class="foot-copy" style="font-size:0.75rem; color:rgba(255,255,255,0.5);">© <?= date('Y') ?> LibraSpace —
-                Sistem Perpustakaan Digital · All rights reserved.</p>
+            <p class="foot-copy" style="font-size:0.75rem; color:rgba(255,255,255,0.5);">© <?= date('Y') ?> Aetheria Library —
+                Sistem Manajemen Perpustakaan · All rights reserved.</p>
+            <div style="font-size:0.7rem; color:rgba(255,255,255,0.4); text-align:right;">
+                <p>Developed by: <strong>@f1qxzz_</strong></p>
+                <p>Inspired by: <strong>@ndyaghni_</strong></p>
+                <p>© 2026 Aetheria Library Project</p>
+            </div>
         </div>
     </div>
 
     <script>
-        const DM_KEY = 'libraspace_dark';
+        const DM_KEY = 'aetheria_library_dark';
         function toggleDark() {
             const html = document.documentElement;
             const body = document.body;

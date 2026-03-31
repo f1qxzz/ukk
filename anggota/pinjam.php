@@ -86,7 +86,7 @@ $page_sub   = 'Pilih buku yang ingin dipinjam';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pinjam Buku — Perpustakaan Digital</title>
+    <title>Pinjam Buku — Aetheria Library</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -106,7 +106,7 @@ $page_sub   = 'Pilih buku yang ingin dipinjam';
             <div class="sidebar-brand">
                 <div class="brand-icon">📚</div>
                 <div>
-                    <div class="brand-name">Perpustakaan Digital</div>
+                    <div class="brand-name">Aetheria Library</div>
                     <div class="brand-role">ANGGOTA</div>
                 </div>
             </div>
@@ -211,7 +211,7 @@ $page_sub   = 'Pilih buku yang ingin dipinjam';
                 <div class="page-header">
                     <div>
                         <h1 class="page-header-title">Pinjam Buku</h1>
-                        <p class="page-header-sub">Pilih buku yang ingin dipinjam dari koleksi perpustakaan</p>
+                        <p class="page-header-sub">Pilih buku yang ingin dipinjam dari koleksi Aetheria Library</p>
                     </div>
                     <a href="katalog.php" class="btn-secondary">
                         <i class="fas fa-search"></i> Lihat Katalog

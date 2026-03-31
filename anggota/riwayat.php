@@ -51,7 +51,7 @@ $page_sub   = 'Lihat semua aktivitas peminjaman Anda';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Riwayat — Perpustakaan Digital</title>
+    <title>Riwayat — Aetheria Library</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -71,7 +71,7 @@ $page_sub   = 'Lihat semua aktivitas peminjaman Anda';
             <div class="sidebar-brand">
                 <div class="brand-icon">📚</div>
                 <div>
-                    <div class="brand-name">Perpustakaan Digital</div>
+                    <div class="brand-name">Aetheria Library</div>
                     <div class="brand-role">ANGGOTA</div>
                 </div>
             </div>

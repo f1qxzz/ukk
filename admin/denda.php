@@ -96,7 +96,7 @@ $page_sub   = 'Kelola denda keterlambatan pengembalian';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Denda — Admin Perpustakaan</title>
+    <title>Denda — Admin Aetheria Library</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -112,34 +112,6 @@ $page_sub   = 'Kelola denda keterlambatan pengembalian';
 
         <div class="main-area">
             <?php include 'includes/header.php'; ?>
-        <!-- MAIN AREA -->
-        <div class="main-area">
-            <!-- HEADER -->
-            <header class="topbar">
-                <div class="page-info">
-                    <h1 class="page-title"><?= htmlspecialchars($page_title) ?></h1>
-                    <div class="page-breadcrumb"><?= htmlspecialchars($page_sub) ?></div>
-                </div>
-                <div class="topbar-right">
-                    <div class="topbar-date">
-                        <i class="far fa-calendar-alt"></i> <?= date('d M Y') ?>
-                    </div>
-                    <div class="topbar-user">
-                        <div class="topbar-avatar">
-                            <?php if ($fotoPath): ?>
-                            <img src="<?= $fotoPath ?>" alt="Foto">
-                            <?php else: ?>
-                            <?= htmlspecialchars($initials) ?>
-                            <?php endif; ?>
-                        </div>
-                        <span class="topbar-username"><?= htmlspecialchars(getPenggunaName()) ?></span>
-                    </div>
-                    <a href="logout.php" class="btn-logout">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </a>
-                </div>
-            </header>
 
             <!-- CONTENT -->
             <main class="content">

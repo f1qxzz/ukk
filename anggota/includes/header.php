@@ -1,6 +1,6 @@
 <?php /* anggota/includes/header.php */
 $page_title = $page_title ?? 'Dashboard';
-$page_sub   = $page_sub   ?? 'Portal Anggota · Perpustakaan Digital';
+$page_sub   = $page_sub   ?? 'Portal Anggota · Aetheria Library';
 
 // Ambil data anggota untuk foto profil
 require_once dirname(__DIR__, 2) . '/config/database.php';
@@ -93,4 +93,185 @@ $fotoPath = (!empty($anggotaData['foto']) && file_exists(dirname(__DIR__, 2) . '
     height: 100%;
     object-fit: cover;
 }
+
+/* GLOBAL RESPONSIVE LAYOUT (semua role) */
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: none;
+    opacity: 0;
+    z-index: 999;
+    transition: opacity .25s ease;
+}
+.sidebar-overlay.show {
+    display: block;
+    opacity: 1;
+}
+
+@media (max-width: 1024px) {
+    .sidebar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        transform: translateX(-100%) !important;
+        width: 280px !important;
+        height: 100vh !important;
+        z-index: 1000 !important;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.2) !important;
+    }
+
+    .sidebar.open {
+        transform: translateX(0) !important;
+    }
+
+    .main-area {
+        margin-left: 0 !important;
+    }
+
+    .content {
+        padding: 16px !important;
+    }
+
+    .topbar {
+        padding: 12px 14px !important;
+    }
+
+    .page-title {
+        font-size: 1rem !important;
+    }
+
+    .page-breadcrumb {
+        font-size: 0.74rem !important;
+    }
+
+    .topbar-right {
+        gap: 10px !important;
+    }
+
+    .stats-grid,
+    .srow,
+    .rpt-stats {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .rpt-table,
+    .table-responsive {
+        width: 100% !important;
+        overflow-x: auto !important;
+    }
+
+    .report-document,
+    .report-container {
+        margin: 12px !important;
+        padding: 0 !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100% !important;
+    }
+
+    .sidebar-toggle {
+        display: inline-flex !important;
+    }
+
+    .topbar {
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+    }
+
+    .topbar-left,
+    .topbar-right {
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+
+    .topbar-date,
+    .topbar-user .topbar-username {
+        display: none !important;
+    }
+
+    .btn-logout,
+    .modern-btn-logout {
+        padding: 8px 10px !important;
+        font-size: 0.75rem !important;
+    }
+
+    .stats-grid,
+    .srow,
+    .rpt-stats {
+        grid-template-columns: 1fr !important;
+    }
+
+    .wb,
+    .page-header,
+    .rpt-letterhead,
+    .rpt-title-band {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 0.92rem !important;
+    }
+
+    .nav-link,
+    .topbar-date,
+    .topbar-user,
+    .modern-btn-logout,
+    .btn-logout {
+        font-size: 0.8rem !important;
+    }
+
+    .content {
+        padding: 12px !important;
+    }
+
+    .rpt-table th,
+    .rpt-table td {
+        padding: 8px !important;
+        font-size: 0.75rem !important;
+    }
+
+    .rpt-stats,
+    .stat-card,
+    .sc {
+        padding: 10px !important;
+    }
+}
 </style>
+
+<script>
+// Toggle sidebar from hamburger button (fallback if script.js belum dipanggil)
+document.addEventListener('DOMContentLoaded', function() {
+    const toggle = document.querySelector('.sidebar-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+
+    if (!toggle || !sidebar) return;
+
+    toggle.addEventListener('click', function() {
+        sidebar.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+    });
+
+    if (overlay) {
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+            if (overlay) overlay.classList.remove('show');
+        }
+    });
+});
+</script>

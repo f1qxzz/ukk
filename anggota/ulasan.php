@@ -91,7 +91,7 @@ $page_sub   = 'Bagikan pengalaman membaca Anda';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ulasan Buku — Perpustakaan Digital</title>
+    <title>Ulasan Buku — Aetheria Library</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -111,7 +111,7 @@ $page_sub   = 'Bagikan pengalaman membaca Anda';
             <div class="sidebar-brand">
                 <div class="brand-icon">📚</div>
                 <div>
-                    <div class="brand-name">Perpustakaan Digital</div>
+                    <div class="brand-name">Aetheria Library</div>
                     <div class="brand-role">ANGGOTA</div>
                 </div>
             </div>

@@ -88,7 +88,7 @@ $rows = $conn->query("SELECT t.*, a.nama_anggota, a.nis, b.judul_buku, b.cover
                       ORDER BY t.tgl_pinjam DESC LIMIT 8");
 
 $page_title = 'Dashboard';
-$page_sub = 'Panel Petugas · Perpustakaan Digital';
+$page_sub = 'Panel Petugas · Aetheria Library';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -96,7 +96,7 @@ $page_sub = 'Panel Petugas · Perpustakaan Digital';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Petugas — Perpustakaan Digital</title>
+    <title>Dashboard Petugas — Aetheria Library</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link

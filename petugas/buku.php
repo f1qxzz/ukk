@@ -198,7 +198,7 @@ if (isset($_GET['edit'])) {
 }
 
 $page_title = 'Manajemen Buku';
-$page_sub   = 'Kelola koleksi buku perpustakaan';
+$page_sub   = 'Kelola koleksi buku Aetheria Library';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -206,7 +206,7 @@ $page_sub   = 'Kelola koleksi buku perpustakaan';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buku — Petugas Perpustakaan</title>
+    <title>Buku — Petugas Aetheria Library</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -236,7 +236,7 @@ $page_sub   = 'Kelola koleksi buku perpustakaan';
                 <div class="page-header">
                     <div>
                         <h1 class="page-header-title">Manajemen Buku</h1>
-                        <p class="page-header-sub">Kelola koleksi buku perpustakaan</p>
+                        <p class="page-header-sub">Kelola koleksi buku Aetheria Library</p>
                     </div>
                     <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
                         <i class="fas fa-plus-circle"></i>

@@ -8,7 +8,7 @@ $cp = basename($_SERVER['PHP_SELF']);
             <i class="fas fa-book-open"></i>
         </div>
         <div>
-            <div class="brand-name">Perpustakaan</div>
+            <div class="brand-name">Aetheria Library</div>
             <div class="brand-role">Petugas</div>
         </div>
     </div>

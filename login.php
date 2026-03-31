@@ -103,7 +103,7 @@ $quotes = [
     ['Buku adalah teman terbaik yang tidak pernah mengecewakan.', 'Pepatah'],
     ['Satu buku yang kamu baca bisa mengubah hidupmu selamanya.', 'Nelson Mandela'],
     ['Investasi terbaik adalah investasi pada dirimu sendiri — membaca!', 'Benjamin Franklin'],
-    ['Perpustakaan adalah tempat di mana masa lalu dan masa depan bertemu.', 'A. Whitney Brown'],
+    ['Perpustakaan adalah tempat di mana masa lalu dan masa depan bertemu dengan Aetheria Library.', 'A. Whitney Brown'],
 ];
 $quote = $quotes[date('z') % count($quotes)];
 ?>
@@ -112,7 +112,7 @@ $quote = $quotes[date('z') % count($quotes)];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masuk — Perpustakaan Digital</title>
+    <title>Masuk — Aetheria Library</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
@@ -128,7 +128,7 @@ $quote = $quotes[date('z') % count($quotes)];
                 </div>
                 <h1 class="login-title-large">
                     Selamat Datang di<br>
-                    <span>Perpustakaan Digital</span>
+                    <span>Aetheria Library</span>
                 </h1>
                 <p class="login-description">
                     Platform manajemen perpustakaan modern untuk mengelola koleksi, anggota, dan transaksi peminjaman
@@ -231,8 +231,13 @@ $quote = $quotes[date('z') % count($quotes)];
                 </div>
 
                 <p class="footer-text">
-                    © <?= date('Y') ?> Perpustakaan Digital · Sistem Peminjaman Buku
+                    © <?= date('Y') ?> Aetheria Library · Sistem Manajemen Perpustakaan
                 </p>
+                <div class="credit" style="font-size:0.7rem; color:rgba(255,255,255,0.4); text-align:right;">
+                    <p>Developed by: <strong>@f1qxzz_</strong></p>
+                    <p>Inspired by: <strong>@ndyaghni_</strong></p>
+                    <p>© 2026 Aetheria Library Project</p>
+                </div>
             </div>
         </div>
     </div>

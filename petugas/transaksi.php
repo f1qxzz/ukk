@@ -77,7 +77,7 @@ if ($jenis === 'denda') { $page_title = 'Laporan Denda'; $prefix = 'DND'; }
 if ($jenis === 'buku') { $page_title = 'Laporan Data Buku'; $prefix = 'BKU'; }
 if ($jenis === 'anggota') { $page_title = 'Laporan Data Anggota'; $prefix = 'AGT'; }
 
-$page_sub   = 'Ringkasan data sirkulasi dan master perpustakaan';
+$page_sub   = 'Ringkasan data sirkulasi dan master Aetheria Library';
 $no_laporan = 'PTG-' . date('Ymd') . '-' . $prefix;
 $tgl_cetak  = date('d F Y');
 $jam_cetak  = date('H:i') . ' WIB';
@@ -88,7 +88,7 @@ $cssVer     = @filemtime('../assets/css/petugas_laporan.css') ?: time();
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?= $page_title ?> — Petugas Perpustakaan</title>
+<title><?= $page_title ?> — Petugas Aetheria Library</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -201,7 +201,7 @@ $cssVer     = @filemtime('../assets/css/petugas_laporan.css') ?: time();
 <div class="page-header no-print">
     <div>
         <h1 class="page-header-title"><?= $page_title ?></h1>
-        <p class="page-header-sub">Ringkasan data sirkulasi dan master perpustakaan</p>
+        <p class="page-header-sub">Ringkasan data sirkulasi dan master Aetheria Library</p>
     </div>
     <button class="btn-print" onclick="window.print()">
         <i class="fas fa-print"></i> Cetak Laporan
@@ -259,8 +259,8 @@ $cssVer     = @filemtime('../assets/css/petugas_laporan.css') ?: time();
 <div class="print-header">
     <div class="print-header-top">
         <div>
-            <div class="ph-brand">Perpustakaan Digital</div>
-            <div class="ph-address">Jl. Pendidikan No. 1<br>Sistem Manajemen Perpustakaan</div>
+            <div class="ph-brand">Aetheria Library</div>
+            <div class="ph-address">Jl. Pendidikan No. 1<br>Sistem Manajemen Aetheria Library</div>
         </div>
         <div class="ph-doc">
             <div class="ph-doc-title"><?= $page_title ?></div>
@@ -450,13 +450,13 @@ $cssVer     = @filemtime('../assets/css/petugas_laporan.css') ?: time();
 <div class="print-footer">
     <div class="pf-note">
         <strong>Catatan:</strong><br>
-        Dokumen ini merupakan hasil cetak otomatis dari Sistem Manajemen Perpustakaan.<br>
+        Dokumen ini merupakan hasil cetak otomatis dari Sistem Manajemen Aetheria Library.<br>
         Informasi yang tertera sesuai dengan data pada sistem saat dicetak.
     </div>
     <div class="pf-signature">
         <div class="pf-sign-title">Mengetahui,</div>
         <div class="pf-sign-name"><?= htmlspecialchars(getPenggunaName()) ?></div>
-        <div class="pf-sign-role">Petugas Perpustakaan</div>
+        <div class="pf-sign-role">Petugas Aetheria Library</div>
     </div>
 </div>
 

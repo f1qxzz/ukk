@@ -1,4 +1,4 @@
-/* Perpustakaan Digital — Script v2.0 */
+/* Aetheria Library — Script v2.0 */
 document.addEventListener('DOMContentLoaded', () => {
   // Mobile sidebar toggle
   const sidebar = document.querySelector('.sidebar');

@@ -46,7 +46,7 @@ $books = $conn->query($q);
 $book_emojis = ['📗','📘','📕','📙','📓','📔','📒'];
 
 $page_title = 'Katalog Buku';
-$page_sub   = 'Jelajahi koleksi perpustakaan';
+$page_sub   = 'Jelajahi koleksi Aetheria Library';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -54,7 +54,7 @@ $page_sub   = 'Jelajahi koleksi perpustakaan';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog — Perpustakaan Digital</title>
+    <title>Katalog — Aetheria Library</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -74,7 +74,7 @@ $page_sub   = 'Jelajahi koleksi perpustakaan';
             <div class="sidebar-brand">
                 <div class="brand-icon">📚</div>
                 <div>
-                    <div class="brand-name">Perpustakaan Digital</div>
+                    <div class="brand-name">Aetheria Library</div>
                     <div class="brand-role">ANGGOTA</div>
                 </div>
             </div>

@@ -45,7 +45,7 @@ $rows = $conn->query("SELECT t.*, b.judul_buku, b.pengarang, b.cover, b.id_buku
                       ORDER BY t.tgl_pinjam DESC");
 
 $page_title = 'Dashboard';
-$page_sub = 'Portal Anggota · Perpustakaan Digital';
+$page_sub = 'Portal Anggota · Aetheria Library';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -53,7 +53,7 @@ $page_sub = 'Portal Anggota · Perpustakaan Digital';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Anggota — Perpustakaan Digital</title>
+    <title>Dashboard Anggota — Aetheria Library</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -73,7 +73,7 @@ $page_sub = 'Portal Anggota · Perpustakaan Digital';
             <div class="sidebar-brand">
                 <div class="brand-icon">📚</div>
                 <div>
-                    <div class="brand-name">Perpustakaan Digital</div>
+                    <div class="brand-name">Aetheria Library</div>
                     <div class="brand-role">ANGGOTA</div>
                 </div>
             </div>
