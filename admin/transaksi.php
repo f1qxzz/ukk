@@ -167,7 +167,11 @@ $page_sub   = 'Pencatatan Peminjaman & Pengembalian Buku';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>Transaksi — Admin Cozy-Library</title>
+=======
+    <title>Transaksi — Admin Aetheria Library</title>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link

@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 # 📚 Cozy-Library
 
 ## 📖 Project Overview
 
 **Cozy-Library** adalah aplikasi web PHP Native untuk mengelola operasional perpustakaan: katalogisasi buku, manajemen anggota, peminjaman, pengembalian, dan denda otomatis.
+=======
+# 📚 Aetheria Library
+
+## 📖 Project Overview
+
+**Aetheria Library** adalah aplikasi web PHP Native untuk mengelola operasional perpustakaan: katalogisasi buku, manajemen anggota, peminjaman, pengembalian, dan denda otomatis.
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 
 ### 🔍 Masalah yang Diselesaikan
 - ❌ Pengelolaan peminjaman manual → ✅ Sistem digital terintegrasi
@@ -60,7 +68,11 @@
 ## 📁 Project Structure
 
 ```
+<<<<<<< HEAD
 Cozy-Library/
+=======
+Aetheria-Library/
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 ├── 📄 index.php                 ← Landing page
 ├── 📄 login.php                 ← Login page
 ├── 📄 register.php              ← Register anggota
@@ -275,8 +287,13 @@ Cozy-Library/
 **1. Clone Repository**
 ```bash
 cd C:\xampp\htdocs
+<<<<<<< HEAD
 git clone https://github.com/yourname/perpustakaan-digital.git Cozy-Library
 cd Cozy-Library
+=======
+git clone https://github.com/yourname/perpustakaan-digital.git Aetheria-Library
+cd Aetheria-Library
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 ```
 
 **2. Start XAMPP Services**
@@ -295,14 +312,24 @@ EXIT;
 
 **4. Run Setup Script**
 ```
+<<<<<<< HEAD
 Buka: http://localhost/Cozy-Library/setup.php
+=======
+Buka: http://localhost/Aetheria-Library/setup.php
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 ```
 
 **5. Verify Installation**
 ```
+<<<<<<< HEAD
 http://localhost/Cozy-Library                 # Homepage
 http://localhost/Cozy-Library/login.php       # Login page
 http://localhost/Cozy-Library/register.php    # Register page
+=======
+http://localhost/Aetheria-Library                 # Homepage
+http://localhost/Aetheria-Library/login.php       # Login page
+http://localhost/Aetheria-Library/register.php    # Register page
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 ```
 
 ---
@@ -335,34 +362,59 @@ define('DENDA_PER_HARI', 1000);      // Fine per day (Rp)
 
 ```bash
 # 1. Start XAMPP (Apache + MySQL)
+<<<<<<< HEAD
 # 2. Open browser: http://localhost/Cozy-Library
+=======
+# 2. Open browser: http://localhost/Aetheria-Library
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 # 3. Browse atau login dengan akun test:
 
 # Admin:
 # - Username: admin
 # - Password: admin123
+<<<<<<< HEAD
 # - Go to: http://localhost/Cozy-Library/admin/dashboard.php
+=======
+# - Go to: http://localhost/Aetheria-Library/admin/dashboard.php
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 
 # Petugas:
 # - Username: petugas
 # - Password: petugas123
+<<<<<<< HEAD
 # - Go to: http://localhost/Cozy-Library/petugas/dashboard.php
 
 # Anggota (Member):
 # - Register di http://localhost/Cozy-Library/register.php
 # - Go to: http://localhost/Cozy-Library/anggota/dashboard.php
+=======
+# - Go to: http://localhost/Aetheria-Library/petugas/dashboard.php
+
+# Anggota (Member):
+# - Register di http://localhost/Aetheria-Library/register.php
+# - Go to: http://localhost/Aetheria-Library/anggota/dashboard.php
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 ```
 
 ### 📍 Main URLs
 
 | Role | Page | URL |
 |------|------|-----|
+<<<<<<< HEAD
 | **Public** | Homepage | `http://localhost/Cozy-Library` |
 | **Public** | Login | `http://localhost/Cozy-Library/login.php` |
 | **Public** | Register | `http://localhost/Cozy-Library/register.php` |
 | **Admin** | Dashboard | `http://localhost/Cozy-Library/admin/dashboard.php` |
 | **Petugas** | Dashboard | `http://localhost/Cozy-Library/petugas/dashboard.php` |
 | **Anggota** | Dashboard | `http://localhost/Cozy-Library/anggota/dashboard.php` |
+=======
+| **Public** | Homepage | `http://localhost/Aetheria-Library` |
+| **Public** | Login | `http://localhost/Aetheria-Library/login.php` |
+| **Public** | Register | `http://localhost/Aetheria-Library/register.php` |
+| **Admin** | Dashboard | `http://localhost/Aetheria-Library/admin/dashboard.php` |
+| **Petugas** | Dashboard | `http://localhost/Aetheria-Library/petugas/dashboard.php` |
+| **Anggota** | Dashboard | `http://localhost/Aetheria-Library/anggota/dashboard.php` |
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 
 ---
 
@@ -531,5 +583,9 @@ Checklist manual testing:
 
 ### 📜 License
 
+<<<<<<< HEAD
 MIT License © 2026 Cozy-Library
+=======
+MIT License © 2026 Aetheria Library
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 

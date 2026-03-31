@@ -1,6 +1,10 @@
 <?php /* petugas/includes/header.php */
 $page_title = $page_title ?? 'Dashboard';
+<<<<<<< HEAD
 $page_sub   = $page_sub   ?? 'Panel Petugas · Cozy-Library';
+=======
+$page_sub   = $page_sub   ?? 'Panel Petugas · Aetheria Library';
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 
 // Ambil data pengguna untuk foto profil
 require_once dirname(__DIR__, 2) . '/config/database.php';

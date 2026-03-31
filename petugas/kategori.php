@@ -76,7 +76,11 @@ if(isset($_GET['edit'])){
 }
 
 $page_title = 'Manajemen Kategori';
+<<<<<<< HEAD
 $page_sub   = 'Kelola kategori buku Cozy-Library';
+=======
+$page_sub   = 'Kelola kategori buku Aetheria Library';
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -84,7 +88,11 @@ $page_sub   = 'Kelola kategori buku Cozy-Library';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>Kategori — Petugas Cozy-Library</title>
+=======
+    <title>Kategori — Petugas Aetheria Library</title>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -114,7 +122,11 @@ $page_sub   = 'Kelola kategori buku Cozy-Library';
                 <div class="page-header">
                     <div>
                         <h1 class="page-header-title">Manajemen Kategori</h1>
+<<<<<<< HEAD
                         <p class="page-header-sub">Kelola kategori buku Cozy-Library</p>
+=======
+                        <p class="page-header-sub">Kelola kategori buku Aetheria Library</p>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
                     </div>
                     <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
                         <i class="fas fa-tag"></i>

@@ -126,7 +126,11 @@ $page_sub = 'Kelola akun admin dan petugas';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>Pengguna — Admin Cozy-Library</title>
+=======
+    <title>Pengguna — Admin Aetheria Library</title>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -155,7 +159,11 @@ $page_sub = 'Kelola akun admin dan petugas';
                 <div class="page-header">
                     <div>
                         <h1 class="page-header-title">Manajemen Pengguna</h1>
+<<<<<<< HEAD
                         <p class="page-header-sub">Kelola akun admin dan petugas Cozy-Library</p>
+=======
+                        <p class="page-header-sub">Kelola akun admin dan petugas Aetheria Library</p>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
                     </div>
                     <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
                         <i class="fas fa-plus"></i>

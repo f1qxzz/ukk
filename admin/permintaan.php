@@ -161,14 +161,22 @@ if ($existingCount == 0) {
 }
 
 $page_title = 'Permintaan Peminjaman';
+<<<<<<< HEAD
 $page_sub   = 'Sistem Manajemen Cozy-Library';
+=======
+$page_sub   = 'Sistem Manajemen Aetheria Library';
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
 <title>Permintaan Peminjaman — Admin Cozy-Library</title>
+=======
+<title>Permintaan Peminjaman — Admin Aetheria Library</title>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -390,7 +398,11 @@ td { padding: 13px 14px; vertical-align: middle; color: var(--neutral-700); }
     <div class="sidebar-brand">
       <div class="brand-icon">📚</div>
       <div>
+<<<<<<< HEAD
         <div class="brand-name">Cozy-Library</div>
+=======
+        <div class="brand-name">Aetheria Library</div>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
         <div class="brand-role">ADMINISTRATOR</div>
       </div>
     </div>

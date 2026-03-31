@@ -6,7 +6,11 @@ $cp = basename($_SERVER['PHP_SELF']);
   <div class="sidebar-brand">
     <div class="brand-icon admin">📖</div>
     <div>
+<<<<<<< HEAD
       <div class="brand-name">Cozy-Library</div>
+=======
+      <div class="brand-name">Aetheria Library</div>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
       <div class="brand-role">Administrator</div>
     </div>
   </div>

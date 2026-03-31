@@ -3,7 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
+<<<<<<< HEAD
     <title>Setup – Cozy-Library</title>
+=======
+    <title>Setup – Aetheria Library</title>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
     body {
@@ -68,7 +72,11 @@
 
 <body>
     <div class="box">
+<<<<<<< HEAD
         <h1><i class="fas fa-book" style="color:#2563eb; margin-right:8px;"></i>Setup Cozy-Library</h1>
+=======
+        <h1><i class="fas fa-book" style="color:#2563eb; margin-right:8px;"></i>Setup Aetheria Library</h1>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
         <?php
 require_once 'config/database.php';
 

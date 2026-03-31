@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Cozy-Library — Script v2.0 */
+=======
+/* Aetheria Library — Script v2.0 */
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 document.addEventListener('DOMContentLoaded', () => {
   // Mobile sidebar toggle
   const sidebar = document.querySelector('.sidebar');

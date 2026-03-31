@@ -103,7 +103,11 @@ $quotes = [
     ['Buku adalah teman terbaik yang tidak pernah mengecewakan.', 'Pepatah'],
     ['Satu buku yang kamu baca bisa mengubah hidupmu selamanya.', 'Nelson Mandela'],
     ['Investasi terbaik adalah investasi pada dirimu sendiri — membaca!', 'Benjamin Franklin'],
+<<<<<<< HEAD
     ['Perpustakaan adalah tempat di mana masa lalu dan masa depan bertemu dengan Cozy-Library.', 'A. Whitney Brown'],
+=======
+    ['Perpustakaan adalah tempat di mana masa lalu dan masa depan bertemu dengan Aetheria Library.', 'A. Whitney Brown'],
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 ];
 $quote = $quotes[date('z') % count($quotes)];
 ?>
@@ -112,7 +116,11 @@ $quote = $quotes[date('z') % count($quotes)];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>Masuk — Cozy-Library</title>
+=======
+    <title>Masuk — Aetheria Library</title>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
@@ -128,7 +136,11 @@ $quote = $quotes[date('z') % count($quotes)];
                 </div>
                 <h1 class="login-title-large">
                     Selamat Datang di<br>
+<<<<<<< HEAD
                     <span>Cozy-Library</span>
+=======
+                    <span>Aetheria Library</span>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
                 </h1>
                 <p class="login-description">
                     Platform manajemen perpustakaan modern untuk mengelola koleksi, anggota, dan transaksi peminjaman
@@ -231,12 +243,20 @@ $quote = $quotes[date('z') % count($quotes)];
                 </div>
 
                 <p class="footer-text">
+<<<<<<< HEAD
                     © <?= date('Y') ?> Cozy-Library · Sistem Manajemen Perpustakaan
+=======
+                    © <?= date('Y') ?> Aetheria Library · Sistem Manajemen Perpustakaan
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
                 </p>
                 <div class="credit" style="font-size:0.7rem; color:rgba(255,255,255,0.4); text-align:right;">
                     <p>Developed by: <strong>@f1qxzz_</strong></p>
                     <p>Inspired by: <strong>@ndyaghni_</strong></p>
+<<<<<<< HEAD
                     <p>© 2026 Cozy-Library Project</p>
+=======
+                    <p>© 2026 Aetheria Library Project</p>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
                 </div>
             </div>
         </div>

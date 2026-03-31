@@ -1,6 +1,10 @@
 <?php /* anggota/includes/header.php */
 $page_title = $page_title ?? 'Dashboard';
+<<<<<<< HEAD
 $page_sub   = $page_sub   ?? 'Portal Anggota · Cozy-Library';
+=======
+$page_sub   = $page_sub   ?? 'Portal Anggota · Aetheria Library';
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 
 // Ambil data anggota untuk foto profil
 require_once dirname(__DIR__, 2) . '/config/database.php';

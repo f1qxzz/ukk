@@ -98,7 +98,11 @@ $rows = $conn->query(
      LIMIT 8"
 );
 $page_title = 'Dashboard';
+<<<<<<< HEAD
 $page_sub   = 'Admin Panel · Cozy-Library';
+=======
+$page_sub   = 'Admin Panel · Aetheria Library';
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -106,7 +110,11 @@ $page_sub   = 'Admin Panel · Cozy-Library';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>Dashboard Admin — Cozy-Library</title>
+=======
+    <title>Dashboard Admin — Aetheria Library</title>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -208,7 +216,11 @@ $page_sub   = 'Admin Panel · Cozy-Library';
                     </div>
                     <div>
                         <div class="wb-name">Halo, <?= htmlspecialchars(getPenggunaName()) ?> 👋</div>
+<<<<<<< HEAD
                         <div class="wb-desc">Kelola seluruh sistem perpustakaan dari satu tempat · Admin Cozy-Library</div>
+=======
+                        <div class="wb-desc">Kelola seluruh sistem perpustakaan dari satu tempat · Admin Aetheria Library</div>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
                     </div>
                     <div class="wb-actions">
                         <a href="buku.php"    class="wb-btn1"><i class="fas fa-plus"></i> Tambah Buku</a>

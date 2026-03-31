@@ -192,7 +192,11 @@ $current_label = $jenis_labels[$jenis] ?? 'Laporan';
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
 <title>Laporan — Admin Cozy-Library</title>
+=======
+<title>Laporan — Admin Aetheria Library</title>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -434,7 +438,11 @@ $current_label = $jenis_labels[$jenis] ?? 'Laporan';
         <div class="page-header no-print">
             <div>
                 <h1 class="page-header-title">Laporan</h1>
+<<<<<<< HEAD
                 <p class="page-header-sub">Rekap data dan statistik Cozy-Library</p>
+=======
+                <p class="page-header-sub">Rekap data dan statistik Aetheria Library</p>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
             </div>
             <button class="btn-print" onclick="window.print()"><i class="fas fa-print"></i> Cetak PDF</button>
         </div>
@@ -504,8 +512,13 @@ $current_label = $jenis_labels[$jenis] ?? 'Laporan';
         <div class="print-header">
             <div class="print-header-top">
                 <div>
+<<<<<<< HEAD
                     <div class="ph-brand">Cozy-Library</div>
                     <div class="ph-address">Jl. Pendidikan No. 1<br>Sistem Manajemen Cozy-Library</div>
+=======
+                    <div class="ph-brand">Aetheria Library</div>
+                    <div class="ph-address">Jl. Pendidikan No. 1<br>Sistem Manajemen Aetheria Library</div>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
                 </div>
                 <div class="ph-doc">
                     <div class="ph-doc-title">Laporan <?= htmlspecialchars($current_label) ?></div>
@@ -764,12 +777,20 @@ $current_label = $jenis_labels[$jenis] ?? 'Laporan';
         <div class="print-footer">
             <div class="pf-note">
                 <strong>Catatan:</strong><br>
+<<<<<<< HEAD
                 Dokumen ini merupakan hasil cetak otomatis dari Sistem Manajemen Cozy-Library.<br>
+=======
+                Dokumen ini merupakan hasil cetak otomatis dari Sistem Manajemen Aetheria Library.<br>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
                 Informasi yang tertera sesuai dengan data pada sistem saat dicetak.
             </div>
             <div class="pf-signature">
                 <div class="pf-sign-title">Mengetahui,</div>
+<<<<<<< HEAD
                 <div class="pf-sign-name">Petugas Cozy-Library</div>
+=======
+                <div class="pf-sign-name">Petugas Aetheria Library</div>
+>>>>>>> 5232a5f60eb854b7cd5d450c49fd4aab111701b2
                 <div class="pf-sign-role">Penanggung Jawab Laporan</div>
             </div>
         </div>
